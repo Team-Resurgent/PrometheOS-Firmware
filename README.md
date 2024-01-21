@@ -15,7 +15,7 @@
 
 Please see below for instructions regarding PrometheOS and how to use.
 
-BEWARE: It is recommended you have a external xenium programmer incase your no longer able to boot into PrometheOS
+BEWARE: It is recommended you have a external xenium programmer incase you're no longer able to boot into PrometheOS
 
 ## System Requirements
 ### Minimum
