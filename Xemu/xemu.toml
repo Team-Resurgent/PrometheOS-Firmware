@@ -1,0 +1,26 @@
+[general]
+show_welcome = false
+screenshot_dir = '.\screenshots'
+
+[general.updates]
+check = false
+
+[input.bindings]
+port1 = 'keyboard'
+
+[display.window]
+last_width = 1273
+last_height = 960
+
+[sys]
+mem_limit = '128'
+
+[sys.files]
+bootrom_path = '.\roms\mcpx_1.0.bin'
+flashrom_path = '.\roms\dummy.bin'
+eeprom_path = '.\roms\eeprom1.0.bin'
+hdd_path = '.\roms\xbox_hdd.qcow2'
+
+[perf]
+cache_shaders = false
+

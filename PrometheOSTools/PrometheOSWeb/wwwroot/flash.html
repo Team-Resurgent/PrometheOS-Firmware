@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>PrometheOS</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link href="pico.css" rel="stylesheet" />
+    <link href="main.css" rel="stylesheet" />
+</head>
+<body>
+    <main class="container">
+        <form>
+            <h2>PrometheOS: Flash</h2>
+            <label for="file"><b>File:</b></label>
+            <input type="file" id="file" onchange="refreshFileInfo()" />
+            <br />
+            <label for="name"><b>Name:</b></label>
+            <input class="form-control" type="text" maxlength="40" id="name" />
+            <br />
+            <label for="slotsNeeded"><b>Needed Slots:</b></label>
+            <div id="slotsNeeded">NA</div>
+            <br />
+            <label for="freeSlots"><b>Free Slots:</b></label>
+            <div id="freeSlots">0</div>
+            <br />
+            <label for="ledColorButtons"><b>LED Color:</b> <span id="ledColor">Off</span></label>
+            <div id="ledColorButtons">
+                <div class="grid">
+                    <button type="button" class="btn-ledoff" onclick="setLedColor(0)">Off</button>
+                    <button type="button" class="btn-ledred" onclick="setLedColor(1)">Red</button>
+                    <button type="button" class="btn-ledgreen" onclick="setLedColor(2)">Green</button>
+                    <button type="button" class="btn-ledyellow" onclick="setLedColor(3)">Yellow</button>
+                </div>
+                <div class="grid">
+                    <button type="button" class="btn-ledblue" onclick="setLedColor(4)">Blue</button>
+                    <button type="button" class="btn-ledpurple" onclick="setLedColor(5)">Purple</button>
+                    <button type="button" class="btn-ledturquoise" onclick="setLedColor(6)">Turquoise</button>
+                    <button type="button" class="btn-ledwhite" onclick="setLedColor(7)">White</button>
+                </div>
+            </div>
+            <hr />
+            <br />
+            <div class="grid">
+                <a role="button" disabled id="upload" onclick="upload()" href="#">Upload</a>
+                <a role="button" class="secondary" href="index.html">Back</a>
+            </div>
+            <br />
+            <div>
+                <b>Copyright 2024 - Team Cerbios + Team Resurgent</b>
+            </div>
+        </form>
+    </main>
+    <script src="flash.js"></script>
+</body>
+</html>
