@@ -85,7 +85,7 @@ namespace PrometheOSPacker.Helpers
 
             var firmware = new byte[2048 * 1024];
             
-            var prometheosSource = File.ReadAllBytes("prometheos.bin");
+            var prometheosSource = File.ReadAllBytes(prometheosSourcePath);
             if (prometheosSource.Length != firmware.Length)
             {
                 Console.WriteLine("Error: Looks like prometheos.bin is invalid length.");
@@ -101,7 +101,7 @@ namespace PrometheOSPacker.Helpers
             var buildPath = Path.Combine(slnFolder, "..\\Build");
             Directory.CreateDirectory(buildPath);
 
-            File.WriteAllBytes(Path.Combine(buildPath, "promethos.bin"), firmware);
+            File.WriteAllBytes(Path.Combine(buildPath, "prometheos.bin"), firmware);
 
             return true;
         }
