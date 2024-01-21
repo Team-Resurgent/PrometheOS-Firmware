@@ -58,5 +58,15 @@ Notes:
 2) If you want to embed a installer logo modify the installerName variable appropriately
 3) If you would like the packaged result to be uploaded to Xbox / Xenium Programmer uncomment the FTP section of code entering relevant FTP details 
 
+### Testing With XEMU
+
+* Package PrometheOS as described in 'Packaging PromethOS firmware'
+* Run launchPrometheOS.bat in the Xemu folder
+
+Notes: 
+
+1) You will need to provide mcpx_1.0.bin in the roms folder in order to run
+2) The XEMU is a special build of XEMU which fully simulates a Xenium Modchip and is based upon intial code by Ryzee119 and extended upon to create a full implementation of the flash. (https://github.com/Team-Resurgent/xemu/tree/xenium)
+
 </div>
 
