@@ -40,7 +40,7 @@ Notes:
 
 ### Building XBE / Testing
 
-BEWARE: Certain actions will write to Xenium flash unless you disable Xenium flash by disabling the define EMABLE_XENIUM in xenium.cpp to simulate flash instead.
+BEWARE: Certain actions will write to Xenium flash unless you disable Xenium flash by disabling the define ENABLE_XENIUM in xenium.cpp to simulate the flash instead.
   
 * Open PackageXbe\PackageXbe.sln in VS2022
 * Compile as Debug to test or Release for Packaging described in 'Packaging PromethOS firmware'
@@ -49,8 +49,8 @@ BEWARE: Certain actions will write to Xenium flash unless you disable Xenium fla
 
 * Open PrometheOSTools\PrometheOSTools.sln in VS2022 select to build PrometheOSPacker as startup project
 * Build and run
-* Follow on screen promits
-* Flash your xenium to test (Beware it is recommended you have a xeniu)
+* Follow on screen prompts
+* Flash your xenium to test (Beware it is recommended you have a xenium)
 
 Notes:
 
