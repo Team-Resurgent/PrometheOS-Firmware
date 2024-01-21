@@ -32,6 +32,7 @@ private:
 	int32_t mSnakeTailX[100];
 	int32_t mSnakeTailY[100]; 
 	int32_t mSnakeTailLen; 
+	snakeDirectionEnum mInputDirection; 
 	snakeDirectionEnum mDirection; 
 	bool mIsGameOver; 
 	int32_t mCounter;

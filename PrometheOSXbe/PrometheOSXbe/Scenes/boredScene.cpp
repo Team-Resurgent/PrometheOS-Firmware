@@ -44,28 +44,28 @@ void boredScene::update()
 
 	if (inputManager::buttonPressed(ButtonDpadLeft) && mDirection != snakeDirectionRight)
 	{
-		mDirection = snakeDirectionLeft;
+		mInputDirection = snakeDirectionLeft;
 	}
 
 	// Right Actions
 
 	if (inputManager::buttonPressed(ButtonDpadRight) && mDirection != snakeDirectionLeft)
 	{
-		mDirection = snakeDirectionRight;
+		mInputDirection = snakeDirectionRight;
 	}
 
 	// Down Actions
 
 	if (inputManager::buttonPressed(ButtonDpadDown) && mDirection != snakeDirectionUp)
 	{
-		mDirection = snakeDirectionDown;
+		mInputDirection = snakeDirectionDown;
 	}
 
 	// Up Actions
 
 	if (inputManager::buttonPressed(ButtonDpadUp) && mDirection != snakeDirectionDown)
 	{
-		mDirection = snakeDirectionUp;
+		mInputDirection = snakeDirectionUp;
 	}
 
 	mCounter++;
@@ -74,6 +74,8 @@ void boredScene::update()
 		return;
 	}
 	mCounter = 0;
+
+	mDirection = mInputDirection;
 
 	int prevX = mSnakeTailX[0]; 
     int prevY = mSnakeTailY[0]; 
@@ -205,6 +207,7 @@ void boredScene::restart()
 	mHeight = 26; 
 	mSnakeTailLen = 0;
 	mIsGameOver = false; 
+	mInputDirection = snakeDirectionStop; 
     mDirection = snakeDirectionStop; 
     mX = mWidth / 2; 
     mY = mHeight / 2; 

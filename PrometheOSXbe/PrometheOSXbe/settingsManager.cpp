@@ -30,7 +30,7 @@ semver settingsManager::getVersion()
 	memset(&version, 0, sizeof(version));
 	version.major = 1;
 	version.minor = 0;
-	version.patch = 0;
+	version.patch = 1;
 	return version;
 }
 
