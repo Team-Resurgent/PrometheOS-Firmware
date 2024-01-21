@@ -8,4 +8,4 @@ IF NOT EXIST ".\roms\mcpx_1.0.bin" (
     exit /b 1
 )
 
-xemu.exe -device modchip-xenium,rom-path=..\Build\promethos.bin
+xemu.exe -device modchip-xenium,rom-path=..\Build\prometheos.bin
