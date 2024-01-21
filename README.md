@@ -40,7 +40,7 @@ Notes:
 
 ### Building XBE / Testing
 
-BEWARE: Certain actions will write to Xenium flash unless you disable Xenium flash by disabling the define EMABLE_XENIUM in xenium.cpp to simulate flash instead.
+BEWARE: Certain actions will write to Xenium flash unless you disable Xenium flash by disabling the define ENABLE_XENIUM in xenium.cpp to simulate the flash instead.
   
 * Open PackageXbe\PackageXbe.sln in VS2022
 * Compile as Debug to test or Release for Packaging described in 'Packaging PromethOS firmware'
@@ -49,14 +49,24 @@ BEWARE: Certain actions will write to Xenium flash unless you disable Xenium fla
 
 * Open PrometheOSTools\PrometheOSTools.sln in VS2022 select to build PrometheOSPacker as startup project
 * Build and run
-* Follow on screen promits
-* Flash your xenium to test (Beware it is recommended you have a xeniu)
+* Follow on screen prompts
+* Flash your xenium to test (Beware it is recommended you have a xenium)
 
 Notes:
 
 1) Modify variable prometheosWebTestIp with IP used in web .js files (this is essential so that when ran on Xbox it uses local xbox's IP)
 2) If you want to embed a installer logo modify the installerName variable appropriately
 3) If you would like the packaged result to be uploaded to Xbox / Xenium Programmer uncomment the FTP section of code entering relevant FTP details 
+
+### Testing With XEMU
+
+* Package PrometheOS as described in 'Packaging PromethOS firmware'
+* Run launchPrometheOS.bat in the Xemu folder
+
+Notes: 
+
+1) You will need to provide mcpx_1.0.bin in the roms folder in order to run
+2) The XEMU is a special build of XEMU which fully simulates a Xenium Modchip and is based upon intial code by Ryzee119 and extended upon to create a full implementation of the flash. (https://github.com/Team-Resurgent/xemu/tree/xenium)
 
 </div>
 
