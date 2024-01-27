@@ -159,3 +159,15 @@ bool utils::smcTransmitByteAndRecieve(uint8_t picAddressI2cFormat, uint8_t data,
     }
     return false;
 }
+
+uint32_t utils::roundUpToNextPowerOf2(uint32_t value) 
+{
+	value--;
+	value |= value >> 1;
+	value |= value >> 2;
+	value |= value >> 4;
+	value |= value >> 8;
+	value |= value >> 16;
+	value++;
+	return value;
+}

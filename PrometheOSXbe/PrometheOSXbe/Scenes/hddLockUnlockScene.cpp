@@ -12,14 +12,18 @@
 #include "..\stringUtility.h"
 #include "..\xboxConfig.h"
 #include "..\theme.h"
-#include "..\XKUtils\XKEEPROM.h"
-#include "..\XKUtils\XKHDD.h"
+#include "..\hddLockUnlock.h"
+#include "..\hddInfo.h"
 
 hddLockUnlockScene::hddLockUnlockScene()
 {
-	mSelectedControl = 0;
 	mStep = -1;
-	getIdeInfo();
+	mProgress = strdup("Please wait...");
+	mIdeModel = strdup("Unknown");
+	mIdeSerial = strdup("Unknown");
+	mFailed = false;
+	mInitialized = false;
+	hddInfo::startThread();
 }
 
 hddLockUnlockScene::~hddLockUnlockScene()
@@ -31,6 +35,11 @@ hddLockUnlockScene::~hddLockUnlockScene()
 
 void hddLockUnlockScene::update()
 {
+	if (mInitialized == false || mStep != -1)
+	{
+		return;
+	}
+
 	// Exit Action
 
 	if (inputManager::buttonPressed(ButtonB))
@@ -40,7 +49,7 @@ void hddLockUnlockScene::update()
 
 	// Lock / Unlock Action
 
-	if (inputManager::buttonPressed(ButtonA) && mStep == -1)
+	if (mFailed == false && inputManager::buttonPressed(ButtonA) && mStep == -1)
 	{
 		mStep = 0;
 	}
@@ -48,9 +57,8 @@ void hddLockUnlockScene::update()
 
 void hddLockUnlockScene::render()
 {
-	drawing::clearBackground();
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
-	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "HDD Lock / Unlock...", theme::getTitleTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "HDD Lock / Unlock...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
 	int yPos = (context::getBufferHeight() - (30 + 30 + 40 + 44)) / 2;
 	yPos += theme::getCenterOffset();
@@ -67,11 +75,39 @@ void hddLockUnlockScene::render()
 
 	yPos += 30;
 
-	drawing::drawBitmapString(context::getBitmapFontMedium(), "Status", theme::getTitleTextColor(), 193, yPos);
+	drawing::drawBitmapString(context::getBitmapFontMedium(), "Status", theme::getHeaderTextColor(), 193, yPos);
 
 	yPos += 40;
 
-	if (mHDDLocked)
+	if (mInitialized == false)
+	{
+		if (hddInfo::completed() == true)
+		{
+			hddInfo::hddInfoResponse response = hddInfo::getResponse();
+			if (response == hddInfo::hddInfoResponseFailureEeprom)
+			{
+				setProgress("Unable to get info");
+				mFailed = true;
+			}
+			else if (response == hddInfo::hddInfoResponseLocked)
+			{
+				setProgress("Locked");
+				mHddLocked = true;
+			}
+			else if (response == hddInfo::hddInfoResponseUnlocked)
+			{
+				setProgress("Unlocked");
+				mHddLocked = false;
+			}
+			free(mIdeModel);
+			free(mIdeSerial);
+			mIdeModel = hddInfo::getModel();
+			mIdeSerial = hddInfo::getSerial();
+			hddInfo::closeThread();
+			mInitialized = true;
+		}
+	} 
+	else if (mHddLocked)
 	{
 		if (mStep == 0)
 		{
@@ -80,8 +116,17 @@ void hddLockUnlockScene::render()
 		}
 		else if (mStep == 1)
 		{
-			unlockHDD();
-			mStep = -1;
+			hddLockUnlock::startThread(hddLockUnlock::hddLockUnlockActionUnlock);
+			mStep = 2;
+		}
+		else if (mStep == 2)
+		{
+			if (hddLockUnlock::completed() == true)
+			{
+				processResponse(hddLockUnlock::getResponse());
+				hddLockUnlock::closeThread();
+				mStep = -1;
+			}
 		}
 	}
 	else
@@ -93,15 +138,24 @@ void hddLockUnlockScene::render()
 		}
 		else if (mStep == 1)
 		{
-			lockHDD();
-			mStep = -1;
+			hddLockUnlock::startThread(hddLockUnlock::hddLockUnlockActionLock);
+			mStep = 2;
+		}
+		else if (mStep == 2)
+		{
+			if (hddLockUnlock::completed() == true)
+			{
+				processResponse(hddLockUnlock::getResponse());
+				hddLockUnlock::closeThread();
+				mStep = -1;
+			}
 		}
 	}
 
 	component::textBox(mProgress, false, false, horizAlignmentCenter, 193, yPos, 322, 44);
 
-	drawing::drawBitmapString(context::getBitmapFontSmall(), "\xC2\xA1 Toggle HDD Lock", theme::getFooterTextColor(), 40, theme::getFooterY());
-	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Cancel", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
+	drawing::drawBitmapString(context::getBitmapFontSmall(), "\xC2\xA1 Toggle HDD Lock", mInitialized ? theme::getFooterTextColor() : theme::getTextDisabledColor(), 40, theme::getFooterY());
+	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Cancel", mStep == -1 ? theme::getFooterTextColor() : theme::getTextDisabledColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
 }
 
 void hddLockUnlockScene::setProgress(const char* message)
@@ -110,205 +164,44 @@ void hddLockUnlockScene::setProgress(const char* message)
 	mProgress = strdup(message);
 }
 
-void hddLockUnlockScene::getIdeInfo()
+void hddLockUnlockScene::processResponse(hddLockUnlock::hddLockUnlockResponse response)
 {
-	XKEEPROM* eeprom = new XKEEPROM();
-	eeprom->ReadFromXBOX();
-	if (eeprom->Decrypt())
+	if (response == hddLockUnlock::hddLockUnlockResponseNone)
 	{
-		XKHDD::ATA_COMMAND_OBJ hddcommand;
-		ZeroMemory(&hddcommand, sizeof(XKHDD::ATA_COMMAND_OBJ));
-		hddcommand.DATA_BUFFSIZE = 512;
-		hddcommand.IPReg.bDriveHeadReg = IDE_DEVICE_MASTER;
-		hddcommand.IPReg.bCommandReg = IDE_ATA_IDENTIFY;
-		XKHDD::SendATACommand(IDE_PRIMARY_PORT, &hddcommand, IDE_COMMAND_READ);
-		char* ideModel = XKHDD::GetIDEModel(hddcommand.DATA_BUFFER);
-		mIdeModel = stringUtility::trim(ideModel, ' ');
-		free(ideModel);
-		char* ideSerial = XKHDD::GetIDESerial(hddcommand.DATA_BUFFER);
-		mIdeSerial = stringUtility::trim(ideSerial, ' ');
-		free(ideSerial);
-		DWORD SecStatus = XKHDD::GetIDESecurityStatus(hddcommand.DATA_BUFFER);
-		mHDDLocked = (SecStatus & IDE_SECURITY_SUPPORTED) && (SecStatus & IDE_SECURITY_ENABLED);
-		mProgress = strdup(mHDDLocked ? "Locked" : "Unlocked");
+		setProgress("");
 	}
-	else 
+	else if (response == hddLockUnlock::hddLockUnlockResponseUnlocked)
 	{
-		mHDDLocked = false;
-		mProgress = strdup("Unknown");
-		mIdeModel = strdup("Unknown");
-		mIdeSerial = strdup("Unknown");
+		setProgress("Unlocked");
+		mHddLocked = false;
 	}
-	delete(eeprom);
-}
-
-void hddLockUnlockScene::lockHDD()
-{
-	XKEEPROM* eeprom = new XKEEPROM();
-	eeprom->ReadFromXBOX();
-
-	XKHDD::ATA_COMMAND_OBJ hddcommand;
-	UCHAR HddPass[32];
-	UCHAR MasterPassword[13] = "TEAMASSEMBLY";
-	
-	XBOX_VERSION xver = eeprom->GetXBOXVersion();
-
-	if (eeprom->Decrypt())
+	else if (response == hddLockUnlock::hddLockUnlockResponseFailedToUnlock)
 	{
-		ZeroMemory(&hddcommand, sizeof(XKHDD::ATA_COMMAND_OBJ));
-		hddcommand.DATA_BUFFSIZE = 0;
-		hddcommand.IPReg.bDriveHeadReg = IDE_DEVICE_MASTER;
-		hddcommand.IPReg.bCommandReg = IDE_ATA_IDENTIFY;
-		XKHDD::SendATACommand(IDE_PRIMARY_PORT, &hddcommand, IDE_COMMAND_READ);
-
-		XKEEPROM::EEPROMDATA tmpData;
-		eeprom->GetEEPROMData(&tmpData);
-		XKHDD::GenerateHDDPwd(tmpData.HDDKkey, hddcommand.DATA_BUFFER, HddPass);
-
-		DWORD SecStatus = XKHDD::GetIDESecurityStatus(hddcommand.DATA_BUFFER);
-		if ((SecStatus & IDE_SECURITY_SUPPORTED) && !(SecStatus & IDE_SECURITY_ENABLED))
-		{
-			ZeroMemory(&hddcommand, sizeof(XKHDD::ATA_COMMAND_OBJ));
-			hddcommand.DATA_BUFFSIZE = 512;
-			hddcommand.IPReg.bDriveHeadReg = IDE_DEVICE_MASTER;
-			hddcommand.IPReg.bCommandReg = IDE_ATA_SECURITY_SETPASSWORD;
-			LPBYTE HDDP = (LPBYTE)&hddcommand.DATA_BUFFER;
-			LPDWORD pMastr = (LPDWORD) HDDP;
-			*pMastr = 0x0001;
-			memcpy(HDDP+2, MasterPassword, 13);
-			XKHDD::SendATACommand(IDE_PRIMARY_PORT, &hddcommand, IDE_COMMAND_WRITE);
-
-			ZeroMemory(&hddcommand, sizeof(XKHDD::ATA_COMMAND_OBJ));
-			hddcommand.DATA_BUFFSIZE = 512;
-			hddcommand.IPReg.bDriveHeadReg = IDE_DEVICE_MASTER;
-			hddcommand.IPReg.bCommandReg = IDE_ATA_IDENTIFY;
-			XKHDD::SendATACommand(IDE_PRIMARY_PORT, &hddcommand, IDE_COMMAND_READ);
-			SecStatus = XKHDD::GetIDESecurityStatus(hddcommand.DATA_BUFFER);
-			
-			ZeroMemory(&hddcommand, sizeof(XKHDD::ATA_COMMAND_OBJ));
-			hddcommand.DATA_BUFFSIZE = 512;
-			hddcommand.IPReg.bDriveHeadReg = IDE_DEVICE_MASTER;
-			hddcommand.IPReg.bCommandReg = IDE_ATA_SECURITY_SETPASSWORD;
-			memcpy(HDDP+2, HddPass, 20);
-			XKHDD::SendATACommand(IDE_PRIMARY_PORT, &hddcommand, IDE_COMMAND_WRITE);
-
-			int retrycnt = 0;
-			do
-			{
-				ZeroMemory(&hddcommand, sizeof(XKHDD::ATA_COMMAND_OBJ));
-				hddcommand.DATA_BUFFSIZE = 512;
-				hddcommand.IPReg.bDriveHeadReg = IDE_DEVICE_MASTER;
-				hddcommand.IPReg.bCommandReg = IDE_ATA_IDENTIFY;
-				XKHDD::SendATACommand(IDE_PRIMARY_PORT, &hddcommand, IDE_COMMAND_READ);
-				SecStatus = XKHDD::GetIDESecurityStatus(hddcommand.DATA_BUFFER);
-				retrycnt++;
-			} while (!((SecStatus & IDE_SECURITY_SUPPORTED) && (SecStatus & IDE_SECURITY_ENABLED)) && (retrycnt < 3));
-
-			if ((SecStatus & IDE_SECURITY_SUPPORTED) && (SecStatus & IDE_SECURITY_ENABLED))
-			{
-				setProgress("Locked");
-				mHDDLocked = true;
-			}
-			else
-			{
-				setProgress("Failed to lock HDD");
-			}
-		}
-		else if (!(SecStatus & IDE_SECURITY_SUPPORTED))
-		{
-			setProgress("Locking not supported");
-		}
-		else
-		{
-			setProgress("Already locked");
-		}
+		setProgress("Failed to unlock HDD");
 	}
-	else
+	else if (response == hddLockUnlock::hddLockUnlockResponseAlreadyUnlocked)
+	{
+		setProgress("Already unlocked");
+	}
+	else if (response == hddLockUnlock::hddLockUnlockResponseLocked)
+	{
+		setProgress("Locked");
+		mHddLocked = true;
+	}
+	else if (response == hddLockUnlock::hddLockUnlockResponseFailedToLock)
+	{
+		setProgress("Failed to lock HDD");
+	}
+	else if (response == hddLockUnlock::hddLockUnlockResponseAlreadyLocked)
+	{
+		setProgress("Already locked");
+	}
+	else if (response == hddLockUnlock::hddLockUnlockResponseLockingNotSupported)
+	{
+		setProgress("Locking not supported");
+	}
+	else if (response == hddLockUnlock::hddLockUnlockResponseFailureEeprom)
 	{
 		setProgress("Unable to decrypt EEPROM");
 	}
-
-	delete(eeprom);
 }
-
-void hddLockUnlockScene::unlockHDD()
-{
-	XKEEPROM* eeprom = new XKEEPROM();
-	eeprom->ReadFromXBOX();
-
-	XBOX_VERSION xver = eeprom->GetXBOXVersion();
-
-	XKHDD::ATA_COMMAND_OBJ hddcommand;
-	UCHAR HddPass[32];
-
-	if (eeprom->Decrypt())
-	{
-		ZeroMemory(&hddcommand, sizeof(XKHDD::ATA_COMMAND_OBJ));
-		hddcommand.DATA_BUFFSIZE = 0;
-		hddcommand.IPReg.bDriveHeadReg = IDE_DEVICE_MASTER;
-		hddcommand.IPReg.bCommandReg = IDE_ATA_IDENTIFY;
-		XKHDD::SendATACommand(IDE_PRIMARY_PORT, &hddcommand, IDE_COMMAND_READ);
-
-		XKEEPROM::EEPROMDATA tmpData;
-		eeprom->GetEEPROMData(&tmpData);
-		XKHDD::GenerateHDDPwd(tmpData.HDDKkey, hddcommand.DATA_BUFFER, HddPass);
-		
-		DWORD SecStatus = XKHDD::GetIDESecurityStatus(hddcommand.DATA_BUFFER);
-		if ((SecStatus & IDE_SECURITY_SUPPORTED) && (SecStatus & IDE_SECURITY_ENABLED))
-		{
-			ZeroMemory(&hddcommand, sizeof(XKHDD::ATA_COMMAND_OBJ));
-			hddcommand.DATA_BUFFSIZE = 512;
-			hddcommand.IPReg.bDriveHeadReg = IDE_DEVICE_MASTER;
-			hddcommand.IPReg.bCommandReg = IDE_ATA_SECURITY_UNLOCK;
-			LPBYTE HDDP = (LPBYTE)&hddcommand.DATA_BUFFER;
-			memcpy(HDDP+2, HddPass, 20);
-			XKHDD::SendATACommand(IDE_PRIMARY_PORT, &hddcommand, IDE_COMMAND_WRITE);
-
-			ZeroMemory(&hddcommand, sizeof(XKHDD::ATA_COMMAND_OBJ));
-			hddcommand.DATA_BUFFSIZE = 512;
-			hddcommand.IPReg.bDriveHeadReg = IDE_DEVICE_MASTER;
-			hddcommand.IPReg.bCommandReg = IDE_ATA_IDENTIFY;
-			XKHDD::SendATACommand(IDE_PRIMARY_PORT, &hddcommand, IDE_COMMAND_READ);
-
-			ZeroMemory(&hddcommand, sizeof(XKHDD::ATA_COMMAND_OBJ));
-			hddcommand.DATA_BUFFSIZE = 512;
-			hddcommand.IPReg.bDriveHeadReg = IDE_DEVICE_MASTER;
-			hddcommand.IPReg.bCommandReg = IDE_ATA_SECURITY_DISABLE;
-			memcpy(HDDP+2, HddPass, 20);
-			XKHDD::SendATACommand(IDE_PRIMARY_PORT, &hddcommand, IDE_COMMAND_WRITE);
-
-			int retrycnt = 0;
-			do
-			{
-				ZeroMemory(&hddcommand, sizeof(XKHDD::ATA_COMMAND_OBJ));
-				hddcommand.DATA_BUFFSIZE = 512;
-				hddcommand.IPReg.bDriveHeadReg = IDE_DEVICE_MASTER;
-				hddcommand.IPReg.bCommandReg = IDE_ATA_IDENTIFY;
-				XKHDD::SendATACommand(IDE_PRIMARY_PORT, &hddcommand, IDE_COMMAND_READ);
-				SecStatus = XKHDD::GetIDESecurityStatus(hddcommand.DATA_BUFFER);
-				retrycnt++;
-			} while (!((SecStatus & IDE_SECURITY_SUPPORTED) && !(SecStatus & IDE_SECURITY_ENABLED)) && (retrycnt < 3));
-
-			if ((SecStatus & IDE_SECURITY_SUPPORTED) && !(SecStatus & IDE_SECURITY_ENABLED))
-			{
-				setProgress("Unlocked");
-				mHDDLocked = false;
-			}
-			else
-			{
-				setProgress("Failed to unlock HDD");
-			}
-		}
-		else
-		{
-			setProgress("Already unlocked");
-		}
-	}
-	else
-	{
-		setProgress("Unable to decrypt EEPROM");
-	}
-
-	delete(eeprom);
-}
-

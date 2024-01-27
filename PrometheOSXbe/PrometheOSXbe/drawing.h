@@ -21,10 +21,11 @@ public:
 	static void swizzle(const void *src, const uint32_t& depth, const uint32_t& width, const uint32_t& height, void *dest);
 	static image* createImage(uint8_t* imageData, D3DFORMAT format, int width, int height);
 	static void addImage(const char* key, uint8_t* imageData, D3DFORMAT format, int width, int height);
+	static uint64_t getImageMemUse(const char* key);
 	static void removeImage(const char* key);
 	static bool loadImage(const char* buffer, uint32_t length, const char* key);
 	static bool loadFont(const uint8_t* data);
-	static void clearBackground();
+	static void clearBackground(uint32_t index);
 	static bool imageExists(const char* key);
 	static image* getImage(const char* key);
 	static void setTint(unsigned int color);

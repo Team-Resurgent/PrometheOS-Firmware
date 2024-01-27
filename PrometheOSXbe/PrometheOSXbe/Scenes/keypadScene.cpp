@@ -263,9 +263,8 @@ void keypadScene::render()
 		mCounter--;
 	}
 
-	drawing::clearBackground();
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
-	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), mTitle, theme::getTitleTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), mTitle, theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
 	char* keys = "1234567890";
 

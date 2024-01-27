@@ -236,9 +236,8 @@ void keyboardScene::render()
 		mCounter--;
 	}
 
-	drawing::clearBackground();
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
-	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please enter a bank name...", theme::getTitleTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please enter a bank name...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
 	char* keys = "0123456789abcdefghijklmnopqrstuvwxyz ";
 	if (mCapitals == true)

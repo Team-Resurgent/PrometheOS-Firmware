@@ -86,9 +86,8 @@ void launchScene::update()
 
 void launchScene::render()
 {
-	drawing::clearBackground();
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
-	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please select a bank to launch...", theme::getTitleTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please select a bank to launch...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
 	pointerVector* banks = settingsManager::getBankInfos();
 	

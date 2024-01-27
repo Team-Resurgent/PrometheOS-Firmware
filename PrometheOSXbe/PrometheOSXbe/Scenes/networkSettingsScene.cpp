@@ -202,9 +202,8 @@ void networkSettingsScene::render()
 		return;
 	}
 
-	drawing::clearBackground();
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
-	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Network Settings...", theme::getTitleTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Network Settings...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
 	uint32_t yPos = (context::getBufferHeight() - ((6 * 40) - 10)) / 2;
 	yPos += theme::getCenterOffset();

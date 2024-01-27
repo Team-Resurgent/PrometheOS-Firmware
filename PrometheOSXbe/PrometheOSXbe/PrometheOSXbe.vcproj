@@ -329,10 +329,22 @@
 				RelativePath=".\driveManager.cpp">
 			</File>
 			<File
+				RelativePath=".\driveMounter.cpp">
+			</File>
+			<File
 				RelativePath=".\fileSystem.cpp">
 			</File>
 			<File
+				RelativePath=".\flash.cpp">
+			</File>
+			<File
 				RelativePath=".\ftpServer.cpp">
+			</File>
+			<File
+				RelativePath=".\hddInfo.cpp">
+			</File>
+			<File
+				RelativePath=".\hddLockUnlock.cpp">
 			</File>
 			<File
 				RelativePath=".\hdmiDevice.cpp">
@@ -378,6 +390,9 @@
 			</File>
 			<File
 				RelativePath=".\theme.cpp">
+			</File>
+			<File
+				RelativePath=".\timeUtility.cpp">
 			</File>
 			<File
 				RelativePath=".\utils.cpp">
@@ -591,13 +606,25 @@
 					RelativePath=".\driveManager.h">
 				</File>
 				<File
+					RelativePath=".\driveMounter.h">
+				</File>
+				<File
 					RelativePath=".\extensions.h">
 				</File>
 				<File
 					RelativePath=".\fileSystem.h">
 				</File>
 				<File
+					RelativePath=".\flash.h">
+				</File>
+				<File
 					RelativePath=".\ftpServer.h">
+				</File>
+				<File
+					RelativePath=".\hddInfo.h">
+				</File>
+				<File
+					RelativePath=".\hddLockUnlock.h">
 				</File>
 				<File
 					RelativePath=".\hdmiDevice.h">
@@ -655,6 +682,9 @@
 				</File>
 				<File
 					RelativePath=".\theme.h">
+				</File>
+				<File
+					RelativePath=".\timeUtility.h">
 				</File>
 				<File
 					RelativePath=".\utils.h">

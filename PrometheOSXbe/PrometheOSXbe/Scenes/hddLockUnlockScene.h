@@ -2,6 +2,8 @@
 
 #include "scene.h"
 
+#include "..\hddLockUnlock.h"
+
 class hddLockUnlockScene : public scene
 {
 public:
@@ -11,14 +13,13 @@ public:
 	void render();
 private:
 	void setProgress(const char* message);
-	void getIdeInfo();
-	void lockHDD();
-	void unlockHDD();
+	void processResponse(hddLockUnlock::hddLockUnlockResponse response);
 private:
-	int mSelectedControl;
-	bool mHDDLocked;
+	bool mHddLocked;
 	int mStep;
 	char* mProgress;
 	char* mIdeModel;
 	char* mIdeSerial;
+	bool mFailed;
+	bool mInitialized;
 };

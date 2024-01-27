@@ -4,32 +4,44 @@
 #include "drawing.h"
 #include "alignment.h"
 #include "pointerVector.h"
+#include "utils.h"
 
 #include <time.h>
 
 namespace
 {
 	theme::ThemeData mThemeData;
+	uint32_t mBackgroundFrameCount = 0;
 }
 
-char* theme::getBackgroundPath()
+char* theme::getSkinAuthor()
 {
-	return strdup(&mThemeData.BACKGROUND_PATH[0]);
+	return strdup(&mThemeData.SKIN_AUTHOR[0]);
 }
 
-bool theme::getBackgroundAnimated()
+uint32_t theme::getBackgroundFrameCount()
 {
-	return mThemeData.BACKGROUND_ANIMATED != 0;
+	return mBackgroundFrameCount;
 }
 
-uint32_t theme::getBackgroundDelay()
+uint32_t theme::getBackgroundFrameDelay()
 {
-	return mThemeData.BACKGROUND_DELAY;
+	return mThemeData.BACKGROUND_FRAME_DELAY;
 }
 
 uint32_t theme::getBackgroundColor()
 {
 	return mThemeData.BACKGROUND_COLOR;
+}
+
+uint32_t theme::getBackgroundImageTint()
+{
+	return mThemeData.BACKGROUND_IMAGE_TINT;
+}
+
+uint32_t theme::getBackgroundOverlayImageTint()
+{
+	return mThemeData.BACKGROUND_OVERLAY_IMAGE_TINT;
 }
 
 uint32_t theme::getPrometheosColor()
@@ -55,9 +67,9 @@ uint32_t theme::getPrometheosY()
 	return mThemeData.PROMETHEOS_Y;
 }
 
-uint32_t theme::getInstallerColor()
+uint32_t theme::getInstallerTint()
 {
-	return mThemeData.INSTALLER_COLOR;
+	return mThemeData.INSTALLER_TINT;
 }
 
 uint32_t theme::getTextColor()
@@ -70,9 +82,9 @@ uint32_t theme::getTextDisabledColor()
 	return mThemeData.TEXT_DISABLED_COLOR;
 }
 
-uint32_t theme::getTitleTextColor()
+uint32_t theme::getHeaderTextColor()
 {
-	return mThemeData.TITLE_TEXT_COLOR;
+	return mThemeData.HEADER_TEXT_COLOR;
 }
 
 uint32_t theme::getFooterTextColor()
@@ -146,16 +158,6 @@ uint32_t theme::getJoyButtonXColor()
 uint32_t theme::getJoyButtonYColor()
 {
 	return mThemeData.JOY_BUTTON_Y_COLOR;
-}
-
-uint32_t theme::getButtonToggleFillColor() 
-{
-	return mThemeData.BUTTON_TOGGLE_FILL_COLOR;
-}
-
-uint32_t theme::getButtonToggleStrokeColor() 
-{
-	return mThemeData.BUTTON_TOGGLE_STROKE_COLOR;
 }
 
 uint32_t theme::getButtonActiveFillColor() 
@@ -455,18 +457,19 @@ uint32_t theme::getButtonLedWhiteHoverTextColor()
 
 void theme::loadSkin(char* skinName)
 {
-	memset(&mThemeData.BACKGROUND_PATH[0], 0, sizeof(mThemeData.BACKGROUND_PATH));
+	memset(&mThemeData.SKIN_AUTHOR[0], 0, sizeof(mThemeData.SKIN_AUTHOR));
 
-	mThemeData.BACKGROUND_ANIMATED = THEME_BACKGROUND_ANIMATED;
-	mThemeData.BACKGROUND_DELAY = THEME_BACKGROUND_DELAY;
+	mThemeData.BACKGROUND_FRAME_DELAY = THEME_BACKGROUND_FRAME_DELAY;
 	mThemeData.BACKGROUND_COLOR = THEME_BACKGROUND_COLOR;
+	mThemeData.BACKGROUND_IMAGE_TINT = THEME_BACKGROUND_IMAGE_TINT;
+	mThemeData.BACKGROUND_OVERLAY_IMAGE_TINT = THEME_BACKGROUND_OVERLAY_IMAGE_TINT;
 	mThemeData.PROMETHEOS_COLOR = THEME_PROMETHEOS_COLOR;
 	mThemeData.PROMETHEOS_ALIGN = THEME_PROMETHEOS_ALIGN;
 	mThemeData.PROMETHEOS_Y = THEME_PROMETHEOS_Y;
-	mThemeData.INSTALLER_COLOR = THEME_INSTALLER_COLOR;
+	mThemeData.INSTALLER_TINT = THEME_INSTALLER_TINT;
 	mThemeData.TEXT_COLOR = THEME_TEXT_COLOR;
 	mThemeData.TEXT_DISABLED_COLOR = THEME_TEXT_DISABLED_COLOR;
-	mThemeData.TITLE_TEXT_COLOR = THEME_TITLE_TEXT_COLOR;
+	mThemeData.HEADER_TEXT_COLOR = THEME_HEADER_TEXT_COLOR;
 	mThemeData.FOOTER_TEXT_COLOR = THEME_FOOTER_TEXT_COLOR;
 
 	mThemeData.HEADER_ALIGN = THEME_HEADER_ALIGN;
@@ -483,9 +486,6 @@ void theme::loadSkin(char* skinName)
 	mThemeData.JOY_BUTTON_B_COLOR = THEME_JOY_BUTTON_B_COLOR;
 	mThemeData.JOY_BUTTON_X_COLOR = THEME_JOY_BUTTON_X_COLOR;
 	mThemeData.JOY_BUTTON_Y_COLOR = THEME_JOY_BUTTON_Y_COLOR;
-
-	mThemeData.BUTTON_TOGGLE_FILL_COLOR = THEME_BUTTON_TOGGLE_FILL_COLOR;
-	mThemeData.BUTTON_TOGGLE_STROKE_COLOR = THEME_BUTTON_TOGGLE_STROKE_COLOR;
 
 	mThemeData.BUTTON_ACTIVE_FILL_COLOR = THEME_BUTTON_ACTIVE_FILL_COLOR;
 	mThemeData.BUTTON_ACTIVE_STROKE_COLOR = THEME_BUTTON_ACTIVE_STROKE_COLOR;
@@ -569,7 +569,14 @@ void theme::loadSkin(char* skinName)
 	mThemeData.BUTTON_LED_WHITE_HOVER_STROKE_COLOR = THEME_BUTTON_LED_WHITE_HOVER_STROKE_COLOR;
 	mThemeData.BUTTON_LED_WHITE_HOVER_TEXT_COLOR = THEME_BUTTON_LED_WHITE_HOVER_TEXT_COLOR;
 
-	drawing::removeImage("background");
+	for (uint32_t i = 0; i < mBackgroundFrameCount; i++)
+	{
+		char* backgroundName = stringUtility::formatString("background:%i", i);
+		drawing::removeImage(backgroundName);
+		free(backgroundName);
+	}
+	drawing::removeImage("background-overlay");
+	mBackgroundFrameCount = 0;
 
 	if (strlen(skinName) == 0)
 	{
@@ -603,25 +610,34 @@ void theme::loadSkin(char* skinName)
 	}
 	free(iniPath);
 
-	char* backgroundFile = getBackgroundPath();
-	char* backgroundPath = fileSystem::combinePath(skinPath, backgroundFile);
-	if (fileSystem::fileOpen(backgroundPath, fileSystem::FileModeRead, fileHandle))
+	uint64_t totalMemUsed = 0;
+
+	char* backgroundSkinPath = fileSystem::combinePath(skinPath, "backgrounds");
+	pointerVector* result = fileSystem::fileGetFileInfoDetails(backgroundSkinPath);
+	if (result != NULL)
 	{
-		uint32_t fileSize;
-		if (fileSystem::fileSize(fileHandle, fileSize))
+		for (uint32_t i = 0; i < min(result->count(), 10); i++)
 		{
-			char* buffer = (char*)malloc(fileSize);
-			uint32_t bytesRead;
-			if (fileSystem::fileRead(fileHandle, buffer, fileSize, bytesRead) && bytesRead == fileSize)
+			if (totalMemUsed > (20 * 1024 * 1024))
 			{
-				drawing::loadImage(buffer, fileSize, "background");
+				utils::debugPrint("Skipping loading any remaining textures, due to mem use.");
+				break;
 			}
-			free(buffer);
+			fileSystem::FileInfoDetail* fileInfoDetail = (fileSystem::FileInfoDetail*)result->get(i);
+			char* backgroundName = stringUtility::formatString("background:%i", mBackgroundFrameCount);
+			if (loadImage(fileInfoDetail->path, backgroundName))
+			{
+				totalMemUsed += drawing::getImageMemUse(backgroundName);
+				mBackgroundFrameCount++;
+			}
+			free(backgroundName);
 		}
-		fileSystem::fileClose(fileHandle);
 	}
-	free(backgroundPath);
-	free(backgroundFile);
+	delete(result);
+	free(backgroundSkinPath);
+
+	char* overlaySkinPath = fileSystem::combinePath(skinPath, "background-overlay.png");
+	loadImage(overlaySkinPath, "background-overlay");
 
 	free(skinPath);
 }
@@ -667,28 +683,30 @@ void theme::parseConfigLine(char* param1, char* param2, char* buffer, unsigned l
 
     trimSpace(params[1]);
 
-	if (strcmp(params[0], "BACKGROUND_PATH") == 0) {
-		strncpy(&mThemeData.BACKGROUND_PATH[0], params[1], 49);
-	} else if (strcmp(params[0], "BACKGROUND_ANIMATED") == 0) {
-        parseUnsignedNumber(params[1], mThemeData.BACKGROUND_ANIMATED);
-	} else if (strcmp(params[0], "BACKGROUND_DELAY") == 0) {
-        parseUnsignedNumber(params[1], mThemeData.BACKGROUND_DELAY);
+	if (strcmp(params[0], "SKIN_AUTHOR") == 0) {
+		strncpy(&mThemeData.SKIN_AUTHOR[0], params[1], 49);
+	} else if (strcmp(params[0], "BACKGROUND_FRAME_DELAY") == 0) {
+        parseUnsignedNumber(params[1], mThemeData.BACKGROUND_FRAME_DELAY);
 	} else if (strcmp(params[0], "BACKGROUND_COLOR") == 0) {
         parseUnsignedNumber(params[1], mThemeData.BACKGROUND_COLOR);
+	} else if (strcmp(params[0], "BACKGROUND_IMAGE_TINT") == 0) {
+        parseUnsignedNumber(params[1], mThemeData.BACKGROUND_IMAGE_TINT);
+	} else if (strcmp(params[0], "BACKGROUND_OVERLAY_IMAGE_TINT") == 0) {
+        parseUnsignedNumber(params[1], mThemeData.BACKGROUND_OVERLAY_IMAGE_TINT);
     } else if (strcmp(params[0], "PROMETHEOS_COLOR") == 0) {
         parseUnsignedNumber(params[1], mThemeData.PROMETHEOS_COLOR);
     } else if (strcmp(params[0], "PROMETHEOS_ALIGN") == 0) {
         parseUnsignedNumber(params[1], mThemeData.PROMETHEOS_ALIGN);
     } else if (strcmp(params[0], "PROMETHEOS_Y") == 0) {
         parseUnsignedNumber(params[1], mThemeData.PROMETHEOS_Y);
-    } else if (strcmp(params[0], "INSTALLER_COLOR") == 0) {
-        parseUnsignedNumber(params[1], mThemeData.INSTALLER_COLOR);
+    } else if (strcmp(params[0], "INSTALLER_TINT") == 0 || strcmp(params[0], "INSTALLER_COLOR") == 0) {
+        parseUnsignedNumber(params[1], mThemeData.INSTALLER_TINT);
     } else if (strcmp(params[0], "TEXT_COLOR") == 0) {
         parseUnsignedNumber(params[1], mThemeData.TEXT_COLOR);
     } else if (strcmp(params[0], "TEXT_DISABLED_COLOR") == 0) {
         parseUnsignedNumber(params[1], mThemeData.TEXT_DISABLED_COLOR);
-    } else if (strcmp(params[0], "TITLE_TEXT_COLOR") == 0) {
-        parseUnsignedNumber(params[1], mThemeData.TITLE_TEXT_COLOR);
+    } else if (strcmp(params[0], "HEADER_TEXT_COLOR") == 0 || strcmp(params[0], "TITLE_TEXT_COLOR") == 0) {
+        parseUnsignedNumber(params[1], mThemeData.HEADER_TEXT_COLOR);
     } else if (strcmp(params[0], "FOOTER_TEXT_COLOR") == 0) {
         parseUnsignedNumber(params[1], mThemeData.FOOTER_TEXT_COLOR);
     } else if (strcmp(params[0], "HEADER_ALIGN") == 0) {
@@ -715,10 +733,6 @@ void theme::parseConfigLine(char* param1, char* param2, char* buffer, unsigned l
         parseUnsignedNumber(params[1], mThemeData.JOY_BUTTON_X_COLOR);
 	} else if (strcmp(params[0], "JOY_BUTTON_Y_COLOR") == 0) {
         parseUnsignedNumber(params[1], mThemeData.JOY_BUTTON_Y_COLOR);
-    } else if (strcmp(params[0], "BUTTON_TOGGLE_FILL_COLOR") == 0) {
-        parseUnsignedNumber(params[1], mThemeData.BUTTON_TOGGLE_FILL_COLOR);
-    } else if (strcmp(params[0], "BUTTON_TOGGLE_STROKE_COLOR") == 0) {
-        parseUnsignedNumber(params[1], mThemeData.BUTTON_TOGGLE_STROKE_COLOR);
     } else if (strcmp(params[0], "BUTTON_ACTIVE_FILL_COLOR") == 0) {
         parseUnsignedNumber(params[1], mThemeData.BUTTON_ACTIVE_FILL_COLOR);
     } else if (strcmp(params[0], "BUTTON_ACTIVE_STROKE_COLOR") == 0) {
@@ -994,4 +1008,28 @@ void theme::loadRandomSkin()
 	}
 
 	delete(skins);
+}
+
+bool theme::loadImage(const char* filePath, const char* imageKey)
+{
+	bool result = false;
+	uint32_t fileHandle;
+
+	if (fileSystem::fileOpen(filePath, fileSystem::FileModeRead, fileHandle))
+	{
+		uint32_t fileSize;
+		if (fileSystem::fileSize(fileHandle, fileSize))
+		{
+			char* buffer = (char*)malloc(fileSize);
+			uint32_t bytesRead;
+			if (fileSystem::fileRead(fileHandle, buffer, fileSize, bytesRead) && bytesRead == fileSize)
+			{
+				result = drawing::loadImage(buffer, fileSize, imageKey);
+			}
+			free(buffer);
+		}
+		fileSystem::fileClose(fileHandle);
+	}
+
+	return result;
 }

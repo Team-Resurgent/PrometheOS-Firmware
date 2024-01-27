@@ -104,6 +104,11 @@ systemInfoScene::systemInfoScene(systemInfoCategoryEnum systemInfoCategory)
 		char *coded = strdup("Coded By: EqUiNoX");
 		mInfoItems->add(coded);
 
+		char* skinAutthor = theme::getSkinAuthor();
+		char *author = stringUtility::formatString("Skin Author: %s", skinAutthor);
+		mInfoItems->add(author);
+		free(skinAutthor);
+
 		if (drawing::imageExists("installer-logo") == false)
 		{
 			utils::dataContainer* installerLogoData = settingsManager::getInstallerLogoData();
@@ -155,24 +160,23 @@ void systemInfoScene::update()
 
 void systemInfoScene::render()
 {
-	drawing::clearBackground();
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
 
 	if (mSystemInfoCategory == systemInfoCategoryConsole)
 	{
-		drawing::drawBitmapString(context::getBitmapFontMedium(), "System Info: Console", theme::getTitleTextColor(), 40, 32);
+		drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "System Info: Console", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 	}
 	else if (mSystemInfoCategory == systemInfoCategoryAudio)
 	{
-		drawing::drawBitmapString(context::getBitmapFontMedium(), "System Info: Audio", theme::getTitleTextColor(), 40, 32);
+		drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "System Info: Audio", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 	}
 	else if (mSystemInfoCategory == systemInfoCategoryVideo)
 	{
-		drawing::drawBitmapString(context::getBitmapFontMedium(), "System Info: Video", theme::getTitleTextColor(), 40, 32);
+		drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "System Info: Video", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 	}
 	else if (mSystemInfoCategory == systemInfoCategoryAbout)
 	{
-		drawing::drawBitmapString(context::getBitmapFontMedium(), "System Info: About", theme::getTitleTextColor(), 40, 32);
+		drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "System Info: About", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 	}
 
 	uint32_t yPos = 96;
@@ -194,7 +198,7 @@ void systemInfoScene::render()
 		if (mSystemInfoCategory == systemInfoCategoryAbout && drawing::imageExists("installer-logo") == true)
 		{
 			yPos += 32;
-			drawing::drawImage("installer-logo", theme::getInstallerColor(), 271, yPos - 64, 178, 46);
+			drawing::drawImage("installer-logo", theme::getInstallerTint(), 271, yPos - 64, 178, 46);
 		}
 
 		for (int32_t i = 0; i < itemCount; i++)

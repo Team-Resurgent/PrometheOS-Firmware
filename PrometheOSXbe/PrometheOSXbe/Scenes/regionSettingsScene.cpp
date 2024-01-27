@@ -145,9 +145,8 @@ void regionSettingsScene::update()
 
 void regionSettingsScene::render()
 {
-	drawing::clearBackground();
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
-	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Region settings...", theme::getTitleTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Region settings...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
 	int yPos = (context::getBufferHeight() - (30 + 40 + 30 + 40 + 30 + 30)) / 2;
 	yPos += theme::getCenterOffset();

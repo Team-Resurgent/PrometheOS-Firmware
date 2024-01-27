@@ -18,6 +18,7 @@
 #include "..\pointerVector.h"
 #include "..\settingsManager.h"
 #include "..\theme.h"
+#include "..\driveMounter.h"
 
 pointerVector* flashScene::getFileInfoDetails()
 {
@@ -54,13 +55,14 @@ pointerVector* flashScene::getFileInfoDetails()
 
 flashScene::flashScene()
 {
-	driveManager::mountAllDrives();
+	driveMounter::startThread(false);
 
+	mInitialized = false;
 	mSelectedControl = 0;
 	mScrollPosition = 0;
-	mMountedDrives = driveManager::getMountedDrives();
-	mCurrentPath = strdup("");
-	mFileInfoDetails = getFileInfoDetails();
+	mMountedDrives = NULL;
+	mCurrentPath = NULL;
+	mFileInfoDetails = NULL;
 	mSceneResult = sceneResultNone;
 	mFilePath = NULL;
 }
@@ -75,6 +77,23 @@ flashScene::~flashScene()
 
 void flashScene::update()
 {
+	if (mInitialized == false)
+	{
+		if (driveMounter::completed() == true)
+		{
+			bool exists = false;
+			driveMounter::closeThread();
+			mMountedDrives = driveManager::getMountedDrives();
+		
+			bool biosFolderExists = false;
+			mCurrentPath = strdup("");
+			//mCurrentPath = fileSystem::directoryExists("C:\\Bios", biosFolderExists) && biosFolderExists == true ? strdup("C:\\Bios") : strdup("");
+			mFileInfoDetails = getFileInfoDetails();
+			mInitialized = true;
+		}
+		return;
+	}
+
 	// Cancel Action
 
 	if (inputManager::buttonPressed(ButtonB))
@@ -155,11 +174,14 @@ void flashScene::update()
 
 void flashScene::render()
 {
-	drawing::clearBackground();
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
-	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please select a BIOS to flash...", theme::getTitleTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please select a BIOS to flash...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
-	if (mFileInfoDetails != NULL)
+	if (mInitialized == false)
+	{
+		component::textBox("Please Wait...", false, false, horizAlignmentCenter, 40, 218, 640, 44);
+	}
+	else if (mFileInfoDetails != NULL)
 	{
 		int32_t maxItems = 7;
 
@@ -201,8 +223,8 @@ void flashScene::render()
 		component::textBox("No items", false, false, horizAlignmentCenter, 40, yPos, 640, 44);
 	}
 
-	drawing::drawBitmapString(context::getBitmapFontSmall(), "\xC2\xA1 Select \xC2\xA3 Parent", theme::getFooterTextColor(), 40, theme::getFooterY());
-	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Cancel", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
+	drawing::drawBitmapString(context::getBitmapFontSmall(), "\xC2\xA1 Select \xC2\xA3 Parent", mInitialized ? theme::getFooterTextColor() : theme::getTextDisabledColor(), 40, theme::getFooterY());
+	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Cancel", mInitialized ? theme::getFooterTextColor() : theme::getTextDisabledColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
 }
 
 char* flashScene::getFilePath()

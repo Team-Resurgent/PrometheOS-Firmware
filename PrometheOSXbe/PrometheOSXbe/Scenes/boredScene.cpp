@@ -139,9 +139,8 @@ void boredScene::update()
 
 void boredScene::render()
 {
-	drawing::clearBackground();
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
-	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Snake", theme::getTitleTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Snake", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
 	int xPos = (context::getBufferWidth() - ((mWidth + 2) * 10)) / 2;
 	int yPos = (context::getBufferHeight() - ((mHeight + 2) * 10)) / 2;

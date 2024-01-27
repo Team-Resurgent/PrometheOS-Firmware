@@ -224,35 +224,3 @@ void component::textBox(const char* label, bool selected, bool disabled, horizAl
 	}
 	
 }
-
-void component::toggleButton(bool selected, bool active, const char* label, int x, int y, int width, int height)
-{
-	if (active)
-	{
-		if (selected) 
-		{
-			panel(theme::getButtonActiveHoverFillColor(), theme::getButtonActiveHoverStrokeColor(), x, y, 75, height);
-		}
-		else
-		{
-			panel(theme::getButtonActiveFillColor(), theme::getButtonActiveStrokeColor(), x, y, 75, height);
-		}
-		panel(theme::getButtonToggleFillColor(), theme::getButtonToggleStrokeColor(), x + 42, y + 8, 25, height - 16);
-	}
-	else
-	{
-		if (selected) 
-		{
-			panel(theme::getButtonInactiveHoverFillColor(), theme::getButtonInactiveHoverStrokeColor(), x, y, 75, height);
-		}
-		else
-		{
-			panel(theme::getButtonInactiveFillColor(), theme::getButtonInactiveStrokeColor(), x, y, 75, height);
-		}
-		panel(theme::getButtonToggleFillColor(), theme::getButtonToggleStrokeColor(), x + 8, y + 8, 25, height - 16);
-	}
-	int textHeight;
-	int textWidth;
-	drawing::measureBitmapString(context::getBitmapFontSmall(), label, &textWidth, &textHeight);
-	drawing::drawBitmapString(context::getBitmapFontSmall(), label, theme::getTextPanelTextColor(), x + 100, y + ((height - textHeight) / 2) - 3);
-}

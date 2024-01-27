@@ -70,14 +70,13 @@ void backupEepromScene::update()
 
 void backupEepromScene::render()
 {
-	drawing::clearBackground();
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
-	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Backup EEPROM...", theme::getTitleTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Backup EEPROM...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
 	int yPos = (context::getBufferHeight() - (40 + 44)) / 2;
 	yPos += theme::getCenterOffset();
 
-	drawing::drawBitmapString(context::getBitmapFontMedium(), "Status", theme::getTitleTextColor(), 193, yPos);
+	drawing::drawBitmapString(context::getBitmapFontMedium(), "Status", theme::getHeaderTextColor(), 193, yPos);
 
 	yPos += 40;
 

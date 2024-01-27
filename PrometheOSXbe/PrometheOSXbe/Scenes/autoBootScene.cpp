@@ -45,9 +45,8 @@ void autoBootScene::render()
 {
 	pointerVector* banks = settingsManager::getBankInfos();
 
-	drawing::clearBackground();
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
-	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Auto booting...", theme::getTitleTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Auto booting...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
 	int yPos = (context::getBufferHeight() - (40 + 44)) / 2;
 	yPos += theme::getCenterOffset();

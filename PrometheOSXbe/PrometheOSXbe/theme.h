@@ -4,16 +4,17 @@
 #include "alignment.h"
 #include "pointerVector.h"
 
-#define THEME_BACKGROUND_ANIMATED 0
-#define THEME_BACKGROUND_DELAY 0
+#define THEME_BACKGROUND_FRAME_DELAY 0
 #define THEME_BACKGROUND_COLOR 0xff11191f
+#define THEME_BACKGROUND_IMAGE_TINT 0xffffffff
+#define THEME_BACKGROUND_OVERLAY_IMAGE_TINT 0xffffffff
 #define THEME_PROMETHEOS_ALIGN 0
 #define THEME_PROMETHEOS_Y 32
 #define THEME_PROMETHEOS_COLOR 0xffffcd00
-#define THEME_INSTALLER_COLOR 0xffffffff
+#define THEME_INSTALLER_TINT 0xffffffff
 #define THEME_TEXT_COLOR 0xffffffff
 #define THEME_TEXT_DISABLED_COLOR 0xff404040
-#define THEME_TITLE_TEXT_COLOR 0xffffffff
+#define THEME_HEADER_TEXT_COLOR 0xffffffff
 #define THEME_FOOTER_TEXT_COLOR 0xffffffff
 
 #define THEME_HEADER_ALIGN 0
@@ -30,9 +31,6 @@
 #define THEME_JOY_BUTTON_B_COLOR 0xffff0000
 #define THEME_JOY_BUTTON_X_COLOR 0xff0000ff
 #define THEME_JOY_BUTTON_Y_COLOR 0xffffff00
-
-#define THEME_BUTTON_TOGGLE_FILL_COLOR 0xffffffff
-#define THEME_BUTTON_TOGGLE_STROKE_COLOR 0xffffffff
 
 #define THEME_BUTTON_ACTIVE_FILL_COLOR 0xff1095c1
 #define THEME_BUTTON_ACTIVE_STROKE_COLOR 0xffffffff
@@ -122,17 +120,18 @@ public:
 
 	typedef struct ThemeData {
 
-		char     BACKGROUND_PATH[50];
-		uint32_t BACKGROUND_ANIMATED;
-		uint32_t BACKGROUND_DELAY;
+		char     SKIN_AUTHOR[50];
+		uint32_t BACKGROUND_FRAME_DELAY;
 		uint32_t BACKGROUND_COLOR;
+		uint32_t BACKGROUND_IMAGE_TINT;
+		uint32_t BACKGROUND_OVERLAY_IMAGE_TINT;
 		uint32_t PROMETHEOS_ALIGN;
 		uint32_t PROMETHEOS_Y;
 		uint32_t PROMETHEOS_COLOR;
-		uint32_t INSTALLER_COLOR;
+		uint32_t INSTALLER_TINT;
 		uint32_t TEXT_COLOR;
 		uint32_t TEXT_DISABLED_COLOR;
-		uint32_t TITLE_TEXT_COLOR;
+		uint32_t HEADER_TEXT_COLOR;
 		uint32_t FOOTER_TEXT_COLOR;
 
 		uint32_t HEADER_ALIGN;
@@ -149,9 +148,6 @@ public:
 		uint32_t JOY_BUTTON_B_COLOR;
 		uint32_t JOY_BUTTON_X_COLOR;
 		uint32_t JOY_BUTTON_Y_COLOR;
-
-		uint32_t BUTTON_TOGGLE_FILL_COLOR;
-		uint32_t BUTTON_TOGGLE_STROKE_COLOR;
 
 		uint32_t BUTTON_ACTIVE_FILL_COLOR;
 		uint32_t BUTTON_ACTIVE_STROKE_COLOR;
@@ -237,17 +233,20 @@ public:
 
 	} ThemeData;
 
-	static char* getBackgroundPath();
-	static bool getBackgroundAnimated();
-	static uint32_t getBackgroundDelay();
+	static uint32_t getBackgroundFrameCount();
+
+	static char* getSkinAuthor();
+	static uint32_t getBackgroundFrameDelay();
 	static uint32_t getBackgroundColor();
+	static uint32_t getBackgroundImageTint();
+	static uint32_t getBackgroundOverlayImageTint();
 	static uint32_t getPrometheosColor();
 	static horizAlignment getPrometheosAlign();
 	static uint32_t getPrometheosY();
-	static uint32_t getInstallerColor();
+	static uint32_t getInstallerTint();
 	static uint32_t getTextColor();
 	static uint32_t getTextDisabledColor();
-	static uint32_t getTitleTextColor();
+	static uint32_t getHeaderTextColor();
 	static uint32_t getFooterTextColor();
 
 	static horizAlignment getHeaderAlign();
@@ -360,4 +359,5 @@ private:
 	static void upperCase(char* value);
 	static void trimSpace(char* value);
 	static void loadConfig(char* buffer, uint32_t bufferSize);
+	static bool loadImage(const char* filePath, const char* imageKey);
 };

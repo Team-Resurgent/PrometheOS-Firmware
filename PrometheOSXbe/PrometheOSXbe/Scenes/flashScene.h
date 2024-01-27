@@ -16,6 +16,7 @@ public:
 private:
 	pointerVector* getFileInfoDetails();
 private:
+	bool mInitialized;
 	int mSelectedControl;
 	int mScrollPosition;
 	pointerVector* mMountedDrives;

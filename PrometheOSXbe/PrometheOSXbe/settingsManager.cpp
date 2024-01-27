@@ -30,7 +30,7 @@ semver settingsManager::getVersion()
 	memset(&version, 0, sizeof(version));
 	version.major = 1;
 	version.minor = 0;
-	version.patch = 1;
+	version.patch = 2;
 	return version;
 }
 
@@ -52,13 +52,13 @@ void settingsManager::initSettings()
 
 #ifdef TEST
 	mSettings.banks[0].slots = 1;
-	stringUtility::copyString(&mSettings.banks[0].name[0], "Bank 1 Rom", 26);
+	stringUtility::copyString(&mSettings.banks[0].name[0], "Bank 1 Rom", 40);
 	mSettings.banks[1].slots = 1;
-	stringUtility::copyString(&mSettings.banks[1].name[0], "Bank 2 Rom", 26);
+	stringUtility::copyString(&mSettings.banks[1].name[0], "Bank 2 Rom", 40);
 	mSettings.banks[2].slots = 1;
-	stringUtility::copyString(&mSettings.banks[2].name[0], "Bank 3 Rom", 26);
+	stringUtility::copyString(&mSettings.banks[2].name[0], "Bank 3 Rom", 40);
 	mSettings.banks[3].slots = 1;
-	stringUtility::copyString(&mSettings.banks[3].name[0], "Bank 4 Rom", 26);
+	stringUtility::copyString(&mSettings.banks[3].name[0], "Bank 4 Rom", 40);
 #endif
 }
 

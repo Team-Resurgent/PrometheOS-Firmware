@@ -136,6 +136,16 @@ void drawing::addImage(const char* key, uint8_t* imageData, D3DFORMAT format, in
 	context::getImageMap()->add(key, imageToAdd);
 }
 
+uint64_t drawing::getImageMemUse(const char* key)
+{
+	image* imageInfo = (image*)context::getImageMap()->get(key);
+	if (imageInfo == NULL)
+	{
+		return 0;
+	}
+	return utils::roundUpToNextPowerOf2(imageInfo->width) * utils::roundUpToNextPowerOf2(imageInfo->height) * 4;
+}
+
 void drawing::removeImage(const char* key)
 {
 	image* imageToRemove = (image*)context::getImageMap()->get(key);
@@ -172,14 +182,23 @@ bool drawing::loadFont(const uint8_t* data)
 	return result == 0;
 }
 
-void drawing::clearBackground()
+void drawing::clearBackground(uint32_t index)
 {
+	char* backgroundName = stringUtility::formatString("background:%i", index);
+
 	uint32_t backgroundColor = theme::getBackgroundColor();
 	context::getD3dDevice()->Clear(0L, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER|D3DCLEAR_STENCIL, (0xff << 24) | backgroundColor, 1.0f, 0L);
-	if (imageExists("background") == true)
+	if (imageExists(backgroundName) == true)
 	{
-		drawImage("background", 0xffffffff, 0, 0, context::getBufferWidth(), context::getBufferHeight());
+		drawImage(backgroundName, theme::getBackgroundImageTint(), 0, 0, context::getBufferWidth(), context::getBufferHeight());
 	}
+
+	if (imageExists("background-overlay") == true)
+	{
+		drawImage("background-overlay", theme::getBackgroundOverlayImageTint(), 0, 0, context::getBufferWidth(), context::getBufferHeight());
+	}
+
+	free(backgroundName);
 }
 
 bool drawing::imageExists(const char* key)

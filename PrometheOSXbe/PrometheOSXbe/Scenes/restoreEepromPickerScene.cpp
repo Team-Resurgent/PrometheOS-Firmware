@@ -18,6 +18,7 @@
 #include "..\pointerVector.h"
 #include "..\settingsManager.h"
 #include "..\theme.h"
+#include "..\driveMounter.h"
 
 pointerVector* restoreEepromPickerScene::getFileInfoDetails()
 {
@@ -39,12 +40,14 @@ pointerVector* restoreEepromPickerScene::getFileInfoDetails()
 
 restoreEepromPickerScene::restoreEepromPickerScene()
 {
+	mInitialized = false;
 	mSelectedControl = 0;
 	mScrollPosition = 0;
-	mCurrentPath = strdup("C:\\PrometheOS\\Backup\\EEPROMs");
-	mFileInfoDetails = getFileInfoDetails();
+	mCurrentPath = NULL;
+	mFileInfoDetails = NULL;
 	mSceneResult = sceneResultNone;
 	mFilePath = NULL;
+	driveMounter::startThread(true);
 }
 
 restoreEepromPickerScene::~restoreEepromPickerScene()
@@ -56,6 +59,18 @@ restoreEepromPickerScene::~restoreEepromPickerScene()
 
 void restoreEepromPickerScene::update()
 {
+	if (mInitialized == false)
+	{
+		if (driveMounter::completed() == true)
+		{
+			driveMounter::closeThread();
+			mCurrentPath = strdup("C:\\PrometheOS\\Backup\\EEPROMs");
+			mFileInfoDetails = getFileInfoDetails();
+			mInitialized = true;
+		}
+		return;
+	}
+
 	// Cancel Action
 
 	if (inputManager::buttonPressed(ButtonB))
@@ -110,11 +125,14 @@ void restoreEepromPickerScene::update()
 
 void restoreEepromPickerScene::render()
 {
-	drawing::clearBackground();
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
-	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please select a EEPROM to restore...", theme::getTitleTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please select a EEPROM to restore...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
-	if (mFileInfoDetails != NULL)
+	if (mInitialized == false)
+	{
+		component::textBox("Please Wait...", false, false, horizAlignmentCenter, 40, 218, 640, 44);
+	}
+	else if (mFileInfoDetails != NULL)
 	{
 		uint32_t yPos = 96;
 
@@ -156,8 +174,8 @@ void restoreEepromPickerScene::render()
 
 	}
 
-	drawing::drawBitmapString(context::getBitmapFontSmall(), "\xC2\xA1 Select", theme::getFooterTextColor(), 40, theme::getFooterY());
-	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Cancel", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
+	drawing::drawBitmapString(context::getBitmapFontSmall(), "\xC2\xA1 Select", mInitialized ? theme::getFooterTextColor() : theme::getTextDisabledColor(), 40, theme::getFooterY());
+	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Cancel", mInitialized ? theme::getFooterTextColor() : theme::getTextDisabledColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
 }
 
 char* restoreEepromPickerScene::getFilePath()

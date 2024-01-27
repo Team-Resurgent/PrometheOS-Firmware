@@ -27,8 +27,7 @@
 #include "httpServer.h"
 #include "driveManager.h"
 #include "XKUtils\XKEEPROM.h"
-
-#include <xmv.h>
+#include "timeUtility.h"
 
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_TEX1)
 
@@ -467,9 +466,10 @@ void __cdecl main()
     context::getD3dDevice()->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
     context::getD3dDevice()->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
 
-	drawing::clearBackground();
-
 	temperatureManager::init();
+
+	uint64_t start = timeUtility::getMillisecondsNow();
+	uint32_t frameIndex = 0;
 
     while (TRUE)
     {
@@ -477,10 +477,27 @@ void __cdecl main()
 
 		temperatureManager::refresh();
 		inputManager::processController();
+		drawing::clearBackground(frameIndex);
 		sceneManager::getScene()->update();
 		sceneManager::getScene()->render();
 
 		context::getD3dDevice()->EndScene();
 		context::getD3dDevice()->Present(NULL, NULL, NULL, NULL);
+
+		uint32_t backgroundCount = theme::getBackgroundFrameCount();
+		if (backgroundCount > 0)
+		{
+			uint64_t end = timeUtility::getMillisecondsNow();
+			if (end - start > theme::getBackgroundFrameDelay())
+			{
+				uint32_t backgroundCount = theme::getBackgroundFrameCount();
+				frameIndex = (frameIndex + 1) % backgroundCount;
+				start = end;
+			}
+		}
+		else
+		{
+			frameIndex = 0;
+		}
     }
 }
