@@ -20,6 +20,7 @@ bool hddLockUnlock::startThread(hddLockUnlockAction action)
 	if (mThread == NULL) {
         return false;
     }
+	SetThreadPriority(mThread, THREAD_PRIORITY_HIGHEST);
 	return true;
 }
 

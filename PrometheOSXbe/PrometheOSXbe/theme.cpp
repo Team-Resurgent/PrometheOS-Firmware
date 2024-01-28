@@ -616,7 +616,7 @@ void theme::loadSkin(char* skinName)
 	pointerVector* result = fileSystem::fileGetFileInfoDetails(backgroundSkinPath);
 	if (result != NULL)
 	{
-		for (uint32_t i = 0; i < min(result->count(), 10); i++)
+		for (uint32_t i = 0; i < result->count(); i++)
 		{
 			if (totalMemUsed > (20 * 1024 * 1024))
 			{

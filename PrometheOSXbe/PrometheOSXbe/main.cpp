@@ -309,6 +309,33 @@ DISPLAY_MODE displayModes[] =
     {   720,    480,    FALSE,  FALSE, 50 },         // 720x480 interlaced 4x3  50Hz
     {   720,    480,    FALSE,  TRUE,  60 },         // 720x480 interlaced 16x9
     {   720,    480,    FALSE,  FALSE, 60 },         // 720x480 interlaced 4x3
+
+
+	// Width  Height Progressive Widescreen
+
+	// HDTV Progressive Modes
+ //   {  1280,    720,    TRUE,   TRUE,  60 },         // 1280x720 progressive 16x9
+
+	//// EDTV Progressive Modes
+ //   {   720,    480,    TRUE,   TRUE,  60 },         // 720x480 progressive 16x9
+ //   {   640,    480,    TRUE,   TRUE,  60 },         // 640x480 progressive 16x9
+ //   {   720,    480,    TRUE,   FALSE, 60 },         // 720x480 progressive 4x3
+ //   {   640,    480,    TRUE,   FALSE, 60 },         // 640x480 progressive 4x3
+
+	//// HDTV Interlaced Modes
+	////    {  1920,   1080,    FALSE,  TRUE,  60 },         // 1920x1080 interlaced 16x9
+
+	//// SDTV PAL-50 Interlaced Modes
+ //   {   720,    480,    FALSE,  TRUE,  50 },         // 720x480 interlaced 16x9 50Hz
+ //   {   640,    480,    FALSE,  TRUE,  50 },         // 640x480 interlaced 16x9 50Hz
+ //   {   720,    480,    FALSE,  FALSE, 50 },         // 720x480 interlaced 4x3  50Hz
+ //   {   640,    480,    FALSE,  FALSE, 50 },         // 640x480 interlaced 4x3  50Hz
+
+	//// SDTV NTSC / PAL-60 Interlaced Modes
+ //   {   720,    480,    FALSE,  TRUE,  60 },         // 720x480 interlaced 16x9
+ //   {   640,    480,    FALSE,  TRUE,  60 },         // 640x480 interlaced 16x9
+ //   {   720,    480,    FALSE,  FALSE, 60 },         // 720x480 interlaced 4x3
+ //   {   640,    480,    FALSE,  FALSE, 60 },         // 640x480 interlaced 4x3
 };
 
 #define NUM_MODES (sizeof(displayModes) / sizeof(displayModes[0]))
@@ -377,13 +404,17 @@ void __cdecl main()
 	}
 	
 	context::setImageMap(new pointerMap(false));
-	context::setBufferWidth(displayModes[currentMode].dwWidth);
-	context::setBufferHeight(displayModes[currentMode].dwHeight);
+
+	context::setBufferWidth(720);
+	context::setBufferHeight(480);
+
+	//context::setBufferWidth(displayModes[currentMode].dwWidth);
+	//context::setBufferHeight(displayModes[currentMode].dwHeight);
 
 	D3DPRESENT_PARAMETERS params; 
     ZeroMemory(&params, sizeof(params));
-	params.BackBufferWidth = context::getBufferWidth();
-    params.BackBufferHeight = context::getBufferHeight();
+	params.BackBufferWidth = displayModes[currentMode].dwWidth;
+    params.BackBufferHeight = displayModes[currentMode].dwHeight;
 	params.Flags = displayModes[currentMode].fProgressive ? D3DPRESENTFLAG_PROGRESSIVE : D3DPRESENTFLAG_INTERLACED;
     params.Flags |= displayModes[currentMode].fWideScreen ? D3DPRESENTFLAG_WIDESCREEN : 0;
     params.FullScreen_RefreshRateInHz = displayModes[currentMode].dwFreq;
@@ -465,6 +496,11 @@ void __cdecl main()
     context::getD3dDevice()->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_TFACTOR);
     context::getD3dDevice()->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
     context::getD3dDevice()->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+
+	context::getD3dDevice()->SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+	context::getD3dDevice()->SetTextureStageState(0, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+	context::getD3dDevice()->SetTextureStageState(0, D3DTSS_MIPFILTER, D3DTEXF_LINEAR);
+
 
 	temperatureManager::init();
 

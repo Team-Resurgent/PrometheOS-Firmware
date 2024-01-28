@@ -24,6 +24,7 @@ bool flash::startThread(const char* filePath, const char* bankName, uint8_t ledC
 	if (mThread == NULL) {
         return false;
     }
+	SetThreadPriority(mThread, THREAD_PRIORITY_HIGHEST);
 	return true;
 }
 
