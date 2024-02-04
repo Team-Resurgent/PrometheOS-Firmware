@@ -9,6 +9,11 @@
 
 #define ENABLE_XENIUM
 
+#ifdef ENABLE_XENIUM
+static uint8_t sckReg = 0;
+static uint8_t mosiReg = 0;
+#endif
+
 #ifndef ENABLE_XENIUM
 static uint32_t bankOffset = 0;
 static uint8_t xeniumMem[2048 * 1024];
@@ -462,11 +467,67 @@ void xenium::launchBank(uint8_t id, uint8_t slots, ledColorEnum ledColor)
 }
 
 void xenium::launchTsop()
- {
+{
 	DWORD scratch;
 	HalReadSMBusByte(SMBDEV_PIC16L, PIC16L_CMD_SCRATCH_REGISTER, &scratch);
 	HalWriteSMBusByte(SMBDEV_PIC16L, PIC16L_CMD_SCRATCH_REGISTER, scratch & ~SCRATCH_REGISTER_BITVALUE_NO_ANIMATION);
 	setBank(bankTsop);
 	setLedColor(ledColorOff);
 	HalReturnToFirmware(RETURN_FIRMWARE_REBOOT);
- }
+}
+
+void xenium::sendCharacter(uint8_t value)
+{
+	const int dataMode = 3;
+	const int bitOrder = 7;
+
+	const uint8_t sckBit = 1 << 6;
+	const uint8_t mosiBit = 1 << 4;
+
+	static bool spiInitialized = false;
+	if (spiInitialized == false)
+	{
+		outputByte(0xEF, 1 << 6);
+		Sleep(100);
+		outputByte(0xEF, 0);
+		Sleep(100);
+		spiInitialized = true;
+	}
+
+	for (uint8_t x = 0; x < 8; x++) 
+	{
+		if ((value >> (x ^ bitOrder)) & 0x01)
+		{
+			mosiReg |= mosiBit;
+		} 
+		else
+		{
+			mosiReg &= ~mosiBit;
+		}
+
+		outputByte(0xEF, mosiReg | sckReg);
+
+		if (dataMode >> 1)
+		{
+			sckReg &= ~sckBit;
+		}
+		else 
+		{
+			sckReg |= sckBit;	
+		}
+		
+		outputByte(0xEF, mosiReg | sckReg);
+		
+		if (dataMode >> 1) 
+		{ 
+			sckReg |= sckBit;
+		}
+		else 
+		{
+			sckReg &= ~sckBit;
+		}
+
+		outputByte(0xEF, mosiReg | sckReg);
+
+	}
+}

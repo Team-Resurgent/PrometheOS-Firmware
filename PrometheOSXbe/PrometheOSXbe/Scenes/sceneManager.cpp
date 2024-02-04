@@ -15,12 +15,17 @@
 #include "restoreEepromFlowScene.h"
 #include "menuScene.h"
 #include "skinSelectionScene.h"
+#include "soundPackSelectionScene.h"
 #include "autoBootDelayScene.h"
 #include "ledColorFlowScene.h"
 #include "boredScene.h"
+#include "launchScene.h"
+#include "autoBootScene.h"
 
+#include "..\lcd.h"
 #include "..\settingsManager.h"
 #include "..\stringUtility.h"
+#include "..\Threads\lcdRender.h"
 
 #include <xtl.h>
 
@@ -48,6 +53,12 @@ void sceneManager::openScene(sceneItemEnum sceneItem)
 	if (sceneItem == sceneItemMainScene)
 	{
 		setScene(new mainScene());
+
+		char *versionSemver = settingsManager::getVersionSting(settingsManager::getVersion());
+		char *version = stringUtility::formatString("PrometheOS: V%s", versionSemver);
+		lcdRender::setTitle(version);
+		free(version);
+		free(versionSemver);
 	}
 	if (sceneItem == sceneItemSystemSettingsScene)
 	{
@@ -60,6 +71,7 @@ void sceneManager::openScene(sceneItemEnum sceneItem)
 		sceneItems->add(new utils::intContainer(sceneItemPrometheOsSettingsScene));
 		sceneItems->add(new utils::intContainer(sceneItemUtilitiesScene));
 		setScene(new menuScene("Select Settings option...", "", sceneItemMainScene, sceneItems));
+		lcdRender::setTitle("System Settings");
 	}
 	else if (sceneItem == sceneItemUtilitiesScene)
 	{
@@ -67,6 +79,7 @@ void sceneManager::openScene(sceneItemEnum sceneItem)
 		sceneItems->add(new utils::intContainer(sceneItemHddUnlockScene));
 		sceneItems->add(new utils::intContainer(sceneItemEepromToolsScene));
 		setScene(new menuScene("Select Utility option...", "", sceneItemSystemSettingsScene, sceneItems));
+		lcdRender::setTitle("Utilities");
 	}
 	else if (sceneItem == sceneItemBankManagementScene)
 	{
@@ -77,6 +90,7 @@ void sceneManager::openScene(sceneItemEnum sceneItem)
 		char* subTitle = stringUtility::formatString("Free Slots %i", settingsManager::getFreeSlots());
 		setScene(new menuScene("Select Bank option...", subTitle, sceneItemMainScene, sceneItems));
 		free(subTitle);
+		lcdRender::setTitle("Bank Management");
 	}
 	else if (sceneItem == sceneItemEepromToolsScene)
 	{
@@ -84,22 +98,22 @@ void sceneManager::openScene(sceneItemEnum sceneItem)
 		sceneItems->add(new utils::intContainer(sceneItemBackupEepromScene));
 		sceneItems->add(new utils::intContainer(sceneItemRestoreEepromScene));
 		setScene(new menuScene("Select EEPROM option...", "", sceneItemUtilitiesScene, sceneItems));
+		lcdRender::setTitle("EEPROM Selection");
 	}
 	else if (sceneItem == sceneItemFlashFlowScene)
 	{
 		setScene(new flashFlowScene());
+		lcdRender::setTitle("Flash Bank");
 	}
 	else if (sceneItem == sceneItemRemoveScene)
 	{
 		setScene(new removeScene());
+		lcdRender::setTitle("Remove Bank");
 	}
 	else if (sceneItem == sceneItemEditFlowScene)
 	{
 		setScene(new editFlowScene());
-	}
-	else if (sceneItem == sceneItemMainScene)
-	{
-		setScene(new mainScene());
+		lcdRender::setTitle("Edit");
 	}
 	else if (sceneItem == sceneItemSystemInfoScene)
 	{
@@ -109,74 +123,107 @@ void sceneManager::openScene(sceneItemEnum sceneItem)
 		sceneItems->add(new utils::intContainer(sceneItemSystemInfoSceneVideo));
 		sceneItems->add(new utils::intContainer(sceneItemSystemInfoSceneAbout));
 		setScene(new menuScene("Select System Info option...", "", sceneItemSystemSettingsScene, sceneItems));
+		lcdRender::setTitle("System Info");
 	}
 	else if (sceneItem == sceneItemSystemInfoSceneConsole)
 	{
 		setScene(new systemInfoScene(systemInfoCategoryConsole));
+		lcdRender::setTitle("Console Info");
 	}
 	else if (sceneItem == sceneItemSystemInfoSceneAudio)
 	{
 		setScene(new systemInfoScene(systemInfoCategoryAudio));
+		lcdRender::setTitle("Audio Info");
 	}
 	else if (sceneItem == sceneItemSystemInfoSceneVideo)
 	{
 		setScene(new systemInfoScene(systemInfoCategoryVideo));
+		lcdRender::setTitle("Video Info");
 	}
 	else if (sceneItem == sceneItemSystemInfoSceneAbout)
 	{
 		setScene(new systemInfoScene(systemInfoCategoryAbout));
+		lcdRender::setTitle("About Info");
 	}
 	else if (sceneItem == sceneItemVideoSettingsScene)
 	{
 		setScene(new videoSettingsScene());
+		lcdRender::setTitle("Video Settings");
 	}
 	else if (sceneItem == sceneItemAudioSettingsScene)
 	{
 		setScene(new audioSettingsScene());
+		lcdRender::setTitle("Audio Settings");
 	}
 	else if (sceneItem == sceneItemRegionSettingsScene)
 	{
 		setScene(new regionSettingsScene());
+		lcdRender::setTitle("Region Settings");
 	}
 	else if (sceneItem == sceneItemNetworkSettingsScene)
 	{
 		setScene(new networkSettingsScene());
+		lcdRender::setTitle("Network");
 	}
 	else if (sceneItem == sceneItemHddUnlockScene)
 	{
 		setScene(new hddLockUnlockScene());
+		lcdRender::setTitle("HDD Lock / Unlock");
 	}
 	else if (sceneItem == sceneItemBackupEepromScene)
 	{
 		setScene(new backupEepromScene());
+		lcdRender::setTitle("Backup EEProm");
 	}
 	else if (sceneItem == sceneItemRestoreEepromScene)
 	{
 		setScene(new restoreEepromFlowScene());
+		lcdRender::setTitle("Restore EEPROM");
 	}
 	else if (sceneItem == sceneItemPrometheOsSettingsScene)
 	{
 		pointerVector* sceneItems = new pointerVector(true);
 		sceneItems->add(new utils::intContainer(sceneItemSkinSelectionScene));
+		sceneItems->add(new utils::intContainer(sceneItemSoundPackSelectionScene));
 		sceneItems->add(new utils::intContainer(sceneItemAutoBootDelayScene));
 		sceneItems->add(new utils::intContainer(sceneItemLedColorFlowScene));
 		sceneItems->add(new utils::intContainer(sceneItemBoredScene));
 		setScene(new menuScene("Select PrometheOS option...", "", sceneItemSystemSettingsScene, sceneItems));
+		lcdRender::setTitle("PrometheOS");
 	}
 	else if (sceneItem == sceneItemSkinSelectionScene)
 	{
 		setScene(new skinSelectionScene());
+		lcdRender::setTitle("Skins");
+	}
+	else if (sceneItem == sceneItemSoundPackSelectionScene)
+	{
+		setScene(new soundPackSelectionScene());
+		lcdRender::setTitle("Sound Packs");
 	}
 	else if (sceneItem == sceneItemAutoBootDelayScene)
 	{
 		setScene(new autoBootDelayScene());
+		lcdRender::setTitle("Auto Boot Delay");
 	}
 	else if (sceneItem == sceneItemLedColorFlowScene)
 	{
 		setScene(new ledColorFlowScene());
+		lcdRender::setTitle("LED Color");
 	}
 	else if (sceneItem == sceneItemBoredScene)
 	{
 		setScene(new boredScene());
+		lcdRender::setTitle("Snake");
+	}
+	else if (sceneItem == sceneItemLaunchScene)
+	{
+		setScene(new launchScene());
+		lcdRender::setTitle("Launch Bank");
+	}
+	else if (sceneItem == sceneItemAutoBootScene)
+	{
+		setScene(new autoBootScene());
+		lcdRender::setTitle("Auto Boot");
 	}
 }

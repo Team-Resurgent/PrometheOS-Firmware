@@ -77,4 +77,5 @@ public:
 	static bool verifyBank(bankEnum bank, uint32_t offset, utils::dataContainer* dataContainer);
 	static void launchBank(uint8_t id, uint8_t slots, ledColorEnum ledColor);
 	static void launchTsop();
+	static void sendCharacter(uint8_t value);
 };

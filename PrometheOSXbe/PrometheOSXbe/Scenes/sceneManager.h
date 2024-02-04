@@ -26,9 +26,12 @@ enum sceneItemEnum
 	sceneItemRestoreEepromScene = 19,
 	sceneItemPrometheOsSettingsScene = 20,
 	sceneItemSkinSelectionScene = 21,
-	sceneItemAutoBootDelayScene = 22,
-	sceneItemLedColorFlowScene = 23,
-	sceneItemBoredScene = 24
+	sceneItemSoundPackSelectionScene = 22,
+	sceneItemAutoBootDelayScene = 23,
+	sceneItemLedColorFlowScene = 24,
+	sceneItemBoredScene = 25,
+	sceneItemLaunchScene = 26,
+	sceneItemAutoBootScene = 27,
 }; 
 
 class sceneManager

@@ -8,6 +8,4 @@ public:
 	autoBootScene();
 	void update();
 	void render();
-private:
-	int mCounter;
 };

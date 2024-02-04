@@ -18,7 +18,7 @@
 #include "..\pointerVector.h"
 #include "..\settingsManager.h"
 #include "..\theme.h"
-#include "..\driveMounter.h"
+#include "..\Threads\driveMounter.h"
 
 pointerVector* restoreEepromPickerScene::getFileInfoDetails()
 {
@@ -64,7 +64,7 @@ void restoreEepromPickerScene::update()
 		if (driveMounter::completed() == true)
 		{
 			driveMounter::closeThread();
-			mCurrentPath = strdup("C:\\PrometheOS\\Backup\\EEPROMs");
+			mCurrentPath = strdup("E:\\PrometheOS\\Backup\\EEPROMs");
 			mFileInfoDetails = getFileInfoDetails();
 			mInitialized = true;
 		}

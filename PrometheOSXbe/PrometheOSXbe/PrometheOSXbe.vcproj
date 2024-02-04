@@ -35,7 +35,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="xapilibd.lib d3d8d.lib d3dx8d.lib xgraphicsd.lib dsoundd.lib dmusicd.lib xactengd.lib xsndtrkd.lib xvoiced.lib xonlined.lib xboxkrnl.lib xbdm.lib"
+				AdditionalDependencies="dsoundd.lib xapilibd.lib d3d8d.lib d3dx8d.lib xgraphicsd.lib dsoundd.lib dmusicd.lib xactengd.lib xsndtrkd.lib xvoiced.lib xonlined.lib xboxkrnl.lib xbdm.lib"
 				OutputFile="$(OutDir)/$(ProjectName).exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="TRUE"
@@ -213,7 +213,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="xapilib.lib d3d8.lib d3dx8.lib xgraphics.lib dsound.lib dmusic.lib xacteng.lib xsndtrk.lib xvoice.lib xonline.lib xboxkrnl.lib"
+				AdditionalDependencies="dsound.lib xapilib.lib d3d8.lib d3dx8.lib xgraphics.lib dsound.lib dmusic.lib xacteng.lib xsndtrk.lib xvoice.lib xonline.lib xboxkrnl.lib"
 				OutputFile="$(OutDir)/$(ProjectName).exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="FALSE"
@@ -311,6 +311,9 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
+				RelativePath=".\audioPlayer.cpp">
+			</File>
+			<File
 				RelativePath=".\component.cpp">
 			</File>
 			<File
@@ -329,22 +332,10 @@
 				RelativePath=".\driveManager.cpp">
 			</File>
 			<File
-				RelativePath=".\driveMounter.cpp">
-			</File>
-			<File
 				RelativePath=".\fileSystem.cpp">
 			</File>
 			<File
-				RelativePath=".\flash.cpp">
-			</File>
-			<File
 				RelativePath=".\ftpServer.cpp">
-			</File>
-			<File
-				RelativePath=".\hddInfo.cpp">
-			</File>
-			<File
-				RelativePath=".\hddLockUnlock.cpp">
 			</File>
 			<File
 				RelativePath=".\hdmiDevice.cpp">
@@ -354,6 +345,9 @@
 			</File>
 			<File
 				RelativePath=".\inputManager.cpp">
+			</File>
+			<File
+				RelativePath=".\lcd.cpp">
 			</File>
 			<File
 				RelativePath=".\main.cpp">
@@ -570,22 +564,53 @@
 					RelativePath=".\Scenes\skinSelectionScene.cpp">
 				</File>
 				<File
+					RelativePath=".\Scenes\soundPackSelectionScene.cpp">
+				</File>
+				<File
 					RelativePath=".\Scenes\systemInfoScene.cpp">
 				</File>
 				<File
 					RelativePath=".\Scenes\videoSettingsScene.cpp">
 				</File>
 			</Filter>
+			<Filter
+				Name="Threads"
+				Filter="">
+				<File
+					RelativePath=".\Threads\countdown.cpp">
+				</File>
+				<File
+					RelativePath=".\Threads\driveMounter.cpp">
+				</File>
+				<File
+					RelativePath=".\Threads\flash.cpp">
+				</File>
+				<File
+					RelativePath=".\Threads\hddInfo.cpp">
+				</File>
+				<File
+					RelativePath=".\Threads\hddLockUnlock.cpp">
+				</File>
+				<File
+					RelativePath=".\Threads\lcdRender.cpp">
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Media"
 			Filter="">
+			<File
+				RelativePath=".\lcd.h">
+			</File>
 			<Filter
 				Name="Header Files"
 				Filter="h;hpp;hxx;hm;inl;inc;xsd"
 				UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 				<File
 					RelativePath=".\alignment.h">
+				</File>
+				<File
+					RelativePath=".\audioPlayer.h">
 				</File>
 				<File
 					RelativePath=".\component.h">
@@ -606,25 +631,13 @@
 					RelativePath=".\driveManager.h">
 				</File>
 				<File
-					RelativePath=".\driveMounter.h">
-				</File>
-				<File
 					RelativePath=".\extensions.h">
 				</File>
 				<File
 					RelativePath=".\fileSystem.h">
 				</File>
 				<File
-					RelativePath=".\flash.h">
-				</File>
-				<File
 					RelativePath=".\ftpServer.h">
-				</File>
-				<File
-					RelativePath=".\hddInfo.h">
-				</File>
-				<File
-					RelativePath=".\hddLockUnlock.h">
 				</File>
 				<File
 					RelativePath=".\hdmiDevice.h">
@@ -669,10 +682,16 @@
 					RelativePath=".\ssfn.h">
 				</File>
 				<File
+					RelativePath=".\stb.h">
+				</File>
+				<File
 					RelativePath=".\stb_image.h">
 				</File>
 				<File
 					RelativePath=".\stb_image_write.h">
+				</File>
+				<File
+					RelativePath=".\stb_vorbis.cpp">
 				</File>
 				<File
 					RelativePath=".\stdafx.h">
@@ -868,10 +887,35 @@
 						RelativePath=".\Scenes\skinSelectionScene.h">
 					</File>
 					<File
+						RelativePath=".\Scenes\soundPackSelectionScene.h">
+					</File>
+					<File
 						RelativePath=".\Scenes\systemInfoScene.h">
 					</File>
 					<File
 						RelativePath=".\Scenes\videoSettingsScene.h">
+					</File>
+				</Filter>
+				<Filter
+					Name="Threads"
+					Filter="">
+					<File
+						RelativePath=".\Threads\countdown.h">
+					</File>
+					<File
+						RelativePath=".\Threads\driveMounter.h">
+					</File>
+					<File
+						RelativePath=".\Threads\flash.h">
+					</File>
+					<File
+						RelativePath=".\Threads\hddInfo.h">
+					</File>
+					<File
+						RelativePath=".\Threads\hddLockUnlock.h">
+					</File>
+					<File
+						RelativePath=".\Threads\lcdRender.h">
 					</File>
 				</Filter>
 			</Filter>

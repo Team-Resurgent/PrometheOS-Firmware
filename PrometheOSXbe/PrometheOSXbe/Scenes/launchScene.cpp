@@ -27,7 +27,7 @@ void launchScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		sceneManager::setScene(new mainScene());
+		sceneManager::openScene(sceneItemMainScene);
 		return;
 	}
 

@@ -42,14 +42,14 @@ void backupEepromScene::update()
 	if (inputManager::buttonPressed(ButtonA) && mDone == false)
 	{
 		free(mProgress);
-		if (fileSystem::directoryCreate("C:\\PrometheOS") == true && fileSystem::directoryCreate("C:\\PrometheOS\\Backup") == true && fileSystem::directoryCreate("C:\\PrometheOS\\Backup\\EEPROMs") == true)
+		if (fileSystem::directoryCreate("E:\\PrometheOS") == true && fileSystem::directoryCreate("E:\\PrometheOS\\Backup") == true && fileSystem::directoryCreate("E:\\PrometheOS\\Backup\\EEPROMs") == true)
 		{
 			XKEEPROM* eeprom = new XKEEPROM();
 			eeprom->ReadFromXBOX();
 			char* serialString = xboxConfig::getSerialString();
 			char* versionString = xboxConfig::getXboxVersionString(); 
 			char* fileVersionString = stringUtility::replace(versionString, "/", "-");
-			char* filePath = stringUtility::formatString("C:\\PrometheOS\\Backup\\EEPROMs\\%s %s.bin", fileVersionString, serialString); 
+			char* filePath = stringUtility::formatString("E:\\PrometheOS\\Backup\\EEPROMs\\%s %s.bin", fileVersionString, serialString); 
 			if (eeprom->WriteToBINFile(filePath) == true)
 			{
 				mProgress = strdup("Backup completed");

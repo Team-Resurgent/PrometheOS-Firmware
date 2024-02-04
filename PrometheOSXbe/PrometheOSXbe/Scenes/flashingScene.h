@@ -3,7 +3,7 @@
 #include "scene.h"
 
 #include "..\utils.h"
-#include "..\flash.h"
+#include "..\Threads\flash.h"
 #include "..\xboxInternals.h"
 
 class flashingScene : public scene

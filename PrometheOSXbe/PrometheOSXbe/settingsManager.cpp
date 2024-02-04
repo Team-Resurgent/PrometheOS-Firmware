@@ -29,8 +29,8 @@ semver settingsManager::getVersion()
 	semver version;
 	memset(&version, 0, sizeof(version));
 	version.major = 1;
-	version.minor = 0;
-	version.patch = 2;
+	version.minor = 1;
+	version.patch = 0;
 	return version;
 }
 
@@ -419,6 +419,18 @@ void settingsManager::setSkinName(const char* skinName)
 {
 	memset(&mSettings.skinName[0], 0, sizeof(mSettings.skinName));
 	strncpy(&mSettings.skinName[0], skinName, 49);
+	saveSettings();
+}
+
+char* settingsManager::getSoundPackName()
+{
+	return strdup(&mSettings.soundPackName[0]);
+}
+
+void settingsManager::setSoundPackName(const char* soundPackName)
+{
+	memset(&mSettings.soundPackName[0], 0, sizeof(mSettings.soundPackName));
+	strncpy(&mSettings.soundPackName[0], soundPackName, 49);
 	saveSettings();
 }
 

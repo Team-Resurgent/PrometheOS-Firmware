@@ -5,6 +5,8 @@
 #include "alignment.h"
 #include "pointerVector.h"
 #include "utils.h"
+#include "audioPlayer.h"
+#include "timeUtility.h"
 
 #include <time.h>
 
@@ -24,9 +26,19 @@ uint32_t theme::getBackgroundFrameCount()
 	return mBackgroundFrameCount;
 }
 
+bool theme::getBackgroundOverlayAsUnderlay()
+{
+	return mThemeData.BACKGROUND_OVERLAY_AS_UNDERLAY != 0;
+}
+
 uint32_t theme::getBackgroundFrameDelay()
 {
 	return mThemeData.BACKGROUND_FRAME_DELAY;
+}
+
+bool theme::getBackgroundFramePingPong()
+{
+	return mThemeData.BACKGROUND_FRAME_PINGPONG != 0;
 }
 
 uint32_t theme::getBackgroundColor()
@@ -459,7 +471,9 @@ void theme::loadSkin(char* skinName)
 {
 	memset(&mThemeData.SKIN_AUTHOR[0], 0, sizeof(mThemeData.SKIN_AUTHOR));
 
+	mThemeData.BACKGROUND_OVERLAY_AS_UNDERLAY = THEME_BACKGROUND_OVERLAY_AS_UNDERLAY;
 	mThemeData.BACKGROUND_FRAME_DELAY = THEME_BACKGROUND_FRAME_DELAY;
+	mThemeData.BACKGROUND_FRAME_PINGPONG = THEME_BACKGROUND_FRAME_PINGPONG;
 	mThemeData.BACKGROUND_COLOR = THEME_BACKGROUND_COLOR;
 	mThemeData.BACKGROUND_IMAGE_TINT = THEME_BACKGROUND_IMAGE_TINT;
 	mThemeData.BACKGROUND_OVERLAY_IMAGE_TINT = THEME_BACKGROUND_OVERLAY_IMAGE_TINT;
@@ -588,7 +602,7 @@ void theme::loadSkin(char* skinName)
 		return;
 	}
 
-	char* skinPath = stringUtility::formatString("C:\\PrometheOS\\Skins\\%s", skinName);
+	char* skinPath = stringUtility::formatString("E:\\PrometheOS\\Skins\\%s", skinName);
 
 	uint32_t fileHandle;
 
@@ -685,8 +699,12 @@ void theme::parseConfigLine(char* param1, char* param2, char* buffer, unsigned l
 
 	if (strcmp(params[0], "SKIN_AUTHOR") == 0) {
 		strncpy(&mThemeData.SKIN_AUTHOR[0], params[1], 49);
+	} else if (strcmp(params[0], "BACKGROUND_OVERLAY_AS_UNDERLAY") == 0) {
+        parseUnsignedNumber(params[1], mThemeData.BACKGROUND_OVERLAY_AS_UNDERLAY);
 	} else if (strcmp(params[0], "BACKGROUND_FRAME_DELAY") == 0) {
         parseUnsignedNumber(params[1], mThemeData.BACKGROUND_FRAME_DELAY);
+	} else if (strcmp(params[0], "BACKGROUND_FRAME_PINGPONG") == 0) {
+        parseUnsignedNumber(params[1], mThemeData.BACKGROUND_FRAME_PINGPONG);
 	} else if (strcmp(params[0], "BACKGROUND_COLOR") == 0) {
         parseUnsignedNumber(params[1], mThemeData.BACKGROUND_COLOR);
 	} else if (strcmp(params[0], "BACKGROUND_IMAGE_TINT") == 0) {
@@ -973,7 +991,7 @@ pointerVector* theme::getSkins()
 {
 	pointerVector* result = new pointerVector(false);
 	
-	pointerVector* skins = fileSystem::fileGetFileInfoDetails("C:\\PrometheOS\\Skins");
+	pointerVector* skins = fileSystem::fileGetFileInfoDetails("E:\\PrometheOS\\Skins");
 	if (skins != NULL)
 	{
 		for (uint32_t i = 0; i < skins->count(); i++)
@@ -995,7 +1013,7 @@ void theme::loadRandomSkin()
 {
 	pointerVector* skins = getSkins();
 
-	srand(time(NULL));
+	srand((uint32_t)timeUtility::getMillisecondsNow());
 	int index = rand() % (skins->count() + 1);
 
 	if (index == 0)
@@ -1032,4 +1050,69 @@ bool theme::loadImage(const char* filePath, const char* imageKey)
 	}
 
 	return result;
+}
+
+void theme::loadSoundPack(char* soundPackName)
+{
+	audioPlayer::stop(context::getMusicId());
+	
+	if (strlen(soundPackName) == 0)
+	{
+		context::setSoundPackPath("");
+		return;
+	}
+	else if (stringUtility::equals(soundPackName, "*", false) == true)
+	{
+		loadRandomSoundPack();
+		return;
+	}
+
+	char* soundPackPath = stringUtility::formatString("E:\\PrometheOS\\SoundPacks\\%s", soundPackName);
+	
+	context::setSoundPackPath(soundPackPath);
+	context::setMusicId(audioPlayer::play("background-music.ogg", true));
+
+	free(soundPackPath);
+}
+
+
+pointerVector* theme::getSoundPacks()
+{
+	pointerVector* result = new pointerVector(false);
+	
+	pointerVector* soundPacks = fileSystem::fileGetFileInfoDetails("E:\\PrometheOS\\SoundPacks");
+	if (soundPacks != NULL)
+	{
+		for (uint32_t i = 0; i < soundPacks->count(); i++)
+		{
+			fileSystem::FileInfoDetail* fileInfoDetail = (fileSystem::FileInfoDetail*)soundPacks->get(i);
+			if (fileInfoDetail->isDirectory)
+			{
+				char* soundPackName = fileSystem::getFileName(fileInfoDetail->path);
+				result->add(soundPackName);
+			}
+		}
+	}
+	delete(soundPacks);
+
+	return result;
+}
+
+void theme::loadRandomSoundPack()
+{
+	pointerVector* soundPacks = getSoundPacks();
+
+	srand((uint32_t)timeUtility::getMillisecondsNow());
+	int index = rand() % (soundPacks->count() + 1);
+
+	if (index == 0)
+	{
+		loadSoundPack("");
+	}
+	else
+	{
+		loadSoundPack((char*)soundPacks->get(index - 1));
+	}
+
+	delete(soundPacks);
 }

@@ -18,7 +18,7 @@
 #include "..\pointerVector.h"
 #include "..\settingsManager.h"
 #include "..\theme.h"
-#include "..\driveMounter.h"
+#include "..\Threads\driveMounter.h"
 
 pointerVector* flashScene::getFileInfoDetails()
 {

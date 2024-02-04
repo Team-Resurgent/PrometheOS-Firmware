@@ -12,8 +12,8 @@
 #include "..\stringUtility.h"
 #include "..\xboxConfig.h"
 #include "..\theme.h"
-#include "..\hddLockUnlock.h"
-#include "..\hddInfo.h"
+#include "..\Threads\hddLockUnlock.h"
+#include "..\Threads\hddInfo.h"
 
 hddLockUnlockScene::hddLockUnlockScene()
 {

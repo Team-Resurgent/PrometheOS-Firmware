@@ -19,6 +19,7 @@
 #include "..\xboxConfig.h"
 #include "..\theme.h"
 #include "..\network.h"
+#include "..\audioPlayer.h"
 
 mainScene::mainScene()
 {
@@ -41,7 +42,7 @@ void mainScene::update()
 	{
 		if (mSelectedControl == 0) 
 		{
-			sceneManager::setScene(new launchScene());
+			sceneManager::openScene(sceneItemLaunchScene);
 			return;
 		}
 		else if (mSelectedControl == 1) 

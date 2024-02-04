@@ -2,7 +2,7 @@
 
 #include "scene.h"
 
-#include "..\hddLockUnlock.h"
+#include "..\Threads\hddLockUnlock.h"
 
 class hddLockUnlockScene : public scene
 {

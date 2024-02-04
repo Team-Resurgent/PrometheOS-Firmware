@@ -12,6 +12,7 @@
 #include "..\stringUtility.h"
 #include "..\xboxConfig.h"
 #include "..\theme.h"
+#include "..\audioPlayer.h"
 
 menuScene::menuScene(const char* title, const char* subTitle, sceneItemEnum backScene, pointerVector* sceneItems)
 {
@@ -169,6 +170,10 @@ void menuScene::render()
 			else if (sceneItem == sceneItemSkinSelectionScene)
 			{
 				menuText = strdup("Skins");
+			}
+			else if (sceneItem == sceneItemSoundPackSelectionScene)
+			{
+				menuText = strdup("Sound Packs");
 			}
 			else if (sceneItem == sceneItemAutoBootDelayScene)
 			{

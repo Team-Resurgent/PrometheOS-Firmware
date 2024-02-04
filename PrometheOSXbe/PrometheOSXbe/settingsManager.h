@@ -41,6 +41,7 @@ typedef struct settingsState
 	bankInfo banks[4];
 	networkInfo network;
 	char skinName[50];
+	char soundPackName[50];
 	uint32_t playerHiScore;
 	uint8_t autoBootDelay;
 	uint8_t ledColor;
@@ -101,6 +102,8 @@ public:
 	static void setNetwork(networkModeEnum networkMode, uint32_t address, uint32_t subnet, uint32_t gateway, uint32_t primaryDns, uint32_t secondaryDns);
 	static char* getSkinName();
 	static void setSkinName(const char* skinName);
+	static char* getSoundPackName();
+	static void setSoundPackName(const char* soundPackName);
 	static uint32_t getPlayerHiScore();
 	static void setPlayerHiScore(uint32_t playerScore);
 	static uint8_t getAutoBootDelay();

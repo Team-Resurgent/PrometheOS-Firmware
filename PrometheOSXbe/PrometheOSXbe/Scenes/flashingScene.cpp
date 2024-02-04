@@ -7,7 +7,7 @@
 #include "..\utils.h"
 #include "..\settingsManager.h"
 #include "..\theme.h"
-#include "..\flash.h"
+#include "..\Threads\flash.h"
 
 flashingScene::flashingScene(const char* filePath, const char* bankName, uint8_t ledColor)
 {

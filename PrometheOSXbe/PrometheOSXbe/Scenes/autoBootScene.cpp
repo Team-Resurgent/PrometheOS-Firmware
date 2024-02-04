@@ -14,30 +14,35 @@
 #include "..\xboxConfig.h"
 #include "..\theme.h"
 #include "..\driveManager.h"
+#include "..\Threads\countdown.h"
 
 autoBootScene::autoBootScene()
 {
-	mCounter = settingsManager::getAutoBootDelay() * 10;
 	utils::setLedStates(SMC_LED_STATES_RED_STATE0 | SMC_LED_STATES_RED_STATE1 | SMC_LED_STATES_RED_STATE2 | SMC_LED_STATES_RED_STATE3);
+	countdown::startThread(settingsManager::getAutoBootDelay() * 1000);
 }
 
 void autoBootScene::update()
 {
-	uint32_t trayState;
-	uint32_t trayStateChangeCount;
-	HalReadSMCTrayState(&trayState, &trayStateChangeCount);
-	bool safeMode = (trayState == SMC_TRAY_STATE_UNLOADING) || (trayState == SMC_TRAY_STATE_OPEN && trayStateChangeCount > 0);
-	if (safeMode == true)
-	{
-		HalWriteSMBusByte(SMC_SLAVE_ADDRESS, 0x0C, 1);
-	}
+	uint32_t trayState = 0;
+	uint32_t ejectCount = 0x11223344;
+	HalReadSMCTrayState(&trayState, &ejectCount);
+	bool safeMode = (trayState == SMC_TRAY_STATE_UNLOADING || ejectCount > 0);
 
 	// Exit Action
 
-	if (inputManager::buttonPressed(ButtonB) || safeMode)
+	if (inputManager::buttonPressed(ButtonB))
 	{
+		safeMode = true;
+	}
+
+	if (safeMode == true)
+	{
+		countdown::closeThread();
+		HalWriteSMBusByte(SMC_SLAVE_ADDRESS, 0x0C, 1);
+		
 		utils::setLedStates(SMC_LED_STATES_GREEN_STATE0 | SMC_LED_STATES_GREEN_STATE1 | SMC_LED_STATES_GREEN_STATE2 | SMC_LED_STATES_GREEN_STATE3);
-		sceneManager::setScene(new mainScene());
+		sceneManager::openScene(sceneItemMainScene);
 	}
 }
 
@@ -63,12 +68,14 @@ void autoBootScene::render()
 
 	yPos += 40;
 
-	char* progress = stringUtility::formatString("Booting in %.1f seconds", mCounter / 10.0f);
+	char* progress = stringUtility::formatString("Booting in %.1f seconds", countdown::getTimeRemaining() / 1000.0f);
 	component::textBox(progress, false, false, horizAlignmentCenter, 193, yPos, 322, 44);
 	free(progress);
 
-	if (mCounter == 0)
+	if (countdown::getTimeRemaining() == 0)
 	{
+		countdown::closeThread();
+
 		for (uint32_t i = 0; i < banks->count(); i++)
 		{
 			bankDetails* bank = (bankDetails*)banks->get(i);
@@ -79,11 +86,6 @@ void autoBootScene::render()
 				break;
 			}
 		}
-	}
-	else
-	{
-		Sleep(100);
-		mCounter--;
 	}
 
 	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Cancel", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);

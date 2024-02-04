@@ -1,4 +1,5 @@
 #include "inputManager.h"
+#include "audioPlayer.h"
 
 namespace
 {
@@ -135,66 +136,82 @@ bool inputManager::buttonPressed(JoystickButton button)
 {
 	if (button == ButtonA && mControllerStatesCurrent.buttonA == JoystickButtonStatePressed && mControllerStatesPrevious.buttonA == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-a.ogg", false);
 		return true;
 	}
 	else if (button == ButtonB && mControllerStatesCurrent.buttonB == JoystickButtonStatePressed && mControllerStatesPrevious.buttonB == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-other.ogg", false);
 		return true;
 	}
 	else if (button == ButtonX && mControllerStatesCurrent.buttonX == JoystickButtonStatePressed && mControllerStatesPrevious.buttonX == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-x.ogg", false);
 		return true;
 	}
 	else if (button == ButtonY && mControllerStatesCurrent.buttonY == JoystickButtonStatePressed && mControllerStatesPrevious.buttonY == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-other.ogg", false);
 		return true;
 	}
 	else if (button == ButtonWhite && mControllerStatesCurrent.buttonWhite == JoystickButtonStatePressed && mControllerStatesPrevious.buttonWhite == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-other.ogg", false);
 		return true;
 	}
 	else if (button == ButtonBlack && mControllerStatesCurrent.buttonBlack == JoystickButtonStatePressed && mControllerStatesPrevious.buttonBlack == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-other.ogg", false);
 		return true;
 	}
 	else if (button == ButtonBack && mControllerStatesCurrent.buttonBack == JoystickButtonStatePressed && mControllerStatesPrevious.buttonBack == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-back.ogg", false);
 		return true;
 	}
 	else if (button == ButtonStart && mControllerStatesCurrent.buttonStart == JoystickButtonStatePressed && mControllerStatesPrevious.buttonStart == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-other.ogg", false);
 		return true;
 	}
 	else if (button == ButtonLeftThumb && mControllerStatesCurrent.buttonLeftThumb == JoystickButtonStatePressed && mControllerStatesPrevious.buttonLeftThumb == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-other.ogg", false);
 		return true;
 	}
 	else if (button == ButtonRightThumb && mControllerStatesCurrent.buttonRightThumb == JoystickButtonStatePressed && mControllerStatesPrevious.buttonRightThumb == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-other.ogg", false);
 		return true;
 	}
 	else if (button == ButtonDpadUp && mControllerStatesCurrent.buttonDpadUp == JoystickButtonStatePressed && mControllerStatesPrevious.buttonDpadUp == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-up.ogg", false);
 		return true;
 	}
 	else if (button == ButtonDpadRight && mControllerStatesCurrent.buttonDpadRight == JoystickButtonStatePressed && mControllerStatesPrevious.buttonDpadRight == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-other.ogg", false);
 		return true;
 	}
 	else if (button == ButtonDpadDown && mControllerStatesCurrent.buttonDpadDown == JoystickButtonStatePressed && mControllerStatesPrevious.buttonDpadDown == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-down.ogg", false);
 		return true;
 	}
 	else if (button == ButtonDpadLeft && mControllerStatesCurrent.buttonDpadLeft == JoystickButtonStatePressed && mControllerStatesPrevious.buttonDpadLeft == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-other.ogg", false);
 		return true;
 	}
 	else if (button == ButtonTriggerLeft && mControllerStatesCurrent.buttonTriggerLeft == JoystickButtonStatePressed && mControllerStatesPrevious.buttonTriggerLeft == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-other.ogg", false);
 		return true;
 	}
 	else if (button == ButtonTriggerRight && mControllerStatesCurrent.buttonTriggerRight == JoystickButtonStatePressed && mControllerStatesPrevious.buttonTriggerRight == JoystickButtonStateNone)
 	{
+		audioPlayer::play("button-other.ogg", false);
 		return true;
 	}
 	return false;

@@ -28,6 +28,9 @@
 #include "driveManager.h"
 #include "XKUtils\XKEEPROM.h"
 #include "timeUtility.h"
+#include "network.h"
+#include "audioPlayer.h"
+#include "Threads\lcdRender.h"
 
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_TEX1)
 
@@ -369,22 +372,8 @@ bool supportsMode(DISPLAY_MODE mode, DWORD dwVideoStandard, DWORD dwVideoFlags)
     return true;
 }
 
-void __cdecl main()
+bool createDevice()
 {
-	utils::debugPrint("Welcome to PrometheOS\n");
-
-	driveManager::mountDrive("C");
-
-	utils::setLedStates(SMC_LED_STATES_GREEN_STATE0 | SMC_LED_STATES_GREEN_STATE1 | SMC_LED_STATES_GREEN_STATE2 | SMC_LED_STATES_GREEN_STATE3);
-
-	xboxConfig::init();
-	xboxConfig::autoFix();
-	settingsManager::loadSettings();
-
-	httpServer::registerOnGetCallback(onGetCallback);
-	httpServer::registerOnPostCallback(onPostCallback);
-	httpServer::registerOnResponseSentCallback(onResponseSentCallback);
-
 	uint32_t videoFlags = XGetVideoFlags();
 	uint32_t videoStandard = XGetVideoStandard();
 	uint32_t currentMode;
@@ -395,19 +384,16 @@ void __cdecl main()
 			break;
 		}
     } 
-	
+
 	LPDIRECT3D8 d3d = Direct3DCreate8(D3D_SDK_VERSION);
     if(d3d == NULL)
 	{
 		utils::debugPrint("Failed to create d3d\n");
-        return;
+        return false;
 	}
-	
-	context::setImageMap(new pointerMap(false));
 
 	context::setBufferWidth(720);
 	context::setBufferHeight(480);
-
 	//context::setBufferWidth(displayModes[currentMode].dwWidth);
 	//context::setBufferHeight(displayModes[currentMode].dwHeight);
 
@@ -428,9 +414,80 @@ void __cdecl main()
     if (FAILED(d3d->CreateDevice(0, D3DDEVTYPE_HAL, NULL, D3DCREATE_HARDWARE_VERTEXPROCESSING, &params, &d3dDevice)))
 	{
 		utils::debugPrint("Failed to create device\n");
-        return;
+        return false;
 	}
 	context::setD3dDevice(d3dDevice);
+
+	D3DXMATRIX matProjection;
+	D3DXMatrixOrthoOffCenterLH(&matProjection, 0, (float)context::getBufferWidth(), 0, (float)context::getBufferHeight(), 1.0f, 100.0f);
+	context::getD3dDevice()->SetTransform(D3DTS_PROJECTION, &matProjection);
+
+	D3DXMATRIX  matView;
+    D3DXMatrixIdentity(&matView);
+    context::getD3dDevice()->SetTransform( D3DTS_VIEW, &matView);
+
+	D3DXMATRIX matWorld;
+	D3DXMatrixIdentity(&matWorld);
+	context::getD3dDevice()->SetTransform( D3DTS_WORLD, &matWorld);
+
+	context::getD3dDevice()->SetRenderState(D3DRS_LIGHTING, FALSE);
+	context::getD3dDevice()->SetVertexShader(D3DFVF_CUSTOMVERTEX);
+	context::getD3dDevice()->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+	context::getD3dDevice()->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	context::getD3dDevice()->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+
+	context::getD3dDevice()->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+    context::getD3dDevice()->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
+    context::getD3dDevice()->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+    context::getD3dDevice()->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_TFACTOR);
+    context::getD3dDevice()->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+    context::getD3dDevice()->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+
+	context::getD3dDevice()->SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
+	context::getD3dDevice()->SetTextureStageState(0, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
+	context::getD3dDevice()->SetTextureStageState(0, D3DTSS_MIPFILTER, D3DTEXF_LINEAR);
+
+	context::getD3dDevice()->BeginScene();
+	context::getD3dDevice()->Clear(0L, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER|D3DCLEAR_STENCIL, 0xff000000, 1.0f, 0L);
+	context::getD3dDevice()->EndScene();
+	context::getD3dDevice()->Present(NULL, NULL, NULL, NULL);
+
+	return true;
+}
+
+void __cdecl main()
+{
+	utils::debugPrint("Welcome to PrometheOS\n");
+
+	utils::setLedStates(SMC_LED_STATES_GREEN_STATE0 | SMC_LED_STATES_GREEN_STATE1 | SMC_LED_STATES_GREEN_STATE2 | SMC_LED_STATES_GREEN_STATE3);
+
+	bool deviceCreated = createDevice();
+
+	temperatureManager::init();
+
+	context::setNetworkInitialized(false);
+
+	driveManager::mountDrive("E");
+
+	xboxConfig::init();
+	xboxConfig::autoFix();
+	settingsManager::loadSettings();
+
+	httpServer::registerOnGetCallback(onGetCallback);
+	httpServer::registerOnPostCallback(onPostCallback);
+	httpServer::registerOnResponseSentCallback(onResponseSentCallback);
+
+	if (deviceCreated == false)
+	{
+		network::init();
+		while (true)
+		{
+			temperatureManager::refresh();
+			Sleep(100);
+		}
+	}
+
+	context::setImageMap(new pointerMap(false));
 
 	drawing::loadFont(&font_sfn[0]);
 
@@ -464,56 +521,32 @@ void __cdecl main()
 	drawing::renderRoundedRect("panel-fill", 24, 24, 6, 0xffffffff, 0x00000000, 0);
 	drawing::renderRoundedRect("panel-stroke", 24, 24, 6, 0x01010100, 0xffffffff, 2);
 
+	lcdRender::startThread();
+
+	sceneManager::openScene(settingsManager::hasAutoBootBank() ? sceneItemAutoBootScene : sceneItemMainScene);
+
 	char* skinName = settingsManager::getSkinName();
 	theme::loadSkin(skinName);
 	free(skinName);
 
-	context::setNetworkInitialized(false);
-
-	sceneManager::setScene(settingsManager::hasAutoBootBank() ? (scene*)new autoBootScene() : (scene*)new mainScene());
-
-	D3DXMATRIX matProjection;
-	D3DXMatrixOrthoOffCenterLH(&matProjection, 0, (float)context::getBufferWidth(), 0, (float)context::getBufferHeight(), 1.0f, 100.0f);
-	context::getD3dDevice()->SetTransform(D3DTS_PROJECTION, &matProjection);
-
-	D3DXMATRIX  matView;
-    D3DXMatrixIdentity(&matView);
-    context::getD3dDevice()->SetTransform( D3DTS_VIEW, &matView);
-
-	D3DXMATRIX matWorld;
-	D3DXMatrixIdentity(&matWorld);
-	context::getD3dDevice()->SetTransform( D3DTS_WORLD, &matWorld);
-
-	context::getD3dDevice()->SetRenderState(D3DRS_LIGHTING, FALSE);
-	context::getD3dDevice()->SetVertexShader(D3DFVF_CUSTOMVERTEX);
-	context::getD3dDevice()->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-	context::getD3dDevice()->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-	context::getD3dDevice()->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-
-	context::getD3dDevice()->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-    context::getD3dDevice()->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
-    context::getD3dDevice()->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-    context::getD3dDevice()->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_TFACTOR);
-    context::getD3dDevice()->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
-    context::getD3dDevice()->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
-
-	context::getD3dDevice()->SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTEXF_LINEAR);
-	context::getD3dDevice()->SetTextureStageState(0, D3DTSS_MINFILTER, D3DTEXF_LINEAR);
-	context::getD3dDevice()->SetTextureStageState(0, D3DTSS_MIPFILTER, D3DTEXF_LINEAR);
-
-
-	temperatureManager::init();
+	audioPlayer::init();
+	char* soundPackName = settingsManager::getSoundPackName();
+	theme::loadSoundPack(soundPackName);
+	free(soundPackName);
 
 	uint64_t start = timeUtility::getMillisecondsNow();
+	
 	uint32_t frameIndex = 0;
-
+	int32_t frameDirection = -1;
+	
     while (TRUE)
     {
 		context::getD3dDevice()->BeginScene();
 
+		audioPlayer::refresh();
 		temperatureManager::refresh();
 		inputManager::processController();
-		drawing::clearBackground(frameIndex);
+		drawing::clearBackground((uint32_t)frameIndex);
 		sceneManager::getScene()->update();
 		sceneManager::getScene()->render();
 
@@ -527,7 +560,20 @@ void __cdecl main()
 			if (end - start > theme::getBackgroundFrameDelay())
 			{
 				uint32_t backgroundCount = theme::getBackgroundFrameCount();
-				frameIndex = (frameIndex + 1) % backgroundCount;
+				if ( theme::getBackgroundFramePingPong() == true)
+				{
+					frameIndex = min(frameIndex, backgroundCount - 1);
+					if (frameIndex == 0 || frameIndex == (backgroundCount - 1))
+					{
+						frameDirection = -1 * frameDirection;
+					}
+					frameIndex = frameIndex + frameDirection;
+				}
+				else
+				{
+					frameIndex = (frameIndex + 1) % backgroundCount;
+				}
+
 				start = end;
 			}
 		}

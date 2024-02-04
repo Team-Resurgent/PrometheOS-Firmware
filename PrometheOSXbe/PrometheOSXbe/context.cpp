@@ -6,14 +6,16 @@ namespace
 {
 	bool mNetworkInitialized;
 	LPDIRECT3DDEVICE8 mD3dDevice;
-	int mBufferWidth;
-	int mBufferHeight;
-	int mBufferPitch;
-	int* mBuffer;
-	pointerMap* mImageMap;
-	bitmapFont* mBitmapFontSmall;
-	bitmapFont* mBitmapFontMedium;
-	bitmapFont* mBitmapFontLarge;
+	int32_t mBufferWidth;
+	int32_t mBufferHeight;
+	int32_t mBufferPitch;
+	int32_t* mBuffer;
+	pointerMap* mImageMap = NULL;
+	bitmapFont* mBitmapFontSmall = NULL;
+	bitmapFont* mBitmapFontMedium = NULL;
+	bitmapFont* mBitmapFontLarge = NULL;
+	char* mSoundPackPath = NULL;
+	uint32_t mMusicId;
 }
 
 void context::setNetworkInitialized(bool value)
@@ -36,42 +38,42 @@ LPDIRECT3DDEVICE8 context::getD3dDevice()
 	return mD3dDevice;
 }
 
-void context::setBufferWidth(int bufferWidth)
+void context::setBufferWidth(int32_t bufferWidth)
 {
 	mBufferWidth = bufferWidth;
 }
 
-int context::getBufferWidth()
+int32_t context::getBufferWidth()
 {
 	return mBufferWidth;
 }
 
-void context::setBufferHeight(int bufferHeight)
+void context::setBufferHeight(int32_t bufferHeight)
 {
 	mBufferHeight = bufferHeight;
 }
 
-int context::getBufferHeight()
+int32_t context::getBufferHeight()
 {
 	return mBufferHeight;
 }
 
-void context::setBufferPitch(int bufferPitch)
+void context::setBufferPitch(int32_t bufferPitch)
 {
 	mBufferPitch = bufferPitch;
 }
 
-int context::getBufferPitch()
+int32_t context::getBufferPitch()
 {
 	return mBufferPitch;
 }
 
-void context::setBuffer(int* buffer)
+void context::setBuffer(int32_t* buffer)
 {
 	mBuffer = buffer;
 }
 
-int* context::getBuffer()
+int32_t* context::getBuffer()
 {
 	return mBuffer;
 }
@@ -114,4 +116,25 @@ void context::setBitmapFontLarge(bitmapFont* font)
 bitmapFont* context::getBitmapFontLarge()
 {
 	return mBitmapFontLarge;
+}
+
+void context::setSoundPackPath(const char* soundPackPath)
+{
+	free(mSoundPackPath);
+	mSoundPackPath = strdup(soundPackPath);
+}
+
+char* context::getSoundPackPath()
+{
+	return strdup(mSoundPackPath);
+}
+
+void context::setMusicId(uint32_t musicId)
+{
+	mMusicId = musicId;
+}
+
+uint32_t context::getMusicId()
+{
+	return mMusicId;
 }

@@ -4,7 +4,9 @@
 #include "alignment.h"
 #include "pointerVector.h"
 
+#define THEME_BACKGROUND_OVERLAY_AS_UNDERLAY 0
 #define THEME_BACKGROUND_FRAME_DELAY 0
+#define THEME_BACKGROUND_FRAME_PINGPONG 0
 #define THEME_BACKGROUND_COLOR 0xff11191f
 #define THEME_BACKGROUND_IMAGE_TINT 0xffffffff
 #define THEME_BACKGROUND_OVERLAY_IMAGE_TINT 0xffffffff
@@ -121,7 +123,10 @@ public:
 	typedef struct ThemeData {
 
 		char     SKIN_AUTHOR[50];
+
+		uint32_t BACKGROUND_OVERLAY_AS_UNDERLAY;
 		uint32_t BACKGROUND_FRAME_DELAY;
+		uint32_t BACKGROUND_FRAME_PINGPONG;
 		uint32_t BACKGROUND_COLOR;
 		uint32_t BACKGROUND_IMAGE_TINT;
 		uint32_t BACKGROUND_OVERLAY_IMAGE_TINT;
@@ -236,7 +241,9 @@ public:
 	static uint32_t getBackgroundFrameCount();
 
 	static char* getSkinAuthor();
+	static bool getBackgroundOverlayAsUnderlay();
 	static uint32_t getBackgroundFrameDelay();
+	static bool getBackgroundFramePingPong();
 	static uint32_t getBackgroundColor();
 	static uint32_t getBackgroundImageTint();
 	static uint32_t getBackgroundOverlayImageTint();
@@ -350,6 +357,10 @@ public:
 	static void loadSkin(char* skinName);
 	static pointerVector* getSkins();
 	static void loadRandomSkin();
+
+	static void loadSoundPack(char* soundPackName);
+	static pointerVector* getSoundPacks();
+	static void loadRandomSoundPack();
 
 private:
 
