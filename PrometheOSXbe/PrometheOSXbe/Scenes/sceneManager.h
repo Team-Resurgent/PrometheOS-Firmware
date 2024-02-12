@@ -27,11 +27,13 @@ enum sceneItemEnum
 	sceneItemPrometheOsSettingsScene = 20,
 	sceneItemSkinSelectionScene = 21,
 	sceneItemSoundPackSelectionScene = 22,
-	sceneItemAutoBootDelayScene = 23,
-	sceneItemLedColorFlowScene = 24,
-	sceneItemBoredScene = 25,
-	sceneItemLaunchScene = 26,
-	sceneItemAutoBootScene = 27,
+	sceneItemSnakeScene = 23,
+	sceneItemLaunchScene = 24,
+	sceneItemAutoBootScene = 25,
+	sceneItemGeneralOptionsScene = 26,
+	sceneItemFlashUpdateFlowScene = 27,
+	sceneItemFlashBackupScene = 28,
+	sceneItemPrometheOsThemesScene = 29,
 }; 
 
 class sceneManager

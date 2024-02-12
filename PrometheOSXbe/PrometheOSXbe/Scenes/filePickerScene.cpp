@@ -1,4 +1,4 @@
-#include "flashScene.h"
+#include "filePickerScene.h"
 #include "sceneManager.h"
 #include "audioSettingsScene.h"
 #include "videoSettingsScene.h"
@@ -20,7 +20,7 @@
 #include "..\theme.h"
 #include "..\Threads\driveMounter.h"
 
-pointerVector* flashScene::getFileInfoDetails()
+pointerVector* filePickerScene::getFileInfoDetails()
 {
 	if (strlen(mCurrentPath) == 0)
 	{
@@ -43,7 +43,25 @@ pointerVector* flashScene::getFileInfoDetails()
 		for (int32_t i = (int32_t)result->count() - 1; i >= 0; i--)
 		{
 			fileSystem::FileInfoDetail* fileInfoDetail = (fileSystem::FileInfoDetail*)result->get(i);
-			if (fileInfoDetail->isFile && (fileInfoDetail->size <= 0 || fileInfoDetail->size > (1024 * 1024) || fileInfoDetail->size % (1024 * 256) != 0))
+
+			bool valid = fileInfoDetail->isDirectory;
+			if (fileInfoDetail->isFile)
+			{
+				if (mFilePickerType == filePickerTypeBios)
+				{
+					valid = fileInfoDetail->size <= (1024 * 1024) && fileInfoDetail->size % (1024 * 256) == 0;
+				}
+				else if (mFilePickerType == filePickerTypeEeprom)
+				{
+					valid = fileInfoDetail->size == 512;
+				}
+				else if (mFilePickerType == filePickerTypeUpdate)
+				{
+					valid = fileInfoDetail->size == 2 * 1024 * 1024;
+				}
+			}
+
+			if (valid == false)
 			{
 				result->remove(i);
 			}
@@ -53,11 +71,12 @@ pointerVector* flashScene::getFileInfoDetails()
 	return result;
 }
 
-flashScene::flashScene()
+filePickerScene::filePickerScene(filePickerType filePickerType)
 {
 	driveMounter::startThread(false);
 
 	mInitialized = false;
+	mFilePickerType = filePickerType;
 	mSelectedControl = 0;
 	mScrollPosition = 0;
 	mMountedDrives = NULL;
@@ -67,7 +86,7 @@ flashScene::flashScene()
 	mFilePath = NULL;
 }
 
-flashScene::~flashScene()
+filePickerScene::~filePickerScene()
 {
 	delete(mMountedDrives);
 	free(mCurrentPath);
@@ -75,7 +94,7 @@ flashScene::~flashScene()
 	free(mFilePath);
 }
 
-void flashScene::update()
+void filePickerScene::update()
 {
 	if (mInitialized == false)
 	{
@@ -172,10 +191,22 @@ void flashScene::update()
 	}
 }
 
-void flashScene::render()
+void filePickerScene::render()
 {
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
-	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please select a BIOS to flash...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+
+	if (mFilePickerType == filePickerTypeBios)
+	{
+		drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please select BIOS to flash...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	}
+	else if (mFilePickerType == filePickerTypeEeprom)
+	{
+		drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please select Eeprom to flash...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	}
+	else if (mFilePickerType == filePickerTypeUpdate)
+	{
+		drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please select PrometheOS to flash...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	}
 
 	if (mInitialized == false)
 	{
@@ -227,12 +258,12 @@ void flashScene::render()
 	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Cancel", mInitialized ? theme::getFooterTextColor() : theme::getTextDisabledColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
 }
 
-char* flashScene::getFilePath()
+char* filePickerScene::getFilePath()
 {
 	return strdup(mFilePath);
 }
 
-sceneResult flashScene::getSceneResult()
+sceneResult filePickerScene::getSceneResult()
 {
 	return mSceneResult;
 }

@@ -15,5 +15,7 @@
 #include "Assets/Web/launch_js.h"
 #include "Assets/Web/download_html.h"
 #include "Assets/Web/download_js.h"
+#include "Assets/Web/downloads_html.h"
+#include "Assets/Web/downloads_js.h"
 #include "Assets/Web/remove_html.h"
 #include "Assets/Web/remove_js.h"

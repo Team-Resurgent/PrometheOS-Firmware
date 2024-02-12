@@ -4,11 +4,18 @@
 
 #include "..\pointerVector.h"
 
-class flashScene : public scene
+enum filePickerType
+{ 
+	filePickerTypeBios = 0,
+	filePickerTypeEeprom = 1,
+	filePickerTypeUpdate = 2
+}; 
+
+class filePickerScene : public scene
 {
 public:
-	flashScene();
-	~flashScene();
+	filePickerScene(filePickerType filePickerType);
+	~filePickerScene();
 	void update();
 	void render();
 	char* getFilePath();
@@ -17,6 +24,7 @@ private:
 	pointerVector* getFileInfoDetails();
 private:
 	bool mInitialized;
+	filePickerType mFilePickerType;
 	int mSelectedControl;
 	int mScrollPosition;
 	pointerVector* mMountedDrives;

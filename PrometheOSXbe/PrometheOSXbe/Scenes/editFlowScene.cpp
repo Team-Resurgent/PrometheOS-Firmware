@@ -3,7 +3,7 @@
 #include "launchScene.h"
 #include "removeScene.h"
 #include "editScene.h"
-#include "flashingScene.h"
+#include "flashBankScene.h"
 #include "audioSettingsScene.h"
 
 #include "..\context.h"

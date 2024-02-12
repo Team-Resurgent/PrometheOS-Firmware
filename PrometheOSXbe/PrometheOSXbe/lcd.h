@@ -31,6 +31,6 @@ public:
 	static void cursorLeft();
 	static void largeBlockNumber( unsigned char style, unsigned char column, unsigned char number);
 
-	static void init();
+	static void init(uint8_t backLight, uint8_t contrast);
 	static void printMessage(const char* message);
 };

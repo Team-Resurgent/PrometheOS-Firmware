@@ -243,6 +243,7 @@ extern "C"
 	NTSTATUS WINAPI HalWriteSMBusValue(UCHAR devddress, UCHAR offset, UCHAR writedw, DWORD data);
 	NTSTATUS WINAPI HalReadSMBusValue(UCHAR devddress, UCHAR offset, UCHAR readdw, DWORD* pdata);
 	NTSTATUS WINAPI HalReadSMCTrayState(ULONG* TrayState, ULONG* EjectCount);
+	NTSTATUS WINAPI KeDelayExecutionThread(CHAR WaitMode, BOOLEAN Alertable, PLARGE_INTEGER Interval);
 
 	NTSTATUS WINAPI XNetLoadConfigParams(XNetConfigParams* params);
 	NTSTATUS WINAPI XNetSaveConfigParams(const XNetConfigParams* params);

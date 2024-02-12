@@ -21,6 +21,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				OptimizeForProcessor="2"
+				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="_DEBUG;_XBOX"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -35,9 +36,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dsoundd.lib xapilibd.lib d3d8d.lib d3dx8d.lib xgraphicsd.lib dsoundd.lib dmusicd.lib xactengd.lib xsndtrkd.lib xvoiced.lib xonlined.lib xboxkrnl.lib xbdm.lib"
+				AdditionalDependencies="dsoundd.lib xapilibd.lib d3d8d.lib d3dx8d.lib xgraphicsd.lib dmusicd.lib xactengd.lib xsndtrkd.lib xvoiced.lib xonlined.lib xboxkrnl.lib xbdm.lib"
 				OutputFile="$(OutDir)/$(ProjectName).exe"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories=""
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
 				SubSystem="2"
@@ -57,7 +60,7 @@
 				ForceCopy="TRUE"/>
 			<Tool
 				Name="XboxImageTool"
-				StackSize="0x20000"
+				StackSize="0x40000"
 				IncludeDebugInfo="TRUE"
 				LimitAvailableMemoryTo64MB="FALSE"
 				DontModifyHD="TRUE"
@@ -93,7 +96,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="xapilib.lib d3d8i.lib d3dx8.lib xgraphics.lib dsound.lib dmusici.lib xactengi.lib xsndtrk.lib xvoice.lib xonlines.lib xboxkrnl.lib xbdm.lib xperf.lib"
+				AdditionalDependencies="dsound.lib xapilib.lib d3d8i.lib d3dx8.lib xgraphics.lib dsound.lib dmusici.lib xactengi.lib xsndtrk.lib xvoice.lib xonlines.lib xboxkrnl.lib xbdm.lib xperf.lib"
 				OutputFile="$(OutDir)/$(ProjectName).exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
@@ -153,7 +156,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="xapilib.lib d3d8i.lib d3dx8.lib xgraphics.lib dsound.lib dmusici.lib xactengi.lib xsndtrk.lib xvoice.lib xonlines.lib xboxkrnl.lib xbdm.lib xperf.lib"
+				AdditionalDependencies="dsound.lib xapilib.lib d3d8i.lib d3dx8.lib xgraphics.lib dsound.lib dmusici.lib xactengi.lib xsndtrk.lib xvoice.lib xonlines.lib xboxkrnl.lib xbdm.lib xperf.lib"
 				OutputFile="$(OutDir)/$(ProjectName).exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
@@ -271,7 +274,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="xapilib.lib d3d8ltcg.lib d3dx8.lib xgraphicsltcg.lib dsound.lib dmusicltcg.lib xactengltcg.lib xsndtrk.lib xvoice.lib xonlines.lib xboxkrnl.lib"
+				AdditionalDependencies="dsound.lib xapilib.lib d3d8ltcg.lib d3dx8.lib xgraphicsltcg.lib dsound.lib dmusicltcg.lib xactengltcg.lib xsndtrk.lib xvoice.lib xonlines.lib xboxkrnl.lib"
 				OutputFile="$(OutDir)/$(ProjectName).exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
@@ -429,9 +432,6 @@
 					RelativePath=".\Scenes\audioSettingsScene.cpp">
 				</File>
 				<File
-					RelativePath=".\Scenes\autoBootDelayScene.cpp">
-				</File>
-				<File
 					RelativePath=".\Scenes\autoBootScene.cpp">
 				</File>
 				<File
@@ -477,13 +477,25 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\Scenes\filePickerScene.cpp">
+				</File>
+				<File
+					RelativePath=".\Scenes\flashBackupScene.cpp">
+				</File>
+				<File
+					RelativePath=".\Scenes\flashBankScene.cpp">
+				</File>
+				<File
 					RelativePath=".\Scenes\flashFlowScene.cpp">
 				</File>
 				<File
-					RelativePath=".\Scenes\flashingScene.cpp">
+					RelativePath=".\Scenes\flashUpdateFlowScene.cpp">
 				</File>
 				<File
-					RelativePath=".\Scenes\flashScene.cpp">
+					RelativePath=".\Scenes\flashUpdateScene.cpp">
+				</File>
+				<File
+					RelativePath=".\Scenes\generalOptionsScene.cpp">
 				</File>
 				<File
 					RelativePath=".\Scenes\hddLockUnlockScene.cpp">
@@ -496,9 +508,6 @@
 				</File>
 				<File
 					RelativePath=".\Scenes\launchScene.cpp">
-				</File>
-				<File
-					RelativePath=".\Scenes\ledColorFlowScene.cpp">
 				</File>
 				<File
 					RelativePath=".\Scenes\ledColorSelectorScene.cpp">
@@ -520,9 +529,6 @@
 				</File>
 				<File
 					RelativePath=".\Scenes\restoreEepromFlowScene.cpp">
-				</File>
-				<File
-					RelativePath=".\Scenes\restoreEepromPickerScene.cpp">
 				</File>
 				<File
 					RelativePath=".\Scenes\restoreEepromScene.cpp">
@@ -583,7 +589,13 @@
 					RelativePath=".\Threads\driveMounter.cpp">
 				</File>
 				<File
-					RelativePath=".\Threads\flash.cpp">
+					RelativePath=".\Threads\flashBackup.cpp">
+				</File>
+				<File
+					RelativePath=".\Threads\flashBank.cpp">
+				</File>
+				<File
+					RelativePath=".\Threads\flashUpdate.cpp">
 				</File>
 				<File
 					RelativePath=".\Threads\hddInfo.cpp">
@@ -595,329 +607,364 @@
 					RelativePath=".\Threads\lcdRender.cpp">
 				</File>
 			</Filter>
+			<Filter
+				Name="Plugins"
+				Filter="">
+				<File
+					RelativePath=".\Plugins\PEProcess.cpp">
+				</File>
+				<File
+					RelativePath=".\Plugins\PESymbol.cpp">
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Media"
 			Filter="">
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			<File
+				RelativePath=".\alignment.h">
+			</File>
+			<File
+				RelativePath=".\audioPlayer.h">
+			</File>
+			<File
+				RelativePath=".\component.h">
+			</File>
+			<File
+				RelativePath=".\context.h">
+			</File>
+			<File
+				RelativePath=".\crc32.h">
+			</File>
+			<File
+				RelativePath=".\drawing.h">
+			</File>
+			<File
+				RelativePath=".\drive.h">
+			</File>
+			<File
+				RelativePath=".\driveManager.h">
+			</File>
+			<File
+				RelativePath=".\extensions.h">
+			</File>
+			<File
+				RelativePath=".\fileSystem.h">
+			</File>
+			<File
+				RelativePath=".\ftpServer.h">
+			</File>
+			<File
+				RelativePath=".\hdmiDevice.h">
+			</File>
+			<File
+				RelativePath=".\httpServer.h">
+			</File>
+			<File
+				RelativePath=".\inputManager.h">
+			</File>
+			<File
+				RelativePath=".\json.h">
+			</File>
 			<File
 				RelativePath=".\lcd.h">
 			</File>
+			<File
+				RelativePath=".\math.h">
+			</File>
+			<File
+				RelativePath=".\meshUtility.h">
+			</File>
+			<File
+				RelativePath=".\network.h">
+			</File>
+			<File
+				RelativePath=".\pointerMap.h">
+			</File>
+			<File
+				RelativePath=".\pointerVector.h">
+			</File>
+			<File
+				RelativePath=".\removeScene.h">
+			</File>
+			<File
+				RelativePath=".\resources.h">
+			</File>
+			<File
+				RelativePath=".\settingsManager.h">
+			</File>
+			<File
+				RelativePath=".\socketUtility.h">
+			</File>
+			<File
+				RelativePath=".\ssfn.h">
+			</File>
+			<File
+				RelativePath=".\stb.h">
+			</File>
+			<File
+				RelativePath=".\stb_image.h">
+			</File>
+			<File
+				RelativePath=".\stb_image_write.h">
+			</File>
+			<File
+				RelativePath=".\stb_vorbis.cpp">
+			</File>
+			<File
+				RelativePath=".\stdafx.h">
+			</File>
+			<File
+				RelativePath=".\stringUtility.h">
+			</File>
+			<File
+				RelativePath=".\theme.h">
+			</File>
+			<File
+				RelativePath=".\timeUtility.h">
+			</File>
+			<File
+				RelativePath=".\utils.h">
+			</File>
+			<File
+				RelativePath=".\versioning.h">
+			</File>
+			<File
+				RelativePath=".\videoSettingsScene.h">
+			</File>
+			<File
+				RelativePath=".\xboxConfig.h">
+			</File>
+			<File
+				RelativePath=".\xboxinternals.h">
+			</File>
+			<File
+				RelativePath=".\xenium.h">
+			</File>
 			<Filter
-				Name="Header Files"
-				Filter="h;hpp;hxx;hm;inl;inc;xsd"
-				UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
-				<File
-					RelativePath=".\alignment.h">
-				</File>
-				<File
-					RelativePath=".\audioPlayer.h">
-				</File>
-				<File
-					RelativePath=".\component.h">
-				</File>
-				<File
-					RelativePath=".\context.h">
-				</File>
-				<File
-					RelativePath=".\crc32.h">
-				</File>
-				<File
-					RelativePath=".\drawing.h">
-				</File>
-				<File
-					RelativePath=".\drive.h">
-				</File>
-				<File
-					RelativePath=".\driveManager.h">
-				</File>
-				<File
-					RelativePath=".\extensions.h">
-				</File>
-				<File
-					RelativePath=".\fileSystem.h">
-				</File>
-				<File
-					RelativePath=".\ftpServer.h">
-				</File>
-				<File
-					RelativePath=".\hdmiDevice.h">
-				</File>
-				<File
-					RelativePath=".\httpServer.h">
-				</File>
-				<File
-					RelativePath=".\inputManager.h">
-				</File>
-				<File
-					RelativePath=".\json.h">
-				</File>
-				<File
-					RelativePath=".\math.h">
-				</File>
-				<File
-					RelativePath=".\meshUtility.h">
-				</File>
-				<File
-					RelativePath=".\network.h">
-				</File>
-				<File
-					RelativePath=".\pointerMap.h">
-				</File>
-				<File
-					RelativePath=".\pointerVector.h">
-				</File>
-				<File
-					RelativePath=".\removeScene.h">
-				</File>
-				<File
-					RelativePath=".\resources.h">
-				</File>
-				<File
-					RelativePath=".\settingsManager.h">
-				</File>
-				<File
-					RelativePath=".\socketUtility.h">
-				</File>
-				<File
-					RelativePath=".\ssfn.h">
-				</File>
-				<File
-					RelativePath=".\stb.h">
-				</File>
-				<File
-					RelativePath=".\stb_image.h">
-				</File>
-				<File
-					RelativePath=".\stb_image_write.h">
-				</File>
-				<File
-					RelativePath=".\stb_vorbis.cpp">
-				</File>
-				<File
-					RelativePath=".\stdafx.h">
-				</File>
-				<File
-					RelativePath=".\stringUtility.h">
-				</File>
-				<File
-					RelativePath=".\theme.h">
-				</File>
-				<File
-					RelativePath=".\timeUtility.h">
-				</File>
-				<File
-					RelativePath=".\utils.h">
-				</File>
-				<File
-					RelativePath=".\versioning.h">
-				</File>
-				<File
-					RelativePath=".\videoSettingsScene.h">
-				</File>
-				<File
-					RelativePath=".\xboxConfig.h">
-				</File>
-				<File
-					RelativePath=".\xboxinternals.h">
-				</File>
-				<File
-					RelativePath=".\xenium.h">
-				</File>
+				Name="Assets"
+				Filter="">
 				<Filter
-					Name="Assets"
-					Filter="">
-					<Filter
-						Name="Web"
-						Filter="">
-						<File
-							RelativePath=".\Assets\Web\bootstrap_css.h">
-						</File>
-						<File
-							RelativePath=".\Assets\Web\download_html.h">
-						</File>
-						<File
-							RelativePath=".\Assets\Web\download_js.h">
-						</File>
-						<File
-							RelativePath=".\Assets\Web\favicon_ico.h">
-						</File>
-						<File
-							RelativePath=".\Assets\Web\flash_html.h">
-						</File>
-						<File
-							RelativePath=".\Assets\Web\flash_js.h">
-						</File>
-						<File
-							RelativePath=".\Assets\Web\index_html.h">
-						</File>
-						<File
-							RelativePath=".\Assets\Web\index_js.h">
-						</File>
-						<File
-							RelativePath=".\Assets\Web\launch_html.h">
-						</File>
-						<File
-							RelativePath=".\Assets\Web\launch_js.h">
-						</File>
-						<File
-							RelativePath=".\Assets\Web\main_css.h">
-						</File>
-						<File
-							RelativePath=".\Assets\Web\remove_html.h">
-						</File>
-						<File
-							RelativePath=".\Assets\Web\remove_js.h">
-						</File>
-					</Filter>
-					<Filter
-						Name="Font"
-						Filter="">
-						<File
-							RelativePath=".\Assets\Font\freesans_sfn.h">
-						</File>
-					</Filter>
-				</Filter>
-				<Filter
-					Name="XKUtils"
+					Name="Web"
 					Filter="">
 					<File
-						RelativePath=".\XKUtils\XKCRC.h">
+						RelativePath=".\Assets\Web\bootstrap_css.h">
 					</File>
 					<File
-						RelativePath=".\XKUtils\XKEEPROM.h">
+						RelativePath=".\Assets\Web\download_html.h">
 					</File>
 					<File
-						RelativePath=".\XKUtils\XKExports.h">
+						RelativePath=".\Assets\Web\download_js.h">
 					</File>
 					<File
-						RelativePath=".\XKUtils\XKGeneral.h">
+						RelativePath=".\Assets\Web\downloads_html.h">
 					</File>
 					<File
-						RelativePath=".\XKUtils\XKHDD.h">
+						RelativePath=".\Assets\Web\downloads_js.h">
 					</File>
 					<File
-						RelativePath=".\XKUtils\XKRC4.h">
+						RelativePath=".\Assets\Web\favicon_ico.h">
 					</File>
 					<File
-						RelativePath=".\XKUtils\XKSHA1.h">
+						RelativePath=".\Assets\Web\flash_html.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\flash_js.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\index_html.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\index_js.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\launch_html.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\launch_js.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\main_css.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\remove_html.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\remove_js.h">
 					</File>
 				</Filter>
 				<Filter
-					Name="Scenes"
+					Name="Font"
 					Filter="">
 					<File
-						RelativePath=".\Scenes\audioSettingsScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\autoBootDelayScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\autoBootScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\backupEepromScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\boredScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\editFlowScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\editScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\flashFlowScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\flashingScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\flashScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\hddLockUnlockScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\keyboardScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\keypadScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\launchScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\ledColorFlowScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\ledColorSelectorScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\mainScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\menuScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\networkSettingsScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\regionSettingsScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\removeScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\restoreEepromFlowScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\restoreEepromPickerScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\restoreEepromScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\scene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\sceneManager.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\skinSelectionScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\soundPackSelectionScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\systemInfoScene.h">
-					</File>
-					<File
-						RelativePath=".\Scenes\videoSettingsScene.h">
+						RelativePath=".\Assets\Font\freesans_sfn.h">
 					</File>
 				</Filter>
-				<Filter
-					Name="Threads"
-					Filter="">
-					<File
-						RelativePath=".\Threads\countdown.h">
-					</File>
-					<File
-						RelativePath=".\Threads\driveMounter.h">
-					</File>
-					<File
-						RelativePath=".\Threads\flash.h">
-					</File>
-					<File
-						RelativePath=".\Threads\hddInfo.h">
-					</File>
-					<File
-						RelativePath=".\Threads\hddLockUnlock.h">
-					</File>
-					<File
-						RelativePath=".\Threads\lcdRender.h">
-					</File>
-				</Filter>
+			</Filter>
+			<Filter
+				Name="XKUtils"
+				Filter="">
+				<File
+					RelativePath=".\XKUtils\XKCRC.h">
+				</File>
+				<File
+					RelativePath=".\XKUtils\XKEEPROM.h">
+				</File>
+				<File
+					RelativePath=".\XKUtils\XKExports.h">
+				</File>
+				<File
+					RelativePath=".\XKUtils\XKGeneral.h">
+				</File>
+				<File
+					RelativePath=".\XKUtils\XKHDD.h">
+				</File>
+				<File
+					RelativePath=".\XKUtils\XKRC4.h">
+				</File>
+				<File
+					RelativePath=".\XKUtils\XKSHA1.h">
+				</File>
+			</Filter>
+			<Filter
+				Name="Scenes"
+				Filter="">
+				<File
+					RelativePath=".\Scenes\audioSettingsScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\autoBootScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\backupEepromScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\boredScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\editFlowScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\editScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\filePickerScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\flashBackupScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\flashBankScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\flashFlowScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\flashUpdateFlowScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\flashUpdateScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\generalOptionsScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\hddLockUnlockScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\keyboardScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\keypadScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\launchScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\ledColorSelectorScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\mainScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\menuScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\networkSettingsScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\regionSettingsScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\removeScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\restoreEepromFlowScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\restoreEepromScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\scene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\sceneManager.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\skinSelectionScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\soundPackSelectionScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\systemInfoScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\videoSettingsScene.h">
+				</File>
+			</Filter>
+			<Filter
+				Name="Threads"
+				Filter="">
+				<File
+					RelativePath=".\Threads\countdown.h">
+				</File>
+				<File
+					RelativePath=".\Threads\driveMounter.h">
+				</File>
+				<File
+					RelativePath=".\Threads\flashBackup.h">
+				</File>
+				<File
+					RelativePath=".\Threads\flashBank.h">
+				</File>
+				<File
+					RelativePath=".\Threads\flashUpdate.h">
+				</File>
+				<File
+					RelativePath=".\Threads\hddInfo.h">
+				</File>
+				<File
+					RelativePath=".\Threads\hddLockUnlock.h">
+				</File>
+				<File
+					RelativePath=".\Threads\lcdRender.h">
+				</File>
+			</Filter>
+			<Filter
+				Name="Plugins"
+				Filter="">
+				<File
+					RelativePath=".\Plugins\PEProcess.h">
+				</File>
+				<File
+					RelativePath=".\Plugins\PESymbol.h">
+				</File>
 			</Filter>
 		</Filter>
 	</Files>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "scene.h"
-#include "restoreEepromPickerScene.h"
+#include "filePickerScene.h"
 #include "restoreEepromScene.h"
 
 #include "..\xboxInternals.h"
@@ -14,7 +14,7 @@ public:
 	void update();
 	void render();
 private:
-	restoreEepromPickerScene*	mRestoreEepromPickerScene;
+	filePickerScene*	mFilePickerScene;
 	restoreEepromScene* mRestoreEepromScene;
 	uint32_t mCurrentSceneId;
 	char* mFilePath;

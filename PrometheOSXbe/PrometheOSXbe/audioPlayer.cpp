@@ -3,6 +3,7 @@
 #include "fileSystem.h"
 #include "pointerMap.h"
 #include "context.h"
+#include "utils.h"
 
 #include <dmusici.h>
 #include <dsound.h>
@@ -14,6 +15,11 @@
 #define AUDIO_PACKETS 64
 #define AUDIO_OUTPUT_BUF_SIZE 8192
 
+extern "C"
+{
+  extern BOOL g_fDirectSoundDisableBusyWaitWarning;
+}
+
 namespace {
 
 	pointerMap* mAudioContainerMap;
@@ -23,6 +29,8 @@ namespace {
 
 bool audioPlayer::init()
 {
+	g_fDirectSoundDisableBusyWaitWarning = TRUE;
+
 	mAudioContainerMap = new pointerMap(true);
 	mUniqueSoundId = 0;
 
@@ -67,7 +75,7 @@ uint32_t audioPlayer::play(const char* soundName, bool repeat)
 
 	audioContainer* sound = new audioContainer();
 	sound->audioPlayerData = data;
-	sound->audioPlayerData->thread = CreateThread(NULL, 128, (LPTHREAD_START_ROUTINE)process, (void*)data, 0, NULL);
+	sound->audioPlayerData->thread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)process, (void*)data, 0, NULL);
 	mAudioContainerMap->add(mUniqueSoundId, sound);
 
 	free(soundPackPath);
@@ -219,10 +227,11 @@ uint64_t WINAPI audioPlayer::process(void* param)
 		Sleep(100);
 	}	
 
-	directSoundStream->FlushEx(0, DSSTREAMFLUSHEX_ASYNC);
-	DirectSoundDoWork();
-	Sleep(10);
+	int maxSamples = ((AUDIO_PACKETS * AUDIO_OUTPUT_BUF_SIZE) / sizeof(short)) / vorbisInfo.channels;
+	int waitTime = (int)(maxSamples / (vorbisInfo.sample_rate / 1000.0f));
+	Sleep(waitTime);
 
+	directSoundStream->FlushEx(0, DSSTREAMFLUSHEX_ASYNC);
 	directSoundStream->Release();
 
 	free(packetStatus);

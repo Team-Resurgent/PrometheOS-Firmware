@@ -3,8 +3,8 @@
 #include "sceneManager.h"
 #include "launchScene.h"
 #include "removeScene.h"
-#include "flashScene.h"
-#include "flashingScene.h"
+#include "filePickerScene.h"
+#include "flashBankScene.h"
 #include "audioSettingsScene.h"
 
 #include "..\context.h"
@@ -21,10 +21,10 @@
 
 flashFlowScene::flashFlowScene()
 {
-	mFlashScene = NULL;
+	mFilePickerScene = NULL;
 	mKeyboardScene = NULL;
 	mLedColorSelectorScene = NULL;
-	mFlashingScene = NULL;
+	mFlashBankScene = NULL;
 	mCurrentSceneId = 0;
 	mFilePath = NULL;
 	mBankName = NULL;
@@ -33,9 +33,10 @@ flashFlowScene::flashFlowScene()
 
 flashFlowScene::~flashFlowScene()
 {
-	delete(mFlashScene);
+	delete(mFilePickerScene);
 	delete(mKeyboardScene);
 	delete(mLedColorSelectorScene);
+	delete(mFlashBankScene);
 	free(mFilePath);
 }
 
@@ -43,20 +44,20 @@ void flashFlowScene::update()
 {
 	if (mCurrentSceneId == 0)
 	{
-		if (mFlashScene == NULL)
+		if (mFilePickerScene == NULL)
 		{
-			mFlashScene = new flashScene();
+			mFilePickerScene = new filePickerScene(filePickerTypeBios);
 		}
-		mFlashScene->update();
-		if (mFlashScene->getSceneResult() == sceneResultCancelled)
+		mFilePickerScene->update();
+		if (mFilePickerScene->getSceneResult() == sceneResultCancelled)
 		{
 			sceneManager::openScene(sceneItemBankManagementScene);
 			return;
 		}
-		else if (mFlashScene->getSceneResult() == sceneResultDone)
+		else if (mFilePickerScene->getSceneResult() == sceneResultDone)
 		{
-			mFilePath = mFlashScene->getFilePath();
-			delete(mFlashScene);
+			mFilePath = mFilePickerScene->getFilePath();
+			delete(mFilePickerScene);
 			mCurrentSceneId = 1;
 		}
 		return;
@@ -109,20 +110,20 @@ void flashFlowScene::update()
 
 	if (mCurrentSceneId == 3)
 	{
-		if (mFlashingScene == NULL)
+		if (mFlashBankScene == NULL)
 		{
-			mFlashingScene = new flashingScene(mFilePath, mBankName, mLedColor);
+			mFlashBankScene = new flashBankScene(mFilePath, mBankName, mLedColor);
 		}
-		mFlashingScene->update();
-		if (mFlashingScene->getSceneResult() == sceneResultCancelled)
+		mFlashBankScene->update();
+		if (mFlashBankScene->getSceneResult() == sceneResultCancelled)
 		{
-			delete(mFlashingScene);
+			delete(mFlashBankScene);
 			sceneManager::openScene(sceneItemBankManagementScene);
 			return;
 		}
-		else if (mFlashingScene->getSceneResult() == sceneResultDone)
+		else if (mFlashBankScene->getSceneResult() == sceneResultDone)
 		{
-			delete(mFlashingScene);
+			delete(mFlashBankScene);
 			sceneManager::openScene(sceneItemBankManagementScene);
 			return;
 		}
@@ -133,9 +134,9 @@ void flashFlowScene::render()
 {
 	if (mCurrentSceneId == 0)
 	{
-		if (mFlashScene != NULL) 
+		if (mFilePickerScene != NULL) 
 		{
-			mFlashScene->render();
+			mFilePickerScene->render();
 		}
 		return;
 	}
@@ -160,9 +161,9 @@ void flashFlowScene::render()
 
 	if (mCurrentSceneId == 3)
 	{
-		if (mFlashingScene != NULL) 
+		if (mFlashBankScene != NULL) 
 		{
-			mFlashingScene->render();
+			mFlashBankScene->render();
 		}
 		return;
 	}

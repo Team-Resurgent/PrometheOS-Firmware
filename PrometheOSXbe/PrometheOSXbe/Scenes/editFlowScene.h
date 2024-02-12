@@ -4,7 +4,7 @@
 #include "editScene.h"
 #include "keyboardScene.h"
 #include "ledColorSelectorScene.h"
-#include "flashingScene.h"
+#include "flashBankScene.h"
 
 #include "..\xboxInternals.h"
 

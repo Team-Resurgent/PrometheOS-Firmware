@@ -4,20 +4,12 @@
 #include "crc32.h"
 #include "stringUtility.h"
 #include "utils.h"
+#include "Threads\lcdRender.h"
 
 #include <stdio.h>
 
-//64k sector sizes
-//0x1c0000-0x1dffff = recovery (128k)
-//0x1e0000-0x1effff = unused (64k)
-
-//8k sector sizes begin
-//0x1f0000-0x1f1fff = settings (8k)
-//0x1f2000-0x1f7fff = unused (24k)
-//0x1f8000-0x1fffff = logo (32k)
-
-#define SETTINGS_OFFSET (0x1f0000 - 0x1c0000)
-#define INSTALLER_LOGO_OFFSET (0x1f0000 - 0x1f8000)
+#define SETTINGS_OFFSET (0x1f8000 - 0x1c0000)
+#define INSTALLER_LOGO_OFFSET (0x1f0000 - 0x1c0000)
 
 namespace 
 {
@@ -30,7 +22,7 @@ semver settingsManager::getVersion()
 	memset(&version, 0, sizeof(version));
 	version.major = 1;
 	version.minor = 1;
-	version.patch = 0;
+	version.patch = 1;
 	return version;
 }
 
@@ -49,16 +41,22 @@ void settingsManager::initSettings()
 	mSettings.version = getVersion();
 	mSettings.autoBootDelay = 5;
 	mSettings.ledColor = 2;
+	mSettings.lcdBacklight = 100;
+	mSettings.lcdContrast = 60;
 
 #ifdef TEST
 	mSettings.banks[0].slots = 1;
-	stringUtility::copyString(&mSettings.banks[0].name[0], "Bank 1 Rom", 40);
+	stringUtility::copyString(&mSettings.banks[0].name[0], "Bank 1 Rom", 41);
 	mSettings.banks[1].slots = 1;
-	stringUtility::copyString(&mSettings.banks[1].name[0], "Bank 2 Rom", 40);
+	stringUtility::copyString(&mSettings.banks[1].name[0], "Bank 2 Rom", 41);
 	mSettings.banks[2].slots = 1;
-	stringUtility::copyString(&mSettings.banks[2].name[0], "Bank 3 Rom", 40);
+	stringUtility::copyString(&mSettings.banks[2].name[0], "Bank 3 Rom", 41);
 	mSettings.banks[3].slots = 1;
-	stringUtility::copyString(&mSettings.banks[3].name[0], "Bank 4 Rom", 40);
+	stringUtility::copyString(&mSettings.banks[3].name[0], "Bank 4 Rom", 41);
+
+	stringUtility::copyString(&mSettings.skinName[0], "TeamResurgent-Animated", 51);
+	stringUtility::copyString(&mSettings.soundPackName[0], "Cybernoid", 51);
+
 #endif
 }
 
@@ -74,10 +72,10 @@ void settingsManager::loadSettings()
 		initSettings();
 		saveSettings();
 	}
-	xenium::setLedColor((xenium::ledColorEnum)mSettings.ledColor);
 #else
 	initSettings();
 #endif
+	xenium::setLedColor((xenium::ledColorEnum)mSettings.ledColor);
 }
 
 void settingsManager::saveSettings()
@@ -85,8 +83,8 @@ void settingsManager::saveSettings()
 	mSettings.checksum = crc32::calculate(((char*)&mSettings) + 1, sizeof(mSettings) - 1);
 	utils::dataContainer* dataContainer = new utils::dataContainer((char*)&mSettings, sizeof(mSettings), sizeof(mSettings));
 	xenium::eraseBank(xenium::bankRecovery, SETTINGS_OFFSET, dataContainer->size);
-	xenium::writeBank(xenium::bankRecovery, SETTINGS_OFFSET, dataContainer);
-	if (xenium::verifyBank(xenium::bankRecovery, SETTINGS_OFFSET, dataContainer) == false)
+	xenium::writeBank(xenium::bankRecovery, SETTINGS_OFFSET, dataContainer, 0, dataContainer->size);
+	if (xenium::verifyBank(xenium::bankRecovery, SETTINGS_OFFSET, dataContainer, 0, dataContainer->size) == false)
 	{
 		utils::debugPrint("Bank verify failed.\n");
 	}
@@ -243,7 +241,7 @@ void settingsManager::optimizeBanks(uint8_t slotsNeeded)
 			}
 			utils::dataContainer* bankData = xenium::readBank(sourceBank, 0, xenium::getBankSize(sourceBank));
 			xenium::eraseBank(destBank, 0, bankData->size);
-			xenium::writeBank(destBank, 0, bankData);
+			xenium::writeBank(destBank, 0, bankData, 0, bankData->size);
 			delete(bankData);
 
 			memcpy(&mSettings.banks[destBankId], &mSettings.banks[sourceBankId], sizeof(bankInfo));
@@ -307,7 +305,7 @@ void settingsManager::writeBank(uint8_t bankId, utils::dataContainer* dataContai
 
 	uint8_t slotsNeeded = (uint8_t)(dataContainer->size >> 18);
 	xenium::bankEnum bank = xenium::getBankFromIdAndSlots(bankId, slotsNeeded);
-	xenium::writeBank(bank, 0, dataContainer);
+	xenium::writeBank(bank, 0, dataContainer, 0, dataContainer->size);
 
 	mSettings.banks[bankId].ledColor = ledColor;
 	mSettings.banks[bankId].slots = slotsNeeded;
@@ -325,7 +323,7 @@ bool settingsManager::verifyBank(uint8_t bankId, utils::dataContainer* dataConta
 
 	uint8_t slotsNeeded = (uint8_t)(dataContainer->size >> 18);
 	xenium::bankEnum bank = xenium::getBankFromIdAndSlots(bankId, slotsNeeded);
-	bool result = xenium::verifyBank(bank, 0, dataContainer);
+	bool result = xenium::verifyBank(bank, 0, dataContainer, 0, dataContainer->size);
 
 	xenium::setLedColor((xenium::ledColorEnum)mSettings.ledColor);
 	return result;
@@ -346,6 +344,7 @@ utils::dataContainer* settingsManager::readBank(uint8_t bankId)
 
 void settingsManager::launchBank(uint8_t bankId)
 {
+	lcdRender::waitStop();
 	bankInfo bank = settingsManager::getBankInfo(bankId);
 	if (bank.slots > 0)
 	{
@@ -355,6 +354,7 @@ void settingsManager::launchBank(uint8_t bankId)
 
 void settingsManager::launchTsop()
 {
+	lcdRender::waitStop();
 	xenium::launchTsop();
 }
 
@@ -418,7 +418,7 @@ char* settingsManager::getSkinName()
 void settingsManager::setSkinName(const char* skinName)
 {
 	memset(&mSettings.skinName[0], 0, sizeof(mSettings.skinName));
-	strncpy(&mSettings.skinName[0], skinName, 49);
+	strncpy(&mSettings.skinName[0], skinName, 50);
 	saveSettings();
 }
 
@@ -430,7 +430,7 @@ char* settingsManager::getSoundPackName()
 void settingsManager::setSoundPackName(const char* soundPackName)
 {
 	memset(&mSettings.soundPackName[0], 0, sizeof(mSettings.soundPackName));
-	strncpy(&mSettings.soundPackName[0], soundPackName, 49);
+	strncpy(&mSettings.soundPackName[0], soundPackName, 50);
 	saveSettings();
 }
 
@@ -464,5 +464,38 @@ uint8_t settingsManager::getLedColor()
 void settingsManager::setLedColor(uint8_t ledColor)
 {
 	mSettings.ledColor = ledColor;
+	saveSettings();
+}
+
+bool settingsManager::getLcdEnabled()
+{
+	return mSettings.lcdEnabled;
+}
+
+void settingsManager::setLcdEnabled(bool enabled)
+{
+	mSettings.lcdEnabled = enabled;
+	saveSettings();
+}
+
+uint8_t settingsManager::getLcdBacklight()
+{
+	return mSettings.lcdBacklight;
+}
+
+void settingsManager::setLcdBacklight(uint8_t backlight)
+{
+	mSettings.lcdBacklight = backlight;
+	saveSettings();
+}
+
+uint8_t settingsManager::getLcdContrast()
+{
+	return mSettings.lcdContrast;
+}
+
+void settingsManager::setLcdContrast(uint8_t contrast)
+{
+	mSettings.lcdContrast = contrast;
 	saveSettings();
 }

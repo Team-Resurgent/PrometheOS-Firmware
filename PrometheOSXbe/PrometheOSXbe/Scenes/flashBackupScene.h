@@ -1,0 +1,24 @@
+#pragma once
+
+#include "scene.h"
+
+#include "..\utils.h"
+#include "..\Threads\flashBackup.h"
+#include "..\xboxInternals.h"
+
+class flashBackupScene : public scene
+{
+public:
+	flashBackupScene();
+	~flashBackupScene();
+	void update();
+	void render();
+	sceneResult getSceneResult();
+private:
+	void setProgress(const char* message);
+	void processResponse(flashBackup::flashBackupResponse response);
+private:
+	bool mDone;
+	char* mProgress;
+	sceneResult mSceneResult;
+};

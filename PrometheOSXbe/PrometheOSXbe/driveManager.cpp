@@ -62,30 +62,6 @@ pointerVector* driveManager::getMountedDrives()
 	return drives;
 }
 
-char* driveManager::mapSystemPath(const char* path)
-{
-	driveManager::mountAllDrives();
-
-	for (size_t i = 0; i < m_drives->count(); i++) {
-		drive* currentDrive = (drive*)m_drives->get(i);
-		char* systemPath = currentDrive->getSystemPath();
-		if (stringUtility::startsWith(path, systemPath, true)) 
-		{
-			char* mountPoint = currentDrive->getMountPoint();
-			char* systemSubPath = stringUtility::substr(path, strlen(systemPath), -1);
-			char* result = stringUtility::formatString("%s:%s", mountPoint, systemSubPath);
-			
-			free(systemSubPath);
-			free(mountPoint);
-			free(systemPath);
-
-			return result;
-		}
-		free(systemPath);
-	}
-	return strdup(path);
-}
-
 char* driveManager::mapFtpPath(const char* path)
 {
 	char* tempPath = stringUtility::leftTrim(path, '/');
@@ -95,6 +71,7 @@ char* driveManager::mapFtpPath(const char* path)
 		char* mountPoint = currentDrive->getMountPoint();
 		if (stringUtility::startsWith(tempPath, mountPoint, true)) 
 		{
+			currentDrive->mount();
 			char* localFolder = stringUtility::substr(tempPath, strlen(mountPoint), -1);
 			char* localPath = stringUtility::formatString("%s:%s", mountPoint, localFolder);
 			char* result = stringUtility::replace(localPath, "/", "\\");
@@ -113,18 +90,13 @@ char* driveManager::mapFtpPath(const char* path)
 bool driveManager::ftpPathMounted(const char* path)
 {
 	char* tempPath = stringUtility::leftTrim(path, '/');
-
-	if (driveManager::isAllMounted() == false || stringUtility::startsWith(tempPath, "D", true) == true)
-	{
-		driveManager::mountAllDrives();
-	}
-
 	for (size_t i = 0; i < m_drives->count(); i++) 
 	{
 		drive* currentDrive = (drive*)m_drives->get(i);
 		char* mountPoint = currentDrive->getMountPoint();
 		if (stringUtility::startsWith(tempPath, mountPoint, true))
 		{
+			currentDrive->mount();
 			free(tempPath);
 			free(mountPoint);
 			return currentDrive->isMounted() == true;
@@ -158,14 +130,14 @@ void driveManager::init()
 
 		//https://github.com/brentdc-nz/xbmc4xbox/blob/13cf4fbab8d70b154941a6b91e101bd05cc5b111/xbmc/utils/MemoryUnitManager.cpp#L77
 
-		//m_drives->add(new drive("MU0", "\\Device\\MU00\\"));
-		//m_drives->add(new drive("MU1", "\\Device\\MU01\\"));
-		//m_drives->add(new drive("MU2", "\\Device\\MU02\\"));
-		//m_drives->add(new drive("MU3", "\\Device\\MU03\\"));
-		//m_drives->add(new drive("MU4", "\\Device\\MU04\\"));
-		//m_drives->add(new drive("MU5", "\\Device\\MU05\\"));
-		//m_drives->add(new drive("MU6", "\\Device\\MU06\\"));
-		//m_drives->add(new drive("MU7", "\\Device\\MU07\\"));
+		//m_drives->add(new drive("H MU0", "\\Device\\MU00\\"));
+		//m_drives->add(new drive("I MU1", "\\Device\\MU01\\"));
+		//m_drives->add(new drive("J MU2", "\\Device\\MU02\\"));
+		//m_drives->add(new drive("K MU3", "\\Device\\MU03\\"));
+		//m_drives->add(new drive("L MU4", "\\Device\\MU04\\"));
+		//m_drives->add(new drive("M MU5", "\\Device\\MU05\\"));
+		//m_drives->add(new drive("N MU6", "\\Device\\MU06\\"));
+		//m_drives->add(new drive("O MU7", "\\Device\\MU07\\"));
 
 		mInitialized = true;
 	}

@@ -1,5 +1,7 @@
 #include "xenium.h"
+#include "xboxInternals.h"
 #include "utils.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,14 +10,34 @@
 //IO CONTROL INTERFACE
 
 #define ENABLE_XENIUM
+//Bank1_256k      =  3  0x000000 - 0x03ffff  Sector Size 65536  Total  262144
+//Bank2_256k      =  4  0x040000 - 0x07ffff  Sector Size 65536  Total  262144
+//Bank3_256k      =  5  0x080000 - 0x0bffff  Sector Size 65536  Total  262144
+//Bank4_256k      =  6  0x0c0000 - 0x0fffff  Sector Size 65536  Total  262144
+//Bank1_512k      =  7  0x000000 - 0x07ffff  Sector Size 65536  Total  524288
+//Bank2_512k      =  8  0x080000 - 0x0fffff  Sector Size 65536  Total  524288
+//Bank1_1024k     =  9  0x000000 - 0x0fffff  Sector Size 65536  Total 1048576
+//Bank_PrometheOS =  2  0x100000 - 0x17ffff  Sector Size 65536  Total  524288
+//Bank_Bootloader =  1  0x180000 - 0x1bffff  Sector Size 65536  Total  262144
+//Bank_Recovery   = 10  0x1c0000 - 0x1fffff  See Below          Total  262144
 
-#ifdef ENABLE_XENIUM
-static uint8_t sckReg = 0;
-static uint8_t mosiReg = 0;
-#endif
+//0x1c0000 - 0x1effff  Sector Size 65536  Total 196608 (PrometheOS Continued)
+//0x1f0000 - 0x1f7fff  Sector Size 32768  Total 32768  (Installer Logo)
+//0x1f8000 - 0x1f9fff  Sector Size 8192   Total 8192   (Settings)
+//0x1fa000 - 0x1fbfff  Sector Size 8192   Total 8192   (Spare)
+//0x1fc000 - 0x1fffff  Sector Size 16384  Total 16384  (Spare)
+
+//Suggested byes for PrometheOS = 720896 (524288 bytes Bank_PrometheOS + First 196608 bytes of Bank_Recovery)
+
+//#define ENABLE_XENIUM
+
+static bool initialized = false;
+static RTL_CRITICAL_SECTION mutex;
+static uint8_t mBankState = 0;
+static uint8_t mRegister = 0;
 
 #ifndef ENABLE_XENIUM
-static uint32_t bankOffset = 0;
+static uint32_t flashMemOffset = 0;
 static uint8_t xeniumMem[2048 * 1024];
 #endif
 
@@ -47,19 +69,53 @@ void xenium::outputByte(uint16_t port, uint8_t value)
 
 void xenium::setBank(bankEnum bank)
 {
-#ifdef ENABLE_XENIUM
+	if (initialized == false)
+	{
+		initialized = true;
+		RtlInitializeCriticalSection(&mutex);
+		uint8_t banking = inputByte(XENIUM_REGISTER_BANKING);
+		mRegister = banking & 0xF0;
+		mBankState = banking & 0x0F;
+	}
+
 	if (bank <= 10) 
 	{
-        outputByte(XENIUM_REGISTER_BANKING, bank);
-	}
+#ifdef ENABLE_XENIUM
+		RtlEnterCriticalSection(&mutex);
+		mBankState = (uint8_t)bank;
+        outputByte(XENIUM_REGISTER_BANKING, mBankState | mRegister);
+		RtlLeaveCriticalSection(&mutex);
 #else
-	bankOffset = sectorToAddress(bankToSector(bank));
+		flashMemOffset = xenium::getBankMemOffset(bank);
 #endif
+	}
 }
 
 xenium::bankEnum xenium::getBank()
 {
-	return (bankEnum)(inputByte(XENIUM_REGISTER_BANKING) & 0x0F);
+	if (initialized == false)
+	{
+		initialized = true;
+		RtlInitializeCriticalSection(&mutex);
+		uint8_t banking = inputByte(XENIUM_REGISTER_BANKING);
+		mRegister = banking & 0xF0;
+		mBankState = banking & 0x0F;
+	}
+
+	RtlEnterCriticalSection(&mutex);
+	mBankState = (inputByte(XENIUM_REGISTER_BANKING) & 0x0F);
+	RtlLeaveCriticalSection(&mutex);
+
+	return (bankEnum)mBankState;
+}
+
+void xenium::setIoState()
+{
+#ifdef ENABLE_XENIUM
+	RtlEnterCriticalSection(&mutex);
+	outputByte(XENIUM_REGISTER_BANKING, mBankState | mRegister);
+	RtlLeaveCriticalSection(&mutex);
+#endif
 }
 
 void xenium::setLedColor(ledColorEnum ledColor)
@@ -75,7 +131,7 @@ void xenium::lpcSendByte(uint32_t address, uint8_t data)
 	volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
     lpcMemMap[address] = data;
 #else
-	xeniumMem[bankOffset + address] = data;
+	xeniumMem[flashMemOffset + address] = data;
 #endif
 }
 
@@ -85,13 +141,15 @@ uint8_t xenium::flashReadByte(uint32_t address)
     volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
     return lpcMemMap[address];
 #else
-	return xeniumMem[bankOffset + address];
+	return xeniumMem[flashMemOffset + address];
 #endif
 }
 
 void xenium::flashReset()
 {
+#ifdef ENABLE_XENIUM
     lpcSendByte(0x00000000, 0xF0);
+#endif
 }
 
 void xenium::flashReadStream(uint32_t address, uint8_t *data, uint32_t len)
@@ -100,7 +158,7 @@ void xenium::flashReadStream(uint32_t address, uint8_t *data, uint32_t len)
     volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
     memcpy(data, (void*)&lpcMemMap[address], len);
 #else
-	memcpy(data, (void*)&xeniumMem[bankOffset + address], len);
+	memcpy(data, (void*)&xeniumMem[flashMemOffset + address], len);
 #endif
 }
 
@@ -157,156 +215,6 @@ uint8_t xenium::isDetected()
     return 0;
 }
 
-uint32_t xenium::sectorToAddress(uint8_t sector)
-{
-    if (sector < 31)  
-	{
-		return sector * XENIUM_FLASH_SECTOR_SIZE1;
-	}
-    if (sector == 31) 
-	{
-		return 0x1f0000;
-	}
-    if (sector == 32) 
-	{
-		return 0x1f8000;
-	}
-    if (sector == 33) 
-	{
-		return 0x1fa000; 
-	}
-    if (sector == 34) 
-	{
-		return 0x1fc000; 
-	}
-    return 0;
-}
-
-uint32_t xenium::sectorToSize(uint8_t sector)
-{
-    if (sector < 31) 
-	{
-		return 64 * 1024; 
-	}
-    if (sector == 31)
-	{
-		return 32 * 1024;
-	}
-    if (sector == 32) 
-	{
-		return 8 * 1024;
-	}
-    if (sector == 33)
-	{
-		return 8 * 1024;
-	}
-    if (sector == 34) 
-	{
-		return 16 * 1024; 
-	}
-    return 0;
-}
-
-xenium::bankEnum xenium::sectorToBank(uint8_t sector)
-{
-    uint32_t address = sectorToAddress(sector);
-    if (address < 0x100000) 
-	{
-		return bank1_1024k;
-	}
-    if (address < 0x180000) 
-	{ 
-		return bankXeniumOS;
-	}
-    if (address < 0x1c0000) 
-	{
-		return bankBootloader;
-	}
-    return bankRecovery;
-}
-
-uint8_t xenium::bankToSector(bankEnum bank)
-{
-	if (bank == bank1_256k) 
-	{
-		return 0;
-	}
-	if (bank == bank2_256k) 
-	{
-		return 4;
-	}
-	if (bank == bank3_256k) 
-	{
-		return 8;
-	}
-	if (bank == bank4_256k) 
-	{
-		return 12;
-	}
-	if (bank == bank1_512k) 
-	{
-		return 0;
-	}
-	if (bank == bank2_512k) 
-	{
-		return 8;
-	}
-	if (bank == bank1_1024k) 
-	{
-		return 0;
-	}
-	if (bank == bankXeniumOS) 
-	{
-		return 16;
-	}
-	if (bank == bankBootloader) 
-	{
-		return 24;
-	}
-	return 28;
-}
-
-uint8_t xenium::bankToSectors(bankEnum bank)
-{
-	if (bank == bank1_256k) 
-	{
-		return 4;
-	}
-	if (bank == bank2_256k) 
-	{
-		return 4;
-	}
-	if (bank == bank3_256k) 
-	{
-		return 4;
-	}
-	if (bank == bank4_256k) 
-	{
-		return 4;
-	}
-	if (bank == bank1_512k) 
-	{
-		return 8;
-	}
-	if (bank == bank2_512k) 
-	{
-		return 8;
-	}
-	if (bank == bank1_1024k) 
-	{
-		return 16;
-	}
-	if (bank == bankXeniumOS) 
-	{
-		return 8;
-	}
-	if (bank == bankBootloader) 
-	{
-		return 4;
-	}
-	return 4;
-}
-
 int32_t xenium::getBankSize(bankEnum bank)
 {
 	if (bank == bank1_256k) 
@@ -345,7 +253,81 @@ int32_t xenium::getBankSize(bankEnum bank)
 	{
 		return 256 * 1024;
 	}
+	if (bank == bankRecovery) 
+	{
+		return 256 * 1024;
+	}
 	return -1;
+}
+
+uint32_t xenium::getBankMemOffset(xenium::bankEnum bank)
+{
+	if (bank == bank1_1024k)
+	{
+		return 0x000000;
+	}
+	if (bank == bank1_512k)
+	{
+		return 0x000000;
+	}
+	if (bank == bank1_256k)
+	{
+		return 0x000000;
+	}
+	if (bank == bank2_256k)
+	{
+		return 0x040000;
+	}
+	if (bank == bank2_512k)
+	{
+		return 0x080000;
+	}
+	if (bank == bank3_256k)
+	{
+		return 0x080000;
+	}
+	if (bank == bank4_256k)
+	{
+		return 0x0c0000;
+	}
+	if (bank == bankXeniumOS)
+	{
+		return 0x100000;
+	}	
+	if (bank == bankBootloader)
+	{
+		return 0x180000;
+	}
+	if (bank == bankRecovery)
+	{
+		return 0x1c0000;
+	}
+	return 0;
+}
+
+bool xenium::isEraseMemOffset(uint32_t memOffset, uint32_t& sectorSize)
+{
+	if (memOffset >= 0x000000 && memOffset <= 0x1effff)
+	{
+		sectorSize = 65536;
+		return (memOffset % 65536) == 0;
+	}
+	if (memOffset >= 0x1f0000 && memOffset <= 0x1f7fff)
+	{
+		sectorSize = 32768;
+		return (memOffset % 32768) == 0;
+	}
+	if (memOffset >= 0x1f8000 && memOffset <= 0x1fbfff)
+	{
+		sectorSize = 8192;
+		return (memOffset % 8192) == 0;
+	}
+	if (memOffset >= 0x1fc000 && memOffset <= 0x1fffff)
+	{
+		sectorSize = 16384;
+		return (memOffset % 16384) == 0;
+	}
+	return false;
 }
 
 xenium::bankEnum xenium::getBankFromIdAndSlots(uint8_t id, uint8_t slots)
@@ -385,6 +367,9 @@ utils::dataContainer* xenium::readBank(bankEnum bank, uint32_t offset, uint32_t 
 {
 	bankEnum originalBank = xenium::getBank();
 	xenium::setBank(bank); 
+
+	utils::debugPrint("bank reading\n");
+
 	utils::dataContainer* dataContainer = new utils::dataContainer(length);
 	xenium::flashReadStream(offset, (uint8_t*)dataContainer->data, length);
 	xenium::setBank(originalBank);
@@ -394,48 +379,57 @@ utils::dataContainer* xenium::readBank(bankEnum bank, uint32_t offset, uint32_t 
 void xenium::eraseBank(bankEnum bank, uint32_t offset, uint32_t size)
 {
 	bankEnum originalBank = xenium::getBank();
-	xenium::setBank(bank);
+	setBank(bank);
 
-	utils::debugPrint("bank erasing sectors\n");
-    for (uint32_t i = 0; i < size; i++)
+	utils::debugPrint("bank erasing\n");
+
+	uint32_t memOffset = getBankMemOffset(bank);
+	uint32_t bytesProcessed = 0;
+    while (bytesProcessed < size)
 	{
-		uint32_t address = offset + i;
-		if (((address % XENIUM_FLASH_SECTOR_SIZE1) == 0) || (bank == bankRecovery && address >= (3 * XENIUM_FLASH_SECTOR_SIZE1) && (address % XENIUM_FLASH_SECTOR_SIZE2) == 0))
+		uint32_t sectorSize;
+		if (xenium::isEraseMemOffset(memOffset + offset, sectorSize))
 		{
-			sectorErase(address);
+			sectorErase(offset);
 			flashReset();
+			offset += sectorSize;
+			bytesProcessed += sectorSize;
+			continue;
 		}
+		offset++;
+		bytesProcessed++;
 	}
+
 	xenium::setBank(originalBank);
 }
 
-void xenium::writeBank(bankEnum bank, uint32_t offset, utils::dataContainer* dataContainer)
+void xenium::writeBank(bankEnum bank, uint32_t offset, utils::dataContainer* dataContainer, uint32_t dataContainerOffset, uint32_t dataContainerSize)
 {
 	bankEnum originalBank = xenium::getBank();
 	xenium::setBank(bank);
 
 	utils::debugPrint("bank flashing\n");
-    for (uint32_t i = 0; i < dataContainer->size; i++)
+    for (uint32_t i = 0; i < min(dataContainer->size, dataContainerSize); i++)
 	{
-		flashWriteByte(offset + i, (uint8_t)dataContainer->data[i]);
+		flashWriteByte(offset + i, (uint8_t)dataContainer->data[i + dataContainerOffset]);
     }
 	flashReset();
 
 	xenium::setBank(originalBank);
 }
 
-bool xenium::verifyBank(bankEnum bank, uint32_t offset, utils::dataContainer* dataContainer)
+bool xenium::verifyBank(bankEnum bank, uint32_t offset, utils::dataContainer* dataContainer, uint32_t dataContainerOffset, uint32_t dataContainerSize)
 {
 	bankEnum originalBank = xenium::getBank();
 	xenium::setBank(bank);
 
 	utils::debugPrint("bank verifying\n");
-	utils::dataContainer* writtenData = readBank(bank, offset, dataContainer->size);
+	utils::dataContainer* writtenData = readBank(bank, offset, min(dataContainer->size, dataContainerSize));
 
 	bool ok = true;
-    for (uint32_t i = 0; i < dataContainer->size; i++)
+    for (uint32_t i = 0; i < min(dataContainer->size, dataContainerSize); i++)
 	{
-		if (writtenData->data[i] == dataContainer->data[i])
+		if (writtenData->data[i] == dataContainer->data[i + dataContainerOffset])
 		{
 			continue;
 		}
@@ -476,58 +470,106 @@ void xenium::launchTsop()
 	HalReturnToFirmware(RETURN_FIRMWARE_REBOOT);
 }
 
-void xenium::sendCharacter(uint8_t value)
+utils::dataContainer* xenium::readFlash()
 {
-	const int dataMode = 3;
-	const int bitOrder = 7;
-
-	const uint8_t sckBit = 1 << 6;
-	const uint8_t mosiBit = 1 << 4;
-
-	static bool spiInitialized = false;
-	if (spiInitialized == false)
+	utils::dataContainer* result = new utils::dataContainer(2 * 1024 * 1024);
+	for (uint32_t i = 0; i < 7; i++)
 	{
-		outputByte(0xEF, 1 << 6);
-		Sleep(100);
-		outputByte(0xEF, 0);
-		Sleep(100);
-		spiInitialized = true;
+		xenium::bankEnum currentBank = xenium::bank1_256k;
+		if (i == 1)
+		{
+			currentBank = xenium::bank2_256k;
+		}
+		else if (i == 2)
+		{
+			currentBank = xenium::bank3_256k;
+		}
+		else if (i == 3)
+		{
+			currentBank = xenium::bank3_256k;
+		}
+		else if (i == 4)
+		{
+			currentBank = xenium::bankBootloader;
+		}
+		else if (i == 5)
+		{
+			currentBank = xenium::bankXeniumOS;
+		}
+		else if (i == 6)
+		{
+			currentBank = xenium::bankRecovery;
+		}
+
+		uint32_t bankSize = xenium::getBankSize(currentBank);
+		uint32_t memOffset = xenium::getBankMemOffset(currentBank);
+		utils::dataContainer* bankData = xenium::readBank(currentBank, 0, bankSize);
+		memcpy(result->data + memOffset, bankData->data, bankSize);
+		delete(bankData);
 	}
 
-	for (uint8_t x = 0; x < 8; x++) 
+	return result;
+}
+
+void xenium::sendCharacter(uint8_t value)
+{
+
+#ifdef ENABLE_XENIUM
+
+	if (initialized == false)
 	{
-		if ((value >> (x ^ bitOrder)) & 0x01)
+		initialized = true;
+		RtlInitializeCriticalSection(&mutex);
+		uint8_t banking = inputByte(XENIUM_REGISTER_BANKING);
+		mRegister = banking & 0xF0;
+		mBankState = banking & 0x0F;
+	}
+
+	const uint8_t sckBit = 1 << 6; //0x40
+	const uint8_t mosiBit = 1 << 4; //0x10
+
+	//static LARGE_INTEGER clockFreq;
+	//static bool spiInitialized = false;
+	//if (spiInitialized == false)
+	//{
+	//	QueryPerformanceFrequency(&clockFreq);
+	//	spiInitialized = true;
+	//}
+
+	if ((mRegister & sckBit) == 0 )
+	{
+		mRegister |= sckBit;
+		setIoState();
+		utils::uSleep(0x1c);
+	}
+	
+	uint8_t i = 8;
+	do
+	{
+		utils::uSleep(0x1c);
+
+		if ((value & 0x80) > 0)
 		{
-			mosiReg |= mosiBit;
+			mRegister |= mosiBit;
 		} 
 		else
 		{
-			mosiReg &= ~mosiBit;
+			mRegister &= ~mosiBit;
 		}
+		setIoState();
 
-		outputByte(0xEF, mosiReg | sckReg);
-
-		if (dataMode >> 1)
-		{
-			sckReg &= ~sckBit;
-		}
-		else 
-		{
-			sckReg |= sckBit;	
-		}
+		mRegister &= ~sckBit;
+		setIoState();
 		
-		outputByte(0xEF, mosiReg | sckReg);
-		
-		if (dataMode >> 1) 
-		{ 
-			sckReg |= sckBit;
-		}
-		else 
-		{
-			sckReg &= ~sckBit;
-		}
+		utils::uSleep(0x1c);
 
-		outputByte(0xEF, mosiReg | sckReg);
+		mRegister |= sckBit;
+		setIoState();
 
+		value = value << 1;
+		i--;
 	}
+	while (i > 0);
+
+#endif
 }

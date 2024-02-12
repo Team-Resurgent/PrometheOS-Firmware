@@ -16,11 +16,12 @@
 #include "menuScene.h"
 #include "skinSelectionScene.h"
 #include "soundPackSelectionScene.h"
-#include "autoBootDelayScene.h"
-#include "ledColorFlowScene.h"
 #include "boredScene.h"
 #include "launchScene.h"
 #include "autoBootScene.h"
+#include "generalOptionsScene.h"
+#include "flashUpdateFlowScene.h"
+#include "flashBackupScene.h"
 
 #include "..\lcd.h"
 #include "..\settingsManager.h"
@@ -183,11 +184,11 @@ void sceneManager::openScene(sceneItemEnum sceneItem)
 	else if (sceneItem == sceneItemPrometheOsSettingsScene)
 	{
 		pointerVector* sceneItems = new pointerVector(true);
-		sceneItems->add(new utils::intContainer(sceneItemSkinSelectionScene));
-		sceneItems->add(new utils::intContainer(sceneItemSoundPackSelectionScene));
-		sceneItems->add(new utils::intContainer(sceneItemAutoBootDelayScene));
-		sceneItems->add(new utils::intContainer(sceneItemLedColorFlowScene));
-		sceneItems->add(new utils::intContainer(sceneItemBoredScene));
+		sceneItems->add(new utils::intContainer(sceneItemPrometheOsThemesScene));
+		sceneItems->add(new utils::intContainer(sceneItemGeneralOptionsScene));
+		sceneItems->add(new utils::intContainer(sceneItemFlashUpdateFlowScene));
+		sceneItems->add(new utils::intContainer(sceneItemFlashBackupScene));
+		sceneItems->add(new utils::intContainer(sceneItemSnakeScene));
 		setScene(new menuScene("Select PrometheOS option...", "", sceneItemSystemSettingsScene, sceneItems));
 		lcdRender::setTitle("PrometheOS");
 	}
@@ -201,17 +202,7 @@ void sceneManager::openScene(sceneItemEnum sceneItem)
 		setScene(new soundPackSelectionScene());
 		lcdRender::setTitle("Sound Packs");
 	}
-	else if (sceneItem == sceneItemAutoBootDelayScene)
-	{
-		setScene(new autoBootDelayScene());
-		lcdRender::setTitle("Auto Boot Delay");
-	}
-	else if (sceneItem == sceneItemLedColorFlowScene)
-	{
-		setScene(new ledColorFlowScene());
-		lcdRender::setTitle("LED Color");
-	}
-	else if (sceneItem == sceneItemBoredScene)
+	else if (sceneItem == sceneItemSnakeScene)
 	{
 		setScene(new boredScene());
 		lcdRender::setTitle("Snake");
@@ -225,5 +216,28 @@ void sceneManager::openScene(sceneItemEnum sceneItem)
 	{
 		setScene(new autoBootScene());
 		lcdRender::setTitle("Auto Boot");
+	}
+	else if (sceneItem == sceneItemGeneralOptionsScene)
+	{
+		setScene(new generalOptionsScene());
+		lcdRender::setTitle("Options");
+	}
+	else if (sceneItem == sceneItemFlashUpdateFlowScene)
+	{
+		setScene(new flashUpdateFlowScene());
+		lcdRender::setTitle("Update PrometheOS");
+	}
+	else if (sceneItem == sceneItemFlashBackupScene)
+	{
+		setScene(new flashBackupScene());
+		lcdRender::setTitle("Backup PrometheOS");
+	}
+	else if (sceneItem == sceneItemPrometheOsThemesScene)
+	{
+		pointerVector* sceneItems = new pointerVector(true);
+		sceneItems->add(new utils::intContainer(sceneItemSkinSelectionScene));
+		sceneItems->add(new utils::intContainer(sceneItemSoundPackSelectionScene));
+		setScene(new menuScene("Select PrometheOS Theme option...", "", sceneItemPrometheOsSettingsScene, sceneItems));
+		lcdRender::setTitle("PrometheOS");
 	}
 }

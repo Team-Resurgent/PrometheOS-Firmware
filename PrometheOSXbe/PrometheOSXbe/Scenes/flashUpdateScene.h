@@ -3,22 +3,25 @@
 #include "scene.h"
 
 #include "..\utils.h"
-#include "..\Threads\flash.h"
+#include "..\Threads\flashUpdate.h"
 #include "..\xboxInternals.h"
 
-class flashingScene : public scene
+class flashUpdateScene : public scene
 {
 public:
-	flashingScene(const char* filePath, const char* bankName, uint8_t ledColor);
-	~flashingScene();
+	flashUpdateScene(const char* filePath);
+	~flashUpdateScene();
 	void update();
 	void render();
 	sceneResult getSceneResult();
 private:
 	void setProgress(const char* message);
-	void processResponse(flash::flashResponse response);
+	void processResponse(flashUpdate::flashUpdateResponse response);
 private:
+	bool mStarted;
 	bool mDone;
+	bool mFailed;
 	char* mProgress;
+	char* mFilePath;
 	sceneResult mSceneResult;
 };

@@ -1,4 +1,4 @@
-#include "flashingScene.h"
+#include "flashBankScene.h"
 
 #include "..\drawing.h"
 #include "..\ssfn.h"
@@ -7,22 +7,22 @@
 #include "..\utils.h"
 #include "..\settingsManager.h"
 #include "..\theme.h"
-#include "..\Threads\flash.h"
+#include "..\Threads\flashBank.h"
 
-flashingScene::flashingScene(const char* filePath, const char* bankName, uint8_t ledColor)
+flashBankScene::flashBankScene(const char* filePath, const char* bankName, uint8_t ledColor)
 {
 	mProgress = strdup("");
 	mDone = false;
 	mSceneResult = sceneResultNone;
-	flash::startThread(filePath, bankName, ledColor);
+	flashBank::startThread(filePath, bankName, ledColor);
 }
 
-flashingScene::~flashingScene()
+flashBankScene::~flashBankScene()
 {
 	free(mProgress);
 }
 
-void flashingScene::update()
+void flashBankScene::update()
 {
 	// Back Action
 
@@ -33,16 +33,16 @@ void flashingScene::update()
 
 	if (mDone == false)
 	{
-		processResponse(flash::getResponse());
-		if (flash::completed() == true)
+		processResponse(flashBank::getResponse());
+		if (flashBank::completed() == true)
 		{
-			flash::closeThread();
+			flashBank::closeThread();
 			mDone = true;
 		}
 	}
 }
 
-void flashingScene::render()
+void flashBankScene::render()
 {
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
 	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please wait...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
@@ -56,59 +56,62 @@ void flashingScene::render()
 
 	component::textBox(mProgress, false, false, horizAlignmentCenter, 193, yPos, 322, 44);
 
-	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Back", mDone == true ? theme::getFooterTextColor() : theme::getTextDisabledColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
+	if (mDone == true)
+	{
+		drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Back", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
+	}
 }
 
-sceneResult flashingScene::getSceneResult()
+sceneResult flashBankScene::getSceneResult()
 {
 	return mSceneResult;
 }
 
-void flashingScene::setProgress(const char* message)
+void flashBankScene::setProgress(const char* message)
 {
 	free(mProgress);
 	mProgress = strdup(message);
 }
 
-void flashingScene::processResponse(flash::flashResponse response)
+void flashBankScene::processResponse(flashBank::flashBankResponse response)
 {
-	if (response == flash::flashResponseNone)
+	if (response == flashBank::flashBankResponseNone)
 	{
 		setProgress("");
 	}
-	else if (response == flash::flashProcessing)
+	else if (response == flashBank::flashBankProcessing)
 	{
 		setProgress("Processing");
 	}
-	else if (response == flash::flashFailedToLoadFile)
+	else if (response == flashBank::flashBankFailedToLoadFile)
 	{
 		setProgress("Failed to load file");
 	}
-	else if (response == flash::flashOptimizing)
+	else if (response == flashBank::flashBankOptimizing)
 	{
 		setProgress("Optimizing");
 	}
-	else if (response == flash::flashNotEnoughSlots)
+	else if (response == flashBank::flashBankNotEnoughSlots)
 	{
 		setProgress("Not enough slots");
 	}
-	else if (response == flash::flashErasing)
+	else if (response == flashBank::flashBankErasing)
 	{
 		setProgress("Erasing");
 	}
-	else if (response == flash::flashWriting)
+	else if (response == flashBank::flashBankWriting)
 	{
 		setProgress("Writing");
 	}
-	else if (response == flash::flashVerifying)
+	else if (response == flashBank::flashBankVerifying)
 	{
 		setProgress("Verifying");
 	}
-	else if (response == flash::flashVerificationFailed)
+	else if (response == flashBank::flashBankVerificationFailed)
 	{
 		setProgress("Verification failed");
 	}
-	else if (response == flash::flashDone)
+	else if (response == flashBank::flashBankDone)
 	{
 		setProgress("Done");
 	}

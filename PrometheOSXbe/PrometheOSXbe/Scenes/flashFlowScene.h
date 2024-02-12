@@ -1,10 +1,10 @@
 #pragma once
 
 #include "scene.h"
-#include "flashScene.h"
+#include "filePickerScene.h"
 #include "keyboardScene.h"
 #include "ledColorSelectorScene.h"
-#include "flashingScene.h"
+#include "flashBankScene.h"
 
 #include "..\xboxInternals.h"
 
@@ -16,10 +16,10 @@ public:
 	void update();
 	void render();
 private:
-	flashScene*	mFlashScene;
+	filePickerScene* mFilePickerScene;
 	keyboardScene* mKeyboardScene;
 	ledColorSelectorScene* mLedColorSelectorScene;
-	flashingScene* mFlashingScene;
+	flashBankScene* mFlashBankScene;
 	uint32_t mCurrentSceneId;
 	char* mFilePath;
 	char* mBankName;

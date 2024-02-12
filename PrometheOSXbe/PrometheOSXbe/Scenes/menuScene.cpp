@@ -175,17 +175,25 @@ void menuScene::render()
 			{
 				menuText = strdup("Sound Packs");
 			}
-			else if (sceneItem == sceneItemAutoBootDelayScene)
+			else if (sceneItem == sceneItemSnakeScene)
 			{
-				menuText = strdup("Auto Boot Delay");
+				menuText = strdup("Snake");
 			}
-			else if (sceneItem == sceneItemLedColorFlowScene)
+			else if (sceneItem == sceneItemGeneralOptionsScene)
 			{
-				menuText = strdup("Led Color");
+				menuText = strdup("General Options");
 			}
-			else if (sceneItem == sceneItemBoredScene)
+			else if (sceneItem == sceneItemFlashUpdateFlowScene)
 			{
-				menuText = strdup("Bored?");
+				menuText = strdup("Update PrometheOS");
+			}
+			else if (sceneItem == sceneItemFlashBackupScene)
+			{
+				menuText = strdup("Backup PrometheOS");
+			}
+			else if (sceneItem == sceneItemPrometheOsThemesScene)
+			{
+				menuText = strdup("Themes");
 			}
 			else
 			{

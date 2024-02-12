@@ -2,7 +2,6 @@
 #include "sceneManager.h"
 #include "launchScene.h"
 #include "removeScene.h"
-#include "flashScene.h"
 #include "audioSettingsScene.h"
 #include "mainScene.h"
 
@@ -20,7 +19,7 @@
 
 keyboardScene::keyboardScene(const char* text)
 {
-	mSelectedControl = 0;
+	mSelectedControl = 33;
 	mCapitals = false;
 	mSymbols = false;
 	mText = strdup(text);

@@ -25,7 +25,7 @@ bool lcdRender::startThread()
 	if (mThread == NULL) {
         return false;
     }
-	SetThreadPriority(mThread, THREAD_PRIORITY_NORMAL);
+	SetThreadPriority(mThread, THREAD_PRIORITY_HIGHEST);
 	return true;
 }
 
@@ -59,14 +59,27 @@ void lcdRender::closeThread()
     DeleteCriticalSection(&mData.mutex);
 }
 
+void lcdRender::waitStop()
+{
+	EnterCriticalSection(&mData.mutex);
+	mData.requestStop = true;
+	LeaveCriticalSection(&mData.mutex);
+	while (completed() == false)
+	{
+		 Sleep(100);
+	}
+}
+
 uint64_t WINAPI lcdRender::process(void* param) 
 {
 	lcdRenderData* data = (lcdRenderData*)param;
-
-	lcd::init();
-
+	
 	char* titleToDisplay = strdup("");
+	bool enabled = settingsManager::getLcdEnabled();
+	uint8_t backlight = settingsManager::getLcdBacklight();
+	uint8_t contrast = settingsManager::getLcdBacklight();
 
+	bool initialized = false;
 	bool requestStop = false;
 	while (requestStop == false)
 	{
@@ -75,34 +88,66 @@ uint64_t WINAPI lcdRender::process(void* param)
 		char* title = strdup(data->title);
 		LeaveCriticalSection(&data->mutex);
 
-		if (stringUtility::equals(titleToDisplay, title, false) == false)
+		if (settingsManager::getLcdEnabled())
 		{
-			free(titleToDisplay);
-			titleToDisplay = strdup(title);
-
-			char* titleLine = strlen(titleToDisplay) > 20 ? stringUtility::substr(titleToDisplay, 0, 20) : strdup(titleToDisplay);
-			lcd::setCursorPosition(0, 0);
-			lcd::printMessage(titleLine);
-
-			int lineLen = strlen(titleLine);
-			if (lineLen < 20)
+			if (initialized == false)
 			{
-				for (int i = 0; i < (20 - lineLen); i++)
+				initialized = true;
+				lcd::init(backlight, contrast);
+				Sleep(500);
+				for (int j = 0; j < 4; j++)
 				{
-					lcd::printMessage(" ");
+					lcd::setCursorPosition(0, 3 - j);
+					for (int i = 0; i < 20; i++)
+					{
+						lcd::printMessage(" ");
+					}
 				}
 			}
-			free(titleLine);
+
+			if (stringUtility::equals(titleToDisplay, title, false) == false)
+			{
+				free(titleToDisplay);
+				titleToDisplay = strdup(title);
+
+				char* titleLine = strlen(titleToDisplay) > 20 ? stringUtility::substr(titleToDisplay, 0, 20) : strdup(titleToDisplay);
+				lcd::setCursorPosition(0, 0);
+				lcd::printMessage(titleLine);
+
+				int lineLen = strlen(titleLine);
+				if (lineLen < 20)
+				{
+					for (int i = 0; i < (20 - lineLen); i++)
+					{
+						lcd::printMessage(" ");
+					}
+				}
+				free(titleLine);
+			}
+
+			if (backlight != settingsManager::getLcdBacklight())
+			{
+				backlight = settingsManager::getLcdBacklight();
+				lcd::setBacklight(backlight);
+			}
+
+			if (contrast != settingsManager::getLcdContrast())
+			{
+				contrast = settingsManager::getLcdContrast();
+				lcd::setContrast(contrast);
+			}
 		}
 
 		free(title);
-		Sleep(100);
+		Sleep(200);
 	}
 
 	EnterCriticalSection(&data->mutex);
 	free(data->title);
 	LeaveCriticalSection(&data->mutex);
 	free(titleToDisplay);
+
+	lcd::reboot();
 
 	return 0;
 }

@@ -52,7 +52,7 @@ void soundPackSelectionScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		sceneManager::openScene(sceneItemPrometheOsSettingsScene);
+		sceneManager::openScene(sceneItemPrometheOsThemesScene);
 	}
 
 	// Select Actions

@@ -31,6 +31,8 @@
 #include "network.h"
 #include "audioPlayer.h"
 #include "Threads\lcdRender.h"
+#include "Threads\flashBackup.h"
+#include "Plugins\PEProcess.h"
 
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_TEX1)
 
@@ -96,6 +98,14 @@ utils::dataContainer* onGetCallback(const char* path, const char* query)
 	else if (stringUtility::equals(path, "\\download.js", true))
 	{
 		body = new utils::dataContainer((char*)&download_js, sizeof(download_js), sizeof(download_js));
+	}
+	else if (stringUtility::equals(path, "\\downloads.html", true))
+	{
+		body = new utils::dataContainer((char*)&downloads_html, sizeof(downloads_html), sizeof(downloads_html));
+	}
+	else if (stringUtility::equals(path, "\\downloads.js", true))
+	{
+		body = new utils::dataContainer((char*)&downloads_js, sizeof(downloads_js), sizeof(downloads_js));
 	}
 	else if (stringUtility::equals(path, "\\index.html", true))
 	{
@@ -174,6 +184,10 @@ utils::dataContainer* onGetCallback(const char* path, const char* query)
 		body = new utils::dataContainer(EEPROM_SIZE);
 		eeprom->GetEEPROMData((LPEEPROMDATA)body->data);
 		delete(eeprom);
+	}
+	else if (stringUtility::equals(path, "\\api\\downloadprom", true))
+	{
+		body = xenium::readFlash();
 	}
 
 	if (body == NULL)
@@ -317,28 +331,28 @@ DISPLAY_MODE displayModes[] =
 	// Width  Height Progressive Widescreen
 
 	// HDTV Progressive Modes
- //   {  1280,    720,    TRUE,   TRUE,  60 },         // 1280x720 progressive 16x9
+    {  1280,    720,    TRUE,   TRUE,  60 },         // 1280x720 progressive 16x9
 
-	//// EDTV Progressive Modes
- //   {   720,    480,    TRUE,   TRUE,  60 },         // 720x480 progressive 16x9
- //   {   640,    480,    TRUE,   TRUE,  60 },         // 640x480 progressive 16x9
- //   {   720,    480,    TRUE,   FALSE, 60 },         // 720x480 progressive 4x3
- //   {   640,    480,    TRUE,   FALSE, 60 },         // 640x480 progressive 4x3
+	// EDTV Progressive Modes
+    {   720,    480,    TRUE,   TRUE,  60 },         // 720x480 progressive 16x9
+    {   640,    480,    TRUE,   TRUE,  60 },         // 640x480 progressive 16x9
+    {   720,    480,    TRUE,   FALSE, 60 },         // 720x480 progressive 4x3
+    {   640,    480,    TRUE,   FALSE, 60 },         // 640x480 progressive 4x3
 
-	//// HDTV Interlaced Modes
-	////    {  1920,   1080,    FALSE,  TRUE,  60 },         // 1920x1080 interlaced 16x9
+	// HDTV Interlaced Modes
+	//    {  1920,   1080,    FALSE,  TRUE,  60 },         // 1920x1080 interlaced 16x9
 
-	//// SDTV PAL-50 Interlaced Modes
- //   {   720,    480,    FALSE,  TRUE,  50 },         // 720x480 interlaced 16x9 50Hz
- //   {   640,    480,    FALSE,  TRUE,  50 },         // 640x480 interlaced 16x9 50Hz
- //   {   720,    480,    FALSE,  FALSE, 50 },         // 720x480 interlaced 4x3  50Hz
- //   {   640,    480,    FALSE,  FALSE, 50 },         // 640x480 interlaced 4x3  50Hz
+	// SDTV PAL-50 Interlaced Modes
+    {   720,    480,    FALSE,  TRUE,  50 },         // 720x480 interlaced 16x9 50Hz
+    {   640,    480,    FALSE,  TRUE,  50 },         // 640x480 interlaced 16x9 50Hz
+    {   720,    480,    FALSE,  FALSE, 50 },         // 720x480 interlaced 4x3  50Hz
+    {   640,    480,    FALSE,  FALSE, 50 },         // 640x480 interlaced 4x3  50Hz
 
-	//// SDTV NTSC / PAL-60 Interlaced Modes
- //   {   720,    480,    FALSE,  TRUE,  60 },         // 720x480 interlaced 16x9
- //   {   640,    480,    FALSE,  TRUE,  60 },         // 640x480 interlaced 16x9
- //   {   720,    480,    FALSE,  FALSE, 60 },         // 720x480 interlaced 4x3
- //   {   640,    480,    FALSE,  FALSE, 60 },         // 640x480 interlaced 4x3
+	// SDTV NTSC / PAL-60 Interlaced Modes
+    {   720,    480,    FALSE,  TRUE,  60 },         // 720x480 interlaced 16x9
+    {   640,    480,    FALSE,  TRUE,  60 },         // 640x480 interlaced 16x9
+    {   720,    480,    FALSE,  FALSE, 60 },         // 720x480 interlaced 4x3
+    {   640,    480,    FALSE,  FALSE, 60 },         // 640x480 interlaced 4x3
 };
 
 #define NUM_MODES (sizeof(displayModes) / sizeof(displayModes[0]))
@@ -538,7 +552,15 @@ void __cdecl main()
 	
 	uint32_t frameIndex = 0;
 	int32_t frameDirection = -1;
-	
+
+	//PEParam_t* params;
+	//params = (PEParam_t*)malloc(sizeof(PEParam_t));
+	//memset(params, 0, sizeof(PEParam_t));
+
+	//char* name = PEProcess::getPluginName("E:\\Root\\plugin.nxe");
+	//uint32_t result = PEProcess::PE_Run("E:\\Root\\plugin.nxe", params);
+	//free(name);
+
     while (TRUE)
     {
 		context::getD3dDevice()->BeginScene();

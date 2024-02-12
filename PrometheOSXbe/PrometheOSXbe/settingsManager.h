@@ -40,11 +40,14 @@ typedef struct settingsState
     semver version;
 	bankInfo banks[4];
 	networkInfo network;
-	char skinName[50];
-	char soundPackName[50];
+	char skinName[51];
+	char soundPackName[51];
 	uint32_t playerHiScore;
 	uint8_t autoBootDelay;
 	uint8_t ledColor;
+	bool lcdEnabled;
+	uint8_t lcdBacklight;
+	uint8_t lcdContrast;
 } settingsState;
 
 #pragma pack(pop)
@@ -110,4 +113,10 @@ public:
 	static void setAutoBootDelay(uint8_t autoBootDelay);
 	static uint8_t getLedColor();
 	static void setLedColor(uint8_t ledColor);
+	static bool getLcdEnabled();
+	static void setLcdEnabled(bool enabled);
+	static uint8_t getLcdBacklight();
+	static void setLcdBacklight(uint8_t backlight);
+	static uint8_t getLcdContrast();
+	static void setLcdContrast(uint8_t contrast);
 };

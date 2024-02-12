@@ -171,3 +171,9 @@ uint32_t utils::roundUpToNextPowerOf2(uint32_t value)
 	value++;
 	return value;
 }
+
+void utils::uSleep(uint64_t timeout) 
+{
+    timeout *= 10; // 100ns units
+    KeDelayExecutionThread(1, 0, (PLARGE_INTEGER)(&timeout));
+}

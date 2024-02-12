@@ -1,8 +1,10 @@
-#include "restoreEepromFlowScene.h"
+#include "flashUpdateFlowScene.h"
+#include "keyboardScene.h"
 #include "sceneManager.h"
 #include "launchScene.h"
 #include "removeScene.h"
-#include "restoreEepromScene.h"
+#include "filePickerScene.h"
+#include "flashUpdateScene.h"
 #include "audioSettingsScene.h"
 
 #include "..\context.h"
@@ -17,34 +19,33 @@
 #include "..\xboxInternals.h"
 #include "..\fileSystem.h"
 
-restoreEepromFlowScene::restoreEepromFlowScene()
+flashUpdateFlowScene::flashUpdateFlowScene()
 {
 	mFilePickerScene = NULL;
-	mRestoreEepromScene = NULL;
+	mFlashUpdateScene = NULL;
 	mCurrentSceneId = 0;
 	mFilePath = NULL;
 }
 
-restoreEepromFlowScene::~restoreEepromFlowScene()
+flashUpdateFlowScene::~flashUpdateFlowScene()
 {
 	delete(mFilePickerScene);
-	delete(mRestoreEepromScene);
+	delete(mFlashUpdateScene);
 	free(mFilePath);
 }
 
-void restoreEepromFlowScene::update()
+void flashUpdateFlowScene::update()
 {
 	if (mCurrentSceneId == 0)
 	{
 		if (mFilePickerScene == NULL)
 		{
-			mFilePickerScene = new filePickerScene(filePickerTypeEeprom);
+			mFilePickerScene = new filePickerScene(filePickerTypeUpdate);
 		}
 		mFilePickerScene->update();
 		if (mFilePickerScene->getSceneResult() == sceneResultCancelled)
 		{
-			delete(mFilePickerScene);
-			sceneManager::openScene(sceneItemEepromToolsScene);
+			sceneManager::openScene(sceneItemPrometheOsSettingsScene);
 			return;
 		}
 		else if (mFilePickerScene->getSceneResult() == sceneResultDone)
@@ -58,27 +59,27 @@ void restoreEepromFlowScene::update()
 
 	if (mCurrentSceneId == 1)
 	{
-		if (mRestoreEepromScene == NULL)
+		if (mFlashUpdateScene == NULL)
 		{
-			mRestoreEepromScene = new restoreEepromScene(mFilePath);
+			mFlashUpdateScene = new flashUpdateScene(mFilePath);
 		}
-		mRestoreEepromScene->update();
-		if (mRestoreEepromScene->getSceneResult() == sceneResultCancelled)
+		mFlashUpdateScene->update();
+		if (mFlashUpdateScene->getSceneResult() == sceneResultCancelled)
 		{
-			delete(mRestoreEepromScene);
-			sceneManager::openScene(sceneItemEepromToolsScene);
+			delete(mFlashUpdateScene);
+			sceneManager::openScene(sceneItemPrometheOsSettingsScene);
 			return;
 		}
-		else if (mRestoreEepromScene->getSceneResult() == sceneResultDone)
+		else if (mFlashUpdateScene->getSceneResult() == sceneResultDone)
 		{
-			delete(mRestoreEepromScene);
-			sceneManager::openScene(sceneItemEepromToolsScene);
+			delete(mFlashUpdateScene);
+			sceneManager::openScene(sceneItemPrometheOsSettingsScene);
 			return;
 		}
 	}
 }
 
-void restoreEepromFlowScene::render()
+void flashUpdateFlowScene::render()
 {
 	if (mCurrentSceneId == 0)
 	{
@@ -91,9 +92,9 @@ void restoreEepromFlowScene::render()
 
 	if (mCurrentSceneId == 1)
 	{
-		if (mRestoreEepromScene != NULL) 
+		if (mFlashUpdateScene != NULL) 
 		{
-			mRestoreEepromScene->render();
+			mFlashUpdateScene->render();
 		}
 		return;
 	}

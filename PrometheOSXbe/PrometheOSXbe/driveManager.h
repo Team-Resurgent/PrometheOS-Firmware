@@ -12,7 +12,6 @@ public:
 	static bool getTotalNumberOfBytes(const char* mountPoint, uint64_t& totalSize);
 	static bool getTotalFreeNumberOfBytes(const char* mountPoint, uint64_t& totalFree);
 	static pointerVector* getMountedDrives();
-	static char* mapSystemPath(const char* path);
 	static bool ftpPathMounted(const char* path);
 	static char* mapFtpPath(const char* path);
 	static void init();

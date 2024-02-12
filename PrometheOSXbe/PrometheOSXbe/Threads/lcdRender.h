@@ -16,6 +16,7 @@ public:
 	static bool completed();
 	static void setTitle(const char* title);
 	static void closeThread();
+	static void waitStop();
 
 private:
 

@@ -1,4 +1,4 @@
-#include "flash.h"
+#include "flashBank.h"
 
 #include "..\xboxInternals.h"
 #include "..\stringUtility.h"
@@ -9,12 +9,12 @@
 namespace
 {
 	HANDLE mThread;
-	flash::flashData mData;
+	flashBank::flashBankData mData;
 }
 
-bool flash::startThread(const char* filePath, const char* bankName, uint8_t ledColor)
+bool flashBank::startThread(const char* filePath, const char* bankName, uint8_t ledColor)
 {
-	memset(&mData, 0, sizeof(flashData));
+	memset(&mData, 0, sizeof(flashBankData));
 	mData.filePath = strdup(filePath);
 	mData.bankName = strdup(bankName);
 	mData.ledColor = ledColor;
@@ -29,7 +29,7 @@ bool flash::startThread(const char* filePath, const char* bankName, uint8_t ledC
 	return true;
 }
 
-bool flash::completed()
+bool flashBank::completed()
 {
 	DWORD exitCode;
     if (GetExitCodeThread(mThread, &exitCode)) 
@@ -42,16 +42,16 @@ bool flash::completed()
 	return false;
 }
 
-flash::flashResponse flash::getResponse()
+flashBank::flashBankResponse flashBank::getResponse()
 {
-	flashResponse response;
+	flashBankResponse response;
 	EnterCriticalSection(&mData.mutex);
 	response = mData.response;
 	LeaveCriticalSection(&mData.mutex);
 	return response;
 }
 
-void flash::closeThread()
+void flashBank::closeThread()
 {
 	CloseHandle(mThread);
     DeleteCriticalSection(&mData.mutex);
@@ -59,11 +59,11 @@ void flash::closeThread()
 	free(mData.bankName);
 }
 
-uint64_t WINAPI flash::process(void* param) 
+uint64_t WINAPI flashBank::process(void* param) 
 {
-	flashData* data = (flashData*)param;
+	flashBankData* data = (flashBankData*)param;
 
-	setResponse(data, flashProcessing);
+	setResponse(data, flashBankProcessing);
 
 	utils::dataContainer* bankData;
 
@@ -86,11 +86,11 @@ uint64_t WINAPI flash::process(void* param)
 
 	if (bankData == NULL)
 	{
-		setResponse(data, flashFailedToLoadFile);
+		setResponse(data, flashBankFailedToLoadFile);
 		return 0;
 	}
 
-	setResponse(data, flashOptimizing);
+	setResponse(data, flashBankOptimizing);
 
 	uint8_t bankId = 0;
 
@@ -98,32 +98,32 @@ uint64_t WINAPI flash::process(void* param)
 	settingsManager::optimizeBanks(slotsNeeded);
 	if (settingsManager::tryGetFreeBank(slotsNeeded, bankId) == false)
 	{
-		setResponse(data, flashNotEnoughSlots);
+		setResponse(data, flashBankNotEnoughSlots);
 		delete(bankData);
 		return 0;
 	}
 
-	setResponse(data, flashErasing);
+	setResponse(data, flashBankErasing);
 	settingsManager::eraseBank(bankId, bankData->size);
 	
-	setResponse(data, flashWriting);
+	setResponse(data, flashBankWriting);
 	settingsManager::writeBank(bankId, bankData, data->bankName, data->ledColor);
 
-	setResponse(data, flashVerifying);
+	setResponse(data, flashBankVerifying);
 	if (settingsManager::verifyBank(bankId, bankData) == false)
 	{
-		setResponse(data, flashVerificationFailed);
+		setResponse(data, flashBankVerificationFailed);
 		delete(bankData);
 		return 0;
 	}
 
-	setResponse(data, flashDone);
+	setResponse(data, flashBankDone);
 	delete(bankData);
 
 	return 0;
 }
 
-void flash::setResponse(flashData* data, flashResponse response)
+void flashBank::setResponse(flashBankData* data, flashBankResponse response)
 {
 	EnterCriticalSection(&data->mutex);
 	data->response = response;

@@ -4,7 +4,7 @@
 #include "xenium.h"
 #include "stringUtility.h"
 
-#define SPI_DELAY 10
+#define SPI_DELAY 2
 
 void lcd::hideDisplay()
 {
@@ -74,17 +74,23 @@ void lcd::carriageReturn()
 
 void lcd::setBacklight(unsigned int level)
 {
-	if (level > 25) level = 25;
+	if (level > 100) 
+	{
+		level = 100;
+	}
 	xenium::sendCharacter(14);
-	xenium::sendCharacter(level*4);
+	xenium::sendCharacter(level);
 	Sleep(SPI_DELAY);
 }
 	
 void lcd::setContrast(unsigned int level)
 {
-	if (level > 25) level = 25;
+	if (level > 100) 
+	{
+		level = 100;
+	}
 	xenium::sendCharacter(15);
-	xenium::sendCharacter(level*4);; 
+	xenium::sendCharacter(level);
 	Sleep(SPI_DELAY);
 }
 
@@ -136,12 +142,8 @@ void lcd::wrapOff()
 
 void lcd::reboot()
 {
-	for (int i=0;i<9;i++)
-	{
-		xenium::sendCharacter(' ');
-	}
-	xenium::sendCharacter(26);
 	xenium::sendCharacter(26); 
+	xenium::sendCharacter(26);
 	Sleep(SPI_DELAY);
 }
 
@@ -191,21 +193,18 @@ void lcd::largeBlockNumber( unsigned char style, unsigned char column, unsigned 
 	Sleep(SPI_DELAY);
 }
 
-void lcd::init()
+void lcd::init(uint8_t backLight, uint8_t contrast)
 {
 	showDisplay();
 	hideCursor();
 	scrollOff();
 	wrapOff();
-	setContrast(60/4);
-	setBacklight(100/4);
+	setBacklight(backLight);
+	setContrast(contrast);
+	Sleep(SPI_DELAY);
 }
 
-void lcd::printMessage(const char* message)
-{
-  //HD44780
-
-  uint8_t LCD[256] = 
+ const uint8_t LCD[256] = 
                     { //HD44780 charset ROM code A00
                         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
                         0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
@@ -224,12 +223,17 @@ void lcd::printMessage(const char* message)
                         0x61, 0x61, 0x61, 0x61, 0xe1, 0x61, 0x20, 0x63, 0x65, 0x65, 0x65, 0x65, 0x69, 0x69, 0x69, 0x69,
                         0x6f, 0x6e, 0x6f, 0x6f, 0x6f, 0x6f, 0x6f, 0xfd, 0x6f, 0x75, 0x75, 0xfb, 0xf5, 0x79, 0x20, 0x79
                     };
+
+void lcd::printMessage(const char* message)
+{
+  //HD44780
+
            
   for (int i = 0; i < (int)strlen(message); ++i)
   {
     uint8_t cLCD = message[i];
     cLCD = LCD[cLCD];
 	xenium::sendCharacter(cLCD);
+	Sleep(SPI_DELAY);
   }
-  Sleep(SPI_DELAY);
 }
