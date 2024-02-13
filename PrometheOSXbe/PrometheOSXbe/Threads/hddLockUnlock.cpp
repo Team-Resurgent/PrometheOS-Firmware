@@ -1,6 +1,7 @@
 #include "hddLockUnlock.h"
 
 #include "..\xboxInternals.h"
+#include "..\audioPlayer.h"
 #include "..\XKUtils\XKEEPROM.h"
 #include "..\XKUtils\XKHDD.h"
 
@@ -57,6 +58,7 @@ uint64_t WINAPI hddLockUnlock::process(void* param)
 {
 	hddLockUnlockData* data = (hddLockUnlockData*)param;
 
+	audioPlayer::pause(true);
 	if (data->action == hddLockUnlockActionLock)
 	{
 		hddLockUnlockResponse response = lockHdd();
@@ -71,6 +73,7 @@ uint64_t WINAPI hddLockUnlock::process(void* param)
 		data->response = response;
 		LeaveCriticalSection(&data->mutex);
 	}
+	audioPlayer::pause(false);
 
 	return 0;
 }

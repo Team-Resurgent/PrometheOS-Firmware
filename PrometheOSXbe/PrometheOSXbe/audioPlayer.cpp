@@ -25,6 +25,7 @@ namespace {
 	pointerMap* mAudioContainerMap;
 	LPDIRECTSOUND8 mDirectSoundDevice;
 	uint32_t mUniqueSoundId;
+	bool mPause;
 }
 
 bool audioPlayer::init()
@@ -95,6 +96,11 @@ bool audioPlayer::stop(uint32_t key)
 	sound->audioPlayerData->requestStop = true;
 	LeaveCriticalSection(&sound->audioPlayerData->mutex);
 	return true;
+}
+
+void audioPlayer::pause(bool value)
+{
+	mPause = value;
 }
 
 void audioPlayer::refresh()
@@ -186,6 +192,13 @@ uint64_t WINAPI audioPlayer::process(void* param)
 		EnterCriticalSection(&data->mutex);
 		bool requestStop = data->requestStop;
 		LeaveCriticalSection(&data->mutex);
+
+		if (mPause == true)
+		{
+			DirectSoundDoWork();
+			Sleep(10);
+			continue;
+		}
 
 		if (eof == true || requestStop == true)
 		{

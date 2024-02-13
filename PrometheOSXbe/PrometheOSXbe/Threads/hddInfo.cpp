@@ -2,6 +2,7 @@
 
 #include "..\xboxInternals.h"
 #include "..\stringUtility.h"
+#include "..\audioPlayer.h"
 #include "..\XKUtils\XKEEPROM.h"
 #include "..\XKUtils\XKHDD.h"
 
@@ -85,12 +86,15 @@ uint64_t WINAPI hddInfo::process(void* param)
 	eeprom->ReadFromXBOX();
 	if (eeprom->Decrypt())
 	{
+		audioPlayer::pause(true);
 		XKHDD::ATA_COMMAND_OBJ hddcommand;
 		ZeroMemory(&hddcommand, sizeof(XKHDD::ATA_COMMAND_OBJ));
 		hddcommand.DATA_BUFFSIZE = 512;
 		hddcommand.IPReg.bDriveHeadReg = IDE_DEVICE_MASTER;
 		hddcommand.IPReg.bCommandReg = IDE_ATA_IDENTIFY;
 		XKHDD::SendATACommand(IDE_PRIMARY_PORT, &hddcommand, IDE_COMMAND_READ);
+		audioPlayer::pause(false);
+
 		char* ideModel = XKHDD::GetIDEModel(hddcommand.DATA_BUFFER);
 		model = stringUtility::trim(ideModel, ' ');
 		free(ideModel);

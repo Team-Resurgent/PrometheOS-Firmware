@@ -9,7 +9,6 @@
 
 //IO CONTROL INTERFACE
 
-#define ENABLE_XENIUM
 //Bank1_256k      =  3  0x000000 - 0x03ffff  Sector Size 65536  Total  262144
 //Bank2_256k      =  4  0x040000 - 0x07ffff  Sector Size 65536  Total  262144
 //Bank3_256k      =  5  0x080000 - 0x0bffff  Sector Size 65536  Total  262144
@@ -29,12 +28,15 @@
 
 //Suggested byes for PrometheOS = 720896 (524288 bytes Bank_PrometheOS + First 196608 bytes of Bank_Recovery)
 
-//#define ENABLE_XENIUM
+#define ENABLE_XENIUM
 
 static bool initialized = false;
 static RTL_CRITICAL_SECTION mutex;
 static uint8_t mBankState = 0;
+
+#ifdef ENABLE_XENIUM
 static uint8_t mRegister = 0;
+#endif
 
 #ifndef ENABLE_XENIUM
 static uint32_t flashMemOffset = 0;
