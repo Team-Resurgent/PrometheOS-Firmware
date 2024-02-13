@@ -12,27 +12,19 @@
 		<form>
 			<h2>PrometheOS</h2>
 			<div class="grid">
-				<a role="button" href="launch.html">Launch BIOS</a>
+				<a role="button" href="download.html">Download BIOS</a>
 			</div>
 			<br />
 			<div class="grid">
-				<a role="button" href="remove.html">Remove BIOS</a>
+				<a role="button" href="#" onclick="downloadEeprom()">Download EEPROM</a>
 			</div>
 			<br />
 			<div class="grid">
-				<a role="button" href="flash.html">Flash BIOS</a>
+				<a role="button" href="#" onclick="downloadPrometheOS()">Download PrometheOS</a>
 			</div>
 			<br />
 			<div class="grid">
-				<a role="button" href="downloads.html">Downloads</a>
-			</div>
-			<br />
-			<div class="grid">
-				<a role="button" href="#" onclick="reboot()">Reboot</a>
-			</div>
-			<br />
-			<div class="grid">
-				<a role="button" href="#" onclick="shutdown()">Shutdown</a>
+				<a role="button" class="secondary" href="index.html">Back</a>
 			</div>
 			<br />
 			<div>
@@ -40,6 +32,6 @@
 			</div>
 		</form>
 	</main>
-	<script src="index.js"></script>
+	<script src="downloads.js"></script>
 </body>
 </html>

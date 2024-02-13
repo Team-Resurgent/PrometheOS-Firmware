@@ -23,7 +23,7 @@ namespace PrometheOSPacker.Helpers
             Array.Copy(compressedLengthBytes, 0, bank, 4, compressedLengthBytes.Length);
             Array.Copy(compressedData, 0, bank, 8, compressedSize);
 
-            Console.WriteLine($"Compressed Size = {compressedSize} of {512 * 1024}\n");
+            Console.WriteLine($"Compressed Size = {compressedSize} of {(512 + 192) * 1024}\n");
 
             return bank;
         }
@@ -81,7 +81,7 @@ namespace PrometheOSPacker.Helpers
                 return false;
             }
 
-            var promethosxbeBank = CompressBank(promethosXbePath, 512 * 1024);
+            var promethosxbeBank = CompressBank(promethosXbePath, (512 + 192) * 1024);
 
             var firmware = new byte[2048 * 1024];
             
@@ -92,11 +92,13 @@ namespace PrometheOSPacker.Helpers
                 return false;
             }
 
-            Array.Copy(promethosxbeBank, 0, firmware, 0x100000, promethosxbeBank.Length);
+            Array.Copy(promethosxbeBank, 0, firmware, 0x100000, 512 * 1024);
+            Array.Copy(promethosxbeBank, 512 * 1024, firmware, 0x1c0000, 192 * 1024);
+
             Array.Copy(prometheosSource, 0x180000, firmware, 0x180000, 256 * 1024);
 
             var logo = GetInstallerLogo(installerName);
-            Array.Copy(logo, 0, firmware, 0x1F8000 , logo.Length);
+            Array.Copy(logo, 0, firmware, 0x1F0000 , logo.Length);
 
             var buildPath = Path.Combine(slnFolder, "..\\Build");
             Directory.CreateDirectory(buildPath);
