@@ -42,7 +42,7 @@ Notes:
 
 BEWARE: Certain actions will write to Xenium flash unless you disable Xenium flash by disabling the define ENABLE_XENIUM in xenium.cpp to simulate the flash instead.
   
-* Open PackageXbe\PackageXbe.sln in VS2022
+* Open PrometheOSXbe\PrometheOSXbe.sln in VS2003
 * Compile as Debug to test or Release for Packaging described in 'Packaging PromethOS firmware'
 
 ### Packaging PromethOS firmware
