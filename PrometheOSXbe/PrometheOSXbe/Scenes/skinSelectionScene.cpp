@@ -8,7 +8,6 @@
 #include "..\inputManager.h"
 #include "..\settingsManager.h"
 #include "..\hdmiDevice.h"
-#include "..\xenium.h"
 #include "..\stringUtility.h"
 #include "..\xboxConfig.h"
 #include "..\theme.h"
@@ -52,7 +51,8 @@ void skinSelectionScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		sceneManager::openScene(sceneItemPrometheOsThemesScene);
+		sceneManager::popScene();
+		return;
 	}
 
 	// Select Actions

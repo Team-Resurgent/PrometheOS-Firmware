@@ -5,23 +5,47 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PrometheOSXbe", "PrometheOS
 EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
-		Debug = Debug
+		Debug-Aladdin1mb = Debug-Aladdin1mb
+		Debug-Dummy = Debug-Dummy
+		Debug-Xchanger = Debug-Xchanger
+		Debug-Xecuter = Debug-Xecuter
+		Debug-Xenium = Debug-Xenium
 		Profile = Profile
 		Profile_FastCap = Profile_FastCap
-		Release = Release
 		Release_LTCG = Release_LTCG
+		Release-Aladdin1mb = Release-Aladdin1mb
+		Release-Dummy = Release-Dummy
+		Release-Xchanger = Release-Xchanger
+		Release-Xecuter = Release-Xecuter
+		Release-Xenium = Release-Xenium
 	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
-		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug.ActiveCfg = Debug|Xbox
-		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug.Build.0 = Debug|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Aladdin1mb.ActiveCfg = Release-Dummy|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Aladdin1mb.Build.0 = Release-Dummy|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Dummy.ActiveCfg = Debug-Dummy|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Dummy.Build.0 = Debug-Dummy|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Xchanger.ActiveCfg = Debug-Xchanger|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Xchanger.Build.0 = Debug-Xchanger|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Xecuter.ActiveCfg = Debug-Xecuter|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Xecuter.Build.0 = Debug-Xecuter|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Xenium.ActiveCfg = Debug-Xenium|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Xenium.Build.0 = Debug-Xenium|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Profile.ActiveCfg = Profile|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Profile.Build.0 = Profile|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Profile_FastCap.ActiveCfg = Profile_FastCap|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Profile_FastCap.Build.0 = Profile_FastCap|Xbox
-		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release.ActiveCfg = Release|Xbox
-		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release.Build.0 = Release|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release_LTCG.ActiveCfg = Release_LTCG|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release_LTCG.Build.0 = Release_LTCG|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Aladdin1mb.ActiveCfg = Release-Aladdin1mb|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Aladdin1mb.Build.0 = Release-Aladdin1mb|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Dummy.ActiveCfg = Release-Dummy|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Dummy.Build.0 = Release-Dummy|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Xchanger.ActiveCfg = Release-Xchanger|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Xchanger.Build.0 = Release-Xchanger|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Xecuter.ActiveCfg = Release-Xecuter|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Xecuter.Build.0 = Release-Xecuter|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Xenium.ActiveCfg = Release-Xenium|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Xenium.Build.0 = Release-Xenium|Xbox
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection

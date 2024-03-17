@@ -8,18 +8,16 @@
 #include "..\inputManager.h"
 #include "..\settingsManager.h"
 #include "..\hdmiDevice.h"
-#include "..\xenium.h"
 #include "..\stringUtility.h"
 #include "..\xboxConfig.h"
 #include "..\theme.h"
 #include "..\audioPlayer.h"
 
-menuScene::menuScene(const char* title, const char* subTitle, sceneItemEnum backScene, pointerVector* sceneItems)
+menuScene::menuScene(const char* title, const char* subTitle, pointerVector* sceneItems)
 {
 	mSelectedControl = 0;
 	mTitle = strdup(title);
 	mSubTitle = strdup(subTitle);
-	mBackScene = backScene;
 	mSceneItems = sceneItems;
 }
 
@@ -35,7 +33,7 @@ void menuScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		sceneManager::openScene(mBackScene);
+		sceneManager::popScene();
 	}
 
 	// Select Actions
@@ -44,7 +42,7 @@ void menuScene::update()
 	{
 		utils::intContainer* intContainer = (utils::intContainer*)mSceneItems->get(mSelectedControl);
 		sceneItemEnum sceneItem = (sceneItemEnum)intContainer->value;
-		sceneManager::openScene(sceneItem);
+		sceneManager::pushScene(sceneItem);
 	}
 	
 	// Down Actions
@@ -191,9 +189,37 @@ void menuScene::render()
 			{
 				menuText = strdup("Backup PrometheOS");
 			}
+			else if (sceneItem == sceneItemFlashUpdateRecoveryFlowScene)
+			{
+				menuText = strdup("Update Recovery");
+			}
+			else if (sceneItem == sceneItemFlashBackupRecoveryScene)
+			{
+				menuText = strdup("Backup Recovery");
+			}
 			else if (sceneItem == sceneItemPrometheOsThemesScene)
 			{
 				menuText = strdup("Themes");
+			}
+			else if (sceneItem == sceneItemAVSettingsScene)
+			{
+				menuText = strdup("AV Settings");
+			}
+			else if (sceneItem == sceneItemHdmiSettingsScene)
+			{
+				menuText = strdup("Cerbios HDMI Settings");
+			}
+			else if (sceneItem == sceneItemHdmiVideoSettingsScene)
+			{
+				menuText = strdup("Video Settings");
+			}
+			else if (sceneItem == sceneItemHdmiAdvancedScene)
+			{
+				menuText = strdup("Advanced");
+			}
+			else if (sceneItem == sceneItemHdmiInterpolationScene)
+			{
+				menuText = strdup("Interpolation");
 			}
 			else
 			{

@@ -26,14 +26,20 @@ namespace {
 	LPDIRECTSOUND8 mDirectSoundDevice;
 	uint32_t mUniqueSoundId;
 	bool mPause;
+	CRITICAL_SECTION mPlayerMutex;
+	uint32_t mSoundCount;
+
 }
 
 bool audioPlayer::init()
 {
+	InitializeCriticalSection(&mPlayerMutex);
+
 	g_fDirectSoundDisableBusyWaitWarning = TRUE;
 
 	mAudioContainerMap = new pointerMap(true);
 	mUniqueSoundId = 0;
+	mSoundCount = 0;
 
 	HRESULT hr = DirectSoundCreate( NULL, &mDirectSoundDevice, NULL );
 	return SUCCEEDED(hr);
@@ -44,9 +50,9 @@ bool audioPlayer::close()
 	for (uint32_t i = 0; i < mAudioContainerMap->count(); i++)
 	{
 		audioContainer* sound = (audioContainer*)mAudioContainerMap->get(i);
-		EnterCriticalSection(&sound->audioPlayerData->mutex);
+		EnterCriticalSection(&mPlayerMutex);
 		sound->audioPlayerData->requestStop = true;
-		LeaveCriticalSection(&sound->audioPlayerData->mutex);
+		LeaveCriticalSection(&mPlayerMutex);
 	}
 	delete(mAudioContainerMap);
 	if (mDirectSoundDevice) 
@@ -54,11 +60,17 @@ bool audioPlayer::close()
 		mDirectSoundDevice->Release();
 		mDirectSoundDevice = NULL;
 	}
+	DeleteCriticalSection(&mPlayerMutex);
 	return true;
 }
 
 uint32_t audioPlayer::play(const char* soundName, bool repeat)
 {
+	if (mPause == true || mSoundCount == 20)
+	{
+		return 0;
+	}
+	
 	char* soundPackPath = context::getSoundPackPath();
 	if (strlen(soundPackPath) == 0)
 	{
@@ -66,11 +78,14 @@ uint32_t audioPlayer::play(const char* soundName, bool repeat)
 		return 0;
 	}
 
+	EnterCriticalSection(&mPlayerMutex);
+	mSoundCount++;
+	LeaveCriticalSection(&mPlayerMutex);
+
 	audioPlayerData* data = (audioPlayerData*)malloc(sizeof(audioPlayerData));
 	data->filePath =  fileSystem::combinePath(soundPackPath, soundName);
 	data->repeat = repeat;
 	data->requestStop = false;
-	InitializeCriticalSection(&data->mutex);
 
 	mUniqueSoundId++;
 
@@ -92,9 +107,9 @@ bool audioPlayer::stop(uint32_t key)
 		return false;
 	}
 	
-	EnterCriticalSection(&sound->audioPlayerData->mutex);
+	EnterCriticalSection(&mPlayerMutex);
 	sound->audioPlayerData->requestStop = true;
-	LeaveCriticalSection(&sound->audioPlayerData->mutex);
+	LeaveCriticalSection(&mPlayerMutex);
 	return true;
 }
 
@@ -154,9 +169,8 @@ uint64_t WINAPI audioPlayer::process(void* param)
 	LPDIRECTSOUNDSTREAM	directSoundStream;
 	mDirectSoundDevice->CreateSoundStream(&streamDesc, &directSoundStream, NULL); 
 
-	float percent = repeat ? 0.75f : 1.0f;
+	float percent = repeat ? (settingsManager::getMusicVolume() / 100.0f) : (settingsManager::getSoundVolume() / 100.0f);
 	int volume = (int)(DSBVOLUME_HW_MIN * (1.0f - min(max(percent, 0.0f), 1.0f)));
-
 	directSoundStream->SetVolume(volume);
 	directSoundStream->SetHeadroom(0);
 
@@ -189,9 +203,9 @@ uint64_t WINAPI audioPlayer::process(void* param)
 	bool eof = false;
 	while (true)
 	{
-		EnterCriticalSection(&data->mutex);
+		EnterCriticalSection(&mPlayerMutex);
 		bool requestStop = data->requestStop;
-		LeaveCriticalSection(&data->mutex);
+		LeaveCriticalSection(&mPlayerMutex);
 
 		if (mPause == true)
 		{
@@ -204,6 +218,10 @@ uint64_t WINAPI audioPlayer::process(void* param)
 		{
 			break;
 		}
+
+		float percent = repeat ? (settingsManager::getMusicVolume() / 100.0f) : (settingsManager::getSoundVolume() / 100.0f);
+		int volume = (int)(DSBVOLUME_HW_MIN * (1.0f - min(max(percent, 0.0f), 1.0f)));
+		directSoundStream->SetVolume(volume);
 
 		for (int i = 0; i < AUDIO_PACKETS; i++)
 		{
@@ -252,5 +270,8 @@ uint64_t WINAPI audioPlayer::process(void* param)
 	free(decodeBuffer);
 	stb_vorbis_close(vorbis);
 
+	EnterCriticalSection(&mPlayerMutex);
+	mSoundCount--;
+	LeaveCriticalSection(&mPlayerMutex);
 	return 1;
 }

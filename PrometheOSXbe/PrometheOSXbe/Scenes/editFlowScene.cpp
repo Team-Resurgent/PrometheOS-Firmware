@@ -13,7 +13,6 @@
 #include "..\inputManager.h"
 #include "..\settingsManager.h"
 #include "..\hdmiDevice.h"
-#include "..\xenium.h"
 #include "..\stringUtility.h"
 #include "..\xboxInternals.h"
 #include "..\fileSystem.h"
@@ -46,7 +45,7 @@ void editFlowScene::update()
 		mEditScene->update();
 		if (mEditScene->getSceneResult() == sceneResultCancelled)
 		{
-			sceneManager::openScene(sceneItemBankManagementScene);
+			sceneManager::popScene();
 			return;
 		}
 		else if (mEditScene->getSceneResult() == sceneResultDone)
@@ -70,14 +69,23 @@ void editFlowScene::update()
 		mKeyboardScene->update();
 		if (mKeyboardScene->getSceneResult() == sceneResultCancelled)
 		{
-			sceneManager::openScene(sceneItemBankManagementScene);
+			sceneManager::popScene();
 			return;
 		}
 		else if (mKeyboardScene->getSceneResult() == sceneResultDone)
 		{
 			mBankName = mKeyboardScene->getText();
 			delete(mKeyboardScene);
-			mCurrentSceneId = 2;
+			if (context::getModchip()->supportsLed() == true)
+			{
+				mCurrentSceneId = 2;
+			}
+			else
+			{
+				settingsManager::editBank(mBankId, mBankName, 0);
+				sceneManager::popScene();
+				return;
+			}
 		}
 		return;
 	}
@@ -91,14 +99,14 @@ void editFlowScene::update()
 		mLedColorSelectorScene->update();
 		if (mLedColorSelectorScene->getSceneResult() == sceneResultCancelled)
 		{
-			sceneManager::openScene(sceneItemBankManagementScene);
+			sceneManager::popScene();
 			return;
 		}
 		else if (mLedColorSelectorScene->getSceneResult() == sceneResultDone)
 		{
 			settingsManager::editBank(mBankId, mBankName, mLedColorSelectorScene->getLedColor());
 			delete(mLedColorSelectorScene);
-			sceneManager::openScene(sceneItemBankManagementScene);
+			sceneManager::popScene();
 			return;
 		}
 	}

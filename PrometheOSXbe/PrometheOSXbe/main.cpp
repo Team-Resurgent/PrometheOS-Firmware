@@ -2,6 +2,7 @@
 #include <xtl.h>
 #include <string>
 
+#include "harddrive.h"
 #include "temperatureManager.h"
 #include "context.h"
 #include "drawing.h"
@@ -18,8 +19,9 @@
 #include "utils.h"
 #include "resources.h"
 #include "stringUtility.h"
-#include "xenium.h"
 #include "settingsManager.h"
+#include "hdmiSettingsManager.h"
+#include "hdmiDevice.h"
 #include "json.h"
 #include "theme.h"
 #include "ssfn.h"
@@ -30,9 +32,18 @@
 #include "timeUtility.h"
 #include "network.h"
 #include "audioPlayer.h"
+#include "modchipXenium.h"
+#include "modchipXecuter.h"
+#include "modchipXchanger.h"
+#include "modchipAladdin1mb.h"
+#include "modchipDummy.h"
 #include "Threads\lcdRender.h"
 #include "Threads\flashBackup.h"
 #include "Plugins\PEProcess.h"
+
+#include "stb_image_write.h"
+
+#include <xgraphics.h>
 
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_TEX1)
 
@@ -49,6 +60,7 @@ namespace
 {
 	apiActionEnum mApiAction = apiActionNone;
 	int mBankId = 0;
+	int mCounter = 0;
 }
 
 utils::dataContainer* onGetCallback(const char* path, const char* query)
@@ -187,7 +199,17 @@ utils::dataContainer* onGetCallback(const char* path, const char* query)
 	}
 	else if (stringUtility::equals(path, "\\api\\downloadprom", true))
 	{
-		body = xenium::readFlash();
+		body = context::getModchip()->readFlash(false);
+	}
+	else if (stringUtility::equals(path, "\\api\\screenshot", true))
+	{
+		context::setScreenshot(NULL);
+		context::setTakeScreenshot(true);
+		while (context::getScreenshot() == NULL)
+		{
+			Sleep(100);
+		}
+		body = context::getScreenshot();
 	}
 
 	if (body == NULL)
@@ -229,7 +251,7 @@ utils::dataContainer* onPostCallback(const char* path, const char* query, pointe
 
 		FormPart* formPart = (FormPart*)formParts->get(0);
 
-		if ((formPart->body->size > (1024 * 1024)) || (formPart->body->size % (256 * 1024)) != 0)
+		if (context::getModchip()->isValidBankSize(formPart->body->size) == false)
 		{
 			return httpServer::generateResponse(406, "Invalid size detected.");
 		}
@@ -331,28 +353,28 @@ DISPLAY_MODE displayModes[] =
 	// Width  Height Progressive Widescreen
 
 	// HDTV Progressive Modes
-    {  1280,    720,    TRUE,   TRUE,  60 },         // 1280x720 progressive 16x9
+ //   {  1280,    720,    TRUE,   TRUE,  60 },         // 1280x720 progressive 16x9
 
-	// EDTV Progressive Modes
-    {   720,    480,    TRUE,   TRUE,  60 },         // 720x480 progressive 16x9
-    {   640,    480,    TRUE,   TRUE,  60 },         // 640x480 progressive 16x9
-    {   720,    480,    TRUE,   FALSE, 60 },         // 720x480 progressive 4x3
-    {   640,    480,    TRUE,   FALSE, 60 },         // 640x480 progressive 4x3
+	//// EDTV Progressive Modes
+ //   {   720,    480,    TRUE,   TRUE,  60 },         // 720x480 progressive 16x9
+ //   {   640,    480,    TRUE,   TRUE,  60 },         // 640x480 progressive 16x9
+ //   {   720,    480,    TRUE,   FALSE, 60 },         // 720x480 progressive 4x3
+ //   {   640,    480,    TRUE,   FALSE, 60 },         // 640x480 progressive 4x3
 
-	// HDTV Interlaced Modes
-	//    {  1920,   1080,    FALSE,  TRUE,  60 },         // 1920x1080 interlaced 16x9
+	//// HDTV Interlaced Modes
+	////    {  1920,   1080,    FALSE,  TRUE,  60 },         // 1920x1080 interlaced 16x9
 
-	// SDTV PAL-50 Interlaced Modes
-    {   720,    480,    FALSE,  TRUE,  50 },         // 720x480 interlaced 16x9 50Hz
-    {   640,    480,    FALSE,  TRUE,  50 },         // 640x480 interlaced 16x9 50Hz
-    {   720,    480,    FALSE,  FALSE, 50 },         // 720x480 interlaced 4x3  50Hz
-    {   640,    480,    FALSE,  FALSE, 50 },         // 640x480 interlaced 4x3  50Hz
+	//// SDTV PAL-50 Interlaced Modes
+ //   {   720,    480,    FALSE,  TRUE,  50 },         // 720x480 interlaced 16x9 50Hz
+ //   {   640,    480,    FALSE,  TRUE,  50 },         // 640x480 interlaced 16x9 50Hz
+ //   {   720,    480,    FALSE,  FALSE, 50 },         // 720x480 interlaced 4x3  50Hz
+ //   {   640,    480,    FALSE,  FALSE, 50 },         // 640x480 interlaced 4x3  50Hz
 
-	// SDTV NTSC / PAL-60 Interlaced Modes
-    {   720,    480,    FALSE,  TRUE,  60 },         // 720x480 interlaced 16x9
-    {   640,    480,    FALSE,  TRUE,  60 },         // 640x480 interlaced 16x9
-    {   720,    480,    FALSE,  FALSE, 60 },         // 720x480 interlaced 4x3
-    {   640,    480,    FALSE,  FALSE, 60 },         // 640x480 interlaced 4x3
+	//// SDTV NTSC / PAL-60 Interlaced Modes
+ //   {   720,    480,    FALSE,  TRUE,  60 },         // 720x480 interlaced 16x9
+ //   {   640,    480,    FALSE,  TRUE,  60 },         // 640x480 interlaced 16x9
+ //   {   720,    480,    FALSE,  FALSE, 60 },         // 720x480 interlaced 4x3
+ //   {   640,    480,    FALSE,  FALSE, 60 },         // 640x480 interlaced 4x3
 };
 
 #define NUM_MODES (sizeof(displayModes) / sizeof(displayModes[0]))
@@ -469,9 +491,72 @@ bool createDevice()
 	return true;
 }
 
+void refreshInfo()
+{
+	if (network::isReady() == true)
+	{
+		XNADDR addr;
+		memset(&addr, 0, sizeof(addr));
+		DWORD dwState = XNetGetTitleXnAddr(&addr);
+		if (dwState != XNET_GET_XNADDR_PENDING)
+		{
+			char* ipAddress = (XNetGetEthernetLinkStatus() & XNET_ETHERNET_LINK_ACTIVE) ? stringUtility::formatString("%i.%i.%i.%i", 
+				addr.ina.S_un.S_un_b.s_b1,
+				addr.ina.S_un.S_un_b.s_b2,
+				addr.ina.S_un.S_un_b.s_b3,
+				addr.ina.S_un.S_un_b.s_b4) : strdup("0.0.0.0");
+			char* currentIp = context::getCurrentIp();
+			if (stringUtility::equals(ipAddress, currentIp, false) == false)
+			{
+				context::setCurrentIp(ipAddress);
+				mCounter = 0;
+			}
+			free(ipAddress);
+			free(currentIp);
+		}
+	}
+
+	if (mCounter == 0)
+	{
+		context::setCurrentFreeMem(utils::getFreePhysicalMemory());
+		context::setCurrentFanSpeed(temperatureManager::getFanSpeed());
+		context::setCurrentCpuTemp(temperatureManager::getCpuTemp());
+		context::setCurrentMbTemp(temperatureManager::getMbTemp());
+		mCounter = 60;
+	}
+	else
+	{
+		mCounter--;
+	}
+}
+
 void __cdecl main()
 {
 	utils::debugPrint("Welcome to PrometheOS\n");
+
+#ifdef XENIUM
+	context::setModchip((modchip*)new modchipXenium());
+#elif XECUTER
+	context::setModchip((modchip*)new modchipXecuter());
+#elif XCHANGER
+	context::setModchip((modchip*)new modchipXchanger());
+#elif ALADDIN1MB
+	context::setModchip((modchip*)new modchipAladdin1mb());
+#elif DUMMY
+	context::setModchip((modchip*)new modchipDummy());
+#endif
+
+	//XboxPartitionTable PartTbl;
+	//XboxPartitionTable* KernelPartTblAdd;
+	//DWORD g_dwUserSectors;
+	//DWORD lba48PatchVersion;
+
+	//if (harddrive::readLbaInfo(&PartTbl, &KernelPartTblAdd, &g_dwUserSectors, &lba48PatchVersion))
+	//{
+	//}
+
+	//format example
+	//status = XapiFormatFATVolumeEx(&partition_str[i], ClusterSize << 10);
 
 	utils::setLedStates(SMC_LED_STATES_GREEN_STATE0 | SMC_LED_STATES_GREEN_STATE1 | SMC_LED_STATES_GREEN_STATE2 | SMC_LED_STATES_GREEN_STATE3);
 
@@ -481,11 +566,17 @@ void __cdecl main()
 
 	context::setNetworkInitialized(false);
 
+	driveManager::mountDrive("C");
 	driveManager::mountDrive("E");
-
+	
 	xboxConfig::init();
 	xboxConfig::autoFix();
 	settingsManager::loadSettings();
+
+	if (hdmiDevice::detectDevice() == true)
+	{
+		hdmiSettingsManager::loadSettings();
+	}
 
 	httpServer::registerOnGetCallback(onGetCallback);
 	httpServer::registerOnPostCallback(onPostCallback);
@@ -537,7 +628,12 @@ void __cdecl main()
 
 	lcdRender::startThread();
 
-	sceneManager::openScene(settingsManager::hasAutoBootBank() ? sceneItemAutoBootScene : sceneItemMainScene);
+
+	sceneManager::pushScene(sceneItemMainScene);
+	if (settingsManager::hasAutoBootBank() == true)
+	{
+		sceneManager::pushScene(sceneItemAutoBootScene);
+	}
 
 	char* skinName = settingsManager::getSkinName();
 	theme::loadSkin(skinName);
@@ -561,6 +657,7 @@ void __cdecl main()
 	//uint32_t result = PEProcess::PE_Run("E:\\Root\\plugin.nxe", params);
 	//free(name);
 
+
     while (TRUE)
     {
 		context::getD3dDevice()->BeginScene();
@@ -569,6 +666,15 @@ void __cdecl main()
 		temperatureManager::refresh();
 		inputManager::processController();
 		drawing::clearBackground((uint32_t)frameIndex);
+
+		if (context::getTakeScreenshot() == true)
+		{
+			context::setScreenshot(drawing::takeScreenshot());
+			context::setTakeScreenshot(false);
+		}
+
+		refreshInfo();
+
 		sceneManager::getScene()->update();
 		sceneManager::getScene()->render();
 

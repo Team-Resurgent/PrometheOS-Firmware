@@ -13,7 +13,6 @@
 #include "..\inputManager.h"
 #include "..\settingsManager.h"
 #include "..\hdmiDevice.h"
-#include "..\xenium.h"
 #include "..\stringUtility.h"
 #include "..\xboxConfig.h"
 #include "..\theme.h"
@@ -134,7 +133,8 @@ void systemInfoScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		sceneManager::openScene(sceneItemSystemInfoScene);
+		sceneManager::popScene();
+		return;
 	}
 	
 	// Down Actions

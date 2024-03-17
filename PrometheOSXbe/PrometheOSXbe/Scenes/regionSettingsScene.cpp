@@ -36,7 +36,7 @@ void regionSettingsScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		sceneManager::openScene(sceneItemSystemSettingsScene);
+		sceneManager::popScene();
 		return;
 	}
 

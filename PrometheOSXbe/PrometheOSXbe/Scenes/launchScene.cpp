@@ -11,7 +11,6 @@
 #include "..\inputManager.h"
 #include "..\settingsManager.h"
 #include "..\hdmiDevice.h"
-#include "..\xenium.h"
 #include "..\stringUtility.h"
 #include "..\alignment.h"
 #include "..\theme.h"
@@ -27,7 +26,7 @@ void launchScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		sceneManager::openScene(sceneItemMainScene);
+		sceneManager::popScene();
 		return;
 	}
 
@@ -65,20 +64,27 @@ void launchScene::update()
 		{
 			settingsManager::launchTsop();
 		}
+		else if (mSelectedControl == banks->count() + 1)
+		{
+			settingsManager::launchRecovery();
+		}
 	}
+
+	uint32_t bankCount = banks->count() + 1;
+	bankCount += context::getModchip()->supportsRecovery() ? 1 : 0;
 
 	// Down Actions
 
 	if (inputManager::buttonPressed(ButtonDpadDown))
 	{
-		mSelectedControl = mSelectedControl < (int)(banks->count()) ? mSelectedControl + 1 : 0;
+		mSelectedControl = mSelectedControl < (int)(bankCount - 1) ? mSelectedControl + 1 : 0;
 	}
 
 	// Up Actions
 
 	if (inputManager::buttonPressed(ButtonDpadUp))
 	{
-		mSelectedControl = mSelectedControl > 0 ? mSelectedControl - 1 : (int)(banks->count()); 
+		mSelectedControl = mSelectedControl > 0 ? mSelectedControl - 1 : (int)(bankCount - 1); 
 	}
 
 	delete(banks);
@@ -92,6 +98,7 @@ void launchScene::render()
 	pointerVector* banks = settingsManager::getBankInfos();
 	
 	uint32_t bankCount = banks->count() + 1;
+	bankCount += context::getModchip()->supportsRecovery() ? 1 : 0;
 
 	int32_t yPos = (context::getBufferHeight() - ((bankCount * 40) - 10)) / 2;
 	yPos += theme::getCenterOffset();
@@ -106,6 +113,12 @@ void launchScene::render()
 	}
 
 	component::button(mSelectedControl == banks->count(), false, "TSOP", 40, yPos, 640, 30);
+
+	if (context::getModchip()->supportsRecovery() == true)
+	{
+		yPos += 40;
+		component::button(mSelectedControl == banks->count() + 1, false, "Recovery", 40, yPos, 640, 30);
+	}
 
 	delete(banks);
 

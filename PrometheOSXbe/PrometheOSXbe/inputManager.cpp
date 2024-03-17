@@ -1,10 +1,12 @@
 #include "inputManager.h"
 #include "audioPlayer.h"
+#include "stringUtility.h"
 
 namespace
 {
 	bool mInitialized = false;
 	HANDLE mControllerHandles[XGetPortCount()];
+	CHAR mMemoryUnityHandles[XGetPortCount() * 2];
 	JoystickButtonStates mControllerStatesPrevious;
 	JoystickButtonStates mControllerStatesCurrent;
 }
@@ -19,31 +21,76 @@ void inputManager::processController()
 		{
 			mControllerHandles[i] = 0;
 		}
-
+		for (int i = 0; i < XGetPortCount() * 2; i++)
+		{
+			mMemoryUnityHandles[i] = 0;
+		}
 		memset(&mControllerStatesPrevious, 0, sizeof(mControllerStatesPrevious));
 		memset(&mControllerStatesCurrent, 0, sizeof(mControllerStatesCurrent));
 	}
 
-    DWORD insertions;
-	DWORD removals;
-    XGetDeviceChanges(XDEVICE_TYPE_GAMEPAD, &insertions, &removals);
-	for (int i = 0; i < XGetPortCount(); i++)
+    DWORD insertions = 0;
+	DWORD removals = 0;
+    if (XGetDeviceChanges(XDEVICE_TYPE_GAMEPAD, &insertions, &removals) == TRUE)
 	{
-		if ((insertions & 1) == 1)
+		for (int i = 0; i < XGetPortCount(); i++)
 		{
-			mControllerHandles[i] = XInputOpen(XDEVICE_TYPE_GAMEPAD, i, XDEVICE_NO_SLOT, NULL);
+			if ((insertions & 1) == 1)
+			{
+				mControllerHandles[i] = XInputOpen(XDEVICE_TYPE_GAMEPAD, i, XDEVICE_NO_SLOT, NULL);
+			}
+			if ((removals & 1) == 1)
+			{
+				XInputClose(mControllerHandles[i]);
+				mControllerHandles[i] = NULL;
+			}
+			insertions = insertions >> 1;
+			removals = removals >> 1;
 		}
-		if ((removals & 1) == 1)
-		{
-			XInputClose(mControllerHandles[i]);
-			mControllerHandles[i] = NULL;
-		}
-		insertions = insertions >> 1;
-		removals = removals >> 1;
 	}
 
-	if(XGetDeviceChanges(XDEVICE_TYPE_MEMORY_UNIT, &insertions, &removals))
+	if(XGetDeviceChanges(XDEVICE_TYPE_MEMORY_UNIT, &insertions, &removals) == TRUE)
     {
+		for (uint32_t iPort = 0; iPort < XGetPortCount(); iPort++)
+		{
+			for (uint32_t iSlot = 0; iSlot < 2; iSlot++ )
+			{
+				uint32_t mask = iPort + (iSlot ? 16 : 0);
+				mask = 1 << mask;
+
+				uint32_t index = (iPort * 2) + iSlot;
+				if ((mask & removals) != 0 && mMemoryUnityHandles[index] != 0)
+                {
+					char* mountPoint = stringUtility::formatString("\\??\\%c:", 'H' + index);
+					STRING sMountPoint = {(USHORT)strlen(mountPoint), (USHORT)strlen(mountPoint) + 1, mountPoint};
+
+					DEVICE_OBJECT* device = MU_GetExistingDeviceObject(iPort, iSlot);
+					IoDismountVolume(device);
+
+					IoDeleteSymbolicLink(&sMountPoint);
+					free(mountPoint);
+					MU_CloseDeviceObject(iPort, iSlot);
+                    mMemoryUnityHandles[index] = 0;
+                }
+
+				if ((mask & insertions) != 0 && mMemoryUnityHandles[index] == 0)
+                {
+					char szDeviceName[64];
+					STRING DeviceName;
+					DeviceName.Length = 0;
+					DeviceName.MaximumLength = sizeof(szDeviceName) / sizeof(CHAR) - 2;
+					DeviceName.Buffer = szDeviceName;
+					if (MU_CreateDeviceObject(iPort, iSlot, &DeviceName) >= 0)
+					{
+						char* mountPoint = stringUtility::formatString("\\??\\%c:", 'H' + index);
+						STRING sMountPoint = {(USHORT)strlen(mountPoint), (USHORT)strlen(mountPoint) + 1, mountPoint};
+						IoCreateSymbolicLink(&sMountPoint, &DeviceName);
+						free(mountPoint);
+						mMemoryUnityHandles[index] = (char)('H' + index);
+					}
+                }
+			}
+		}
 	}
 
 	memcpy(&mControllerStatesPrevious, &mControllerStatesCurrent, sizeof(JoystickButtonStates));
@@ -213,6 +260,18 @@ bool inputManager::buttonPressed(JoystickButton button)
 	{
 		audioPlayer::play("button-other.ogg", false);
 		return true;
+	}
+	return false;
+}
+
+bool inputManager::isMemoryUnitMounted(char letter)
+{
+	for (int i = 0; i < XGetPortCount() * 2; i++)
+	{
+		if (mMemoryUnityHandles[i] == letter)
+		{
+			return true;
+		}
 	}
 	return false;
 }

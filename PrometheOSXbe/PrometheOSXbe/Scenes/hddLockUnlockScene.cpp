@@ -7,8 +7,9 @@
 #include "..\ssfn.h"
 #include "..\inputManager.h"
 #include "..\settingsManager.h"
+#include "..\audioPlayer.h"
 #include "..\hdmiDevice.h"
-#include "..\xenium.h"
+#include "..\ftpServer.h"
 #include "..\stringUtility.h"
 #include "..\xboxConfig.h"
 #include "..\theme.h"
@@ -17,6 +18,7 @@
 
 hddLockUnlockScene::hddLockUnlockScene()
 {
+	audioPlayer::pause(true);
 	mStep = -1;
 	mProgress = strdup("Please wait...");
 	mIdeModel = strdup("Unknown");
@@ -44,7 +46,9 @@ void hddLockUnlockScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		sceneManager::openScene(sceneItemUtilitiesScene);
+		audioPlayer::pause(false);
+		sceneManager::popScene();
+		return;
 	}
 
 	// Lock / Unlock Action
@@ -121,9 +125,17 @@ void hddLockUnlockScene::render()
 		}
 		else if (mStep == 2)
 		{
+			processResponse(hddLockUnlock::getResponse());
 			if (hddLockUnlock::completed() == true)
 			{
-				processResponse(hddLockUnlock::getResponse());
+				hddLockUnlock::hddLockUnlockResponse response = hddLockUnlock::getResponse(); 
+				if (response == hddLockUnlock::hddLockUnlockResponseUnlockedVsc)
+				{
+					hddLockUnlock::closeThread();
+					ftpServer::close();
+					sceneManager::pushScene(sceneItemHddPasswordScene);
+					return;
+				}
 				hddLockUnlock::closeThread();
 				mStep = -1;
 			}
@@ -143,9 +155,9 @@ void hddLockUnlockScene::render()
 		}
 		else if (mStep == 2)
 		{
+			processResponse(hddLockUnlock::getResponse());
 			if (hddLockUnlock::completed() == true)
 			{
-				processResponse(hddLockUnlock::getResponse());
 				hddLockUnlock::closeThread();
 				mStep = -1;
 			}
@@ -203,5 +215,17 @@ void hddLockUnlockScene::processResponse(hddLockUnlock::hddLockUnlockResponse re
 	else if (response == hddLockUnlock::hddLockUnlockResponseFailureEeprom)
 	{
 		setProgress("Unable to decrypt EEPROM");
+	}
+	else if (response == hddLockUnlock::hddLockUnlockResponseUnlocking)
+	{
+		setProgress("Unlocking...");
+	}
+	else if (response == hddLockUnlock::hddLockUnlockResponseUnlockingVsc)
+	{
+		setProgress("VSC Unlocking...");
+	}
+	else if (response == hddLockUnlock::hddLockUnlockResponseLocking)
+	{
+		setProgress("Locking...");
 	}
 }

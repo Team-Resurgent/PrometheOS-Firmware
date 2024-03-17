@@ -10,7 +10,6 @@
 #include "..\inputManager.h"
 #include "..\settingsManager.h"
 #include "..\hdmiDevice.h"
-#include "..\xenium.h"
 #include "..\stringUtility.h"
 #include "..\xboxConfig.h"
 #include "..\theme.h"
@@ -34,7 +33,8 @@ void backupEepromScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		sceneManager::openScene(sceneItemEepromToolsScene);
+		sceneManager::popScene();
+		return;
 	}
 
 	// Select Actions

@@ -678,3 +678,46 @@ void drawing::drawBitmapStringAligned(bitmapFont* font, const char*  message, ui
 
 	drawBitmapString(font, message, color, xPos, y);
 }
+
+utils::dataContainer* drawing::takeScreenshot()
+{
+	utils::dataContainer* result = NULL;
+
+	IDirect3DSurface8* surface;
+	context::getD3dDevice()->GetBackBuffer(-1, D3DBACKBUFFER_TYPE_MONO, &surface);
+
+	D3DLOCKED_RECT lockedRect;
+	if (surface->LockRect(&lockedRect, NULL, D3DLOCK_READONLY) >= 0)
+	{
+		uint8_t* pBits = (uint8_t*)lockedRect.pBits;
+
+		D3DSURFACE_DESC desc;
+		surface->GetDesc(&desc);
+
+		uint8_t* buffer = (uint8_t*)malloc(desc.Width * desc.Height * 4);
+		uint8_t* bufferOffset = buffer;
+
+		for (uint32_t y = 0; y < desc.Height; ++y) {
+			uint8_t* row = pBits + y * lockedRect.Pitch;
+			for (uint32_t x = 0; x < desc.Width; ++x) {
+				uint8_t* pixel = row + x * 4; 
+				bufferOffset[0] = pixel[2];
+				bufferOffset[1] = pixel[1];
+				bufferOffset[2] = pixel[0];
+				bufferOffset[3] = 0xff;
+				bufferOffset += 4;
+			}
+		}
+		
+		int fileSize = 0;
+		char *pngData = (char*)stbi_write_png_to_mem(buffer, lockedRect.Pitch, desc.Width, desc.Height, 4, &fileSize);
+		result = new utils::dataContainer(pngData, fileSize, fileSize);
+		free(buffer);
+		free(pngData);
+
+		surface->UnlockRect();
+	}
+	surface->Release();
+
+	return result;
+}

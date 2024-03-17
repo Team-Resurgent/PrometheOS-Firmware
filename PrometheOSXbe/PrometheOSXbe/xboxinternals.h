@@ -110,11 +110,35 @@ typedef unsigned long long uint64_t;
 typedef LONG NTSTATUS;
 
 #define STATUS_SUCCESS ((NTSTATUS)0x00000000L) 
+#define STATUS_DEVICE_NOT_CONNECTED ((NTSTATUS)0xC000009DL)
+#define STATUS_IO_TIMEOUT ((NTSTATUS)0xC00000B5L)
+#define STATUS_DEVICE_DOES_NOT_EXIST ((NTSTATUS)0xC00000C0L)
+#define STATUS_NOT_FOUND ((NTSTATUS)0xC0000225L)
+#define STATUS_INVALID_DEVICE_REQUEST ((NTSTATUS)0xC0000010L)
+#define STATUS_UNSUCCESSFUL ((NTSTATUS)0x80000000L)
 
-typedef struct _STRING {
-	USHORT Length;
-	USHORT MaximumLength;
-	PCHAR Buffer;
+typedef struct DRIVER_OBJECT
+{
+	const int16_t Type;
+	const int16_t Size;
+	struct _DEVICE_OBJECT *DeviceObject;
+	// ...
+}
+DRIVER_OBJECT;
+
+typedef struct DEVICE_OBJECT
+{
+	const int16_t Type;
+	const uint16_t Size;
+	int32_t ReferenceCount;
+	DRIVER_OBJECT* DriverObject;
+}
+DEVICE_OBJECT;
+
+typedef struct STRING {
+	uint16_t Length;
+	uint16_t MaximumLength;
+	char* Buffer;
 } STRING;
 
 typedef struct {
@@ -231,24 +255,65 @@ typedef struct {
 #define SMC_COMMAND_OVERRIDE_RESET_ON_TRAY_OPEN 0x19
 #define SMC_RESET_ON_TRAY_OPEN_NONSECURE_MODE 0x01
 
+typedef struct OBJECT_ATTRIBUTES 
+{
+    HANDLE RootDirectory;
+    STRING*	ObjectName;
+    ULONG Attributes;
+} OBJECT_ATTRIBUTES;
+
+typedef struct IO_STATUS_BLOCK {
+    union {
+        NTSTATUS Status;
+        PVOID Pointer;
+    };
+    ULONG_PTR Information;
+} IO_STATUS_BLOCK;
+
+typedef VOID (WINAPI *PIO_APC_ROUTINE) (PVOID ApcContext, IO_STATUS_BLOCK* IoStatusBlock, ULONG Reserved);
+
+#define InitializeObjectAttributes( p, n, a, r ) { \
+    (p)->RootDirectory = r;                             \
+    (p)->Attributes = a;                                \
+    (p)->ObjectName = n;                                \
+    }
+
 extern "C" 
 {
 	extern STRING* XeImageFileName;
 	LONG WINAPI IoCreateSymbolicLink(STRING*, STRING*);
 	LONG WINAPI IoDeleteSymbolicLink(STRING*);
 	LONG WINAPI IoDismountVolumeByName(STRING*);
+	LONG WINAPI IoDismountVolume(DEVICE_OBJECT*);
 	VOID WINAPI HalReturnToFirmware(unsigned int value);
 	LONG WINAPI ExQueryNonVolatileSetting(ULONG ValueIndex, ULONG* Type, void* Value, ULONG ValueLength, ULONG* ResultLength);
 	LONG WINAPI ExSaveNonVolatileSetting(ULONG ValueIndex, ULONG Type, void* Value, ULONG ValueLength);
 	NTSTATUS WINAPI HalWriteSMBusValue(UCHAR devddress, UCHAR offset, UCHAR writedw, DWORD data);
 	NTSTATUS WINAPI HalReadSMBusValue(UCHAR devddress, UCHAR offset, UCHAR readdw, DWORD* pdata);
 	NTSTATUS WINAPI HalReadSMCTrayState(ULONG* TrayState, ULONG* EjectCount);
-	NTSTATUS WINAPI KeDelayExecutionThread(CHAR WaitMode, BOOLEAN Alertable, PLARGE_INTEGER Interval);
 
 	NTSTATUS WINAPI XNetLoadConfigParams(XNetConfigParams* params);
 	NTSTATUS WINAPI XNetSaveConfigParams(const XNetConfigParams* params);
 	NTSTATUS WINAPI XNetConfig(const XNetConfigParams* params, DWORD data);
 	NTSTATUS WINAPI XNetGetConfigStatus(XNetConfigStatus* status);
+
+	NTSTATUS WINAPI NtOpenFile(HANDLE* FileHandle, ACCESS_MASK DesiredAccess, OBJECT_ATTRIBUTES* ObjectAttributes, IO_STATUS_BLOCK* IoStatusBlock, ULONG ShareAccess, ULONG OpenOptions);
+	NTSTATUS WINAPI NtWriteFile(HANDLE FileHandle, HANDLE Event, PIO_APC_ROUTINE ApcRoutine, VOID* ApcContext, IO_STATUS_BLOCK* IoStatusBlock, VOID* Buffer, ULONG Length, LARGE_INTEGER* ByteOffset);
+	NTSTATUS WINAPI NtClose(HANDLE Handle);
+	NTSTATUS WINAPI NtDeviceIoControlFile(HANDLE FileHandle, HANDLE Event, PIO_APC_ROUTINE ApcRoutine, PVOID ApcContext, IO_STATUS_BLOCK* IoStatusBlock, ULONG IoControlCode, PVOID InputBuffer, ULONG InputBufferLength, PVOID OutputBuffer, ULONG OutputBufferLength);
+	NTSTATUS WINAPI RtlInitAnsiString(STRING* DestinationString, LPCSTR SourceString);
+
+
+
+	NTSTATUS WINAPI KeDelayExecutionThread(CHAR WaitMode, BOOLEAN Alertable, PLARGE_INTEGER Interval);
+	VOID WINAPI KeStallExecutionProcessor(ULONG usec);
+	ULONG WINAPI HalGetInterruptVector(ULONG BusInterruptLevel, UCHAR* Irql);
+	UCHAR _fastcall KfRaiseIrql(UCHAR NewIrql);
+	VOID _fastcall KfLowerIrql(UCHAR NewIrql);
+
+	NTSTATUS WINAPI MU_CreateDeviceObject(uint32_t port, uint32_t slot, STRING* deviceName);
+	VOID WINAPI MU_CloseDeviceObject(uint32_t port, uint32_t slot);
+	DEVICE_OBJECT* WINAPI MU_GetExistingDeviceObject(uint32_t port, uint32_t slot);
 }
 
 #define HalReadSMBusByte(SlaveAddress, CommandCode, DataValue) HalReadSMBusValue(SlaveAddress, CommandCode, FALSE, DataValue)

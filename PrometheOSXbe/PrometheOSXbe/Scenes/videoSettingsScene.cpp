@@ -32,7 +32,7 @@ void videoSettingsScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		sceneManager::openScene(sceneItemSystemSettingsScene);
+		sceneManager::popScene();
 		return;
 	}
 

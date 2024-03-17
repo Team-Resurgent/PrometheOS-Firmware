@@ -9,7 +9,6 @@
 #include "..\inputManager.h"
 #include "..\settingsManager.h"
 #include "..\hdmiDevice.h"
-#include "..\xenium.h"
 #include "..\stringUtility.h"
 #include "..\xboxConfig.h"
 #include "..\theme.h"
@@ -31,6 +30,11 @@ void autoBootScene::update()
 
 	// Exit Action
 
+	if (inputManager::buttonPressed(ButtonA))
+	{
+		continueBoot();
+	}
+
 	if (inputManager::buttonPressed(ButtonB))
 	{
 		safeMode = true;
@@ -42,7 +46,7 @@ void autoBootScene::update()
 		HalWriteSMBusByte(SMC_SLAVE_ADDRESS, 0x0C, 1);
 		
 		utils::setLedStates(SMC_LED_STATES_GREEN_STATE0 | SMC_LED_STATES_GREEN_STATE1 | SMC_LED_STATES_GREEN_STATE2 | SMC_LED_STATES_GREEN_STATE3);
-		sceneManager::openScene(sceneItemMainScene);
+		sceneManager::popScene();
 	}
 }
 
@@ -72,23 +76,30 @@ void autoBootScene::render()
 	component::textBox(progress, false, false, horizAlignmentCenter, 193, yPos, 322, 44);
 	free(progress);
 
+	delete(banks);
+
 	if (countdown::getTimeRemaining() == 0)
 	{
-		countdown::closeThread();
-
-		for (uint32_t i = 0; i < banks->count(); i++)
-		{
-			bankDetails* bank = (bankDetails*)banks->get(i);
-			if (bank->slots > 0 && bank->autoBoot == true)
-			{
-				utils::setLedStates(SMC_LED_STATES_GREEN_STATE0 | SMC_LED_STATES_GREEN_STATE1 | SMC_LED_STATES_GREEN_STATE2 | SMC_LED_STATES_GREEN_STATE3);
-				settingsManager::launchBank(bank->id);
-				break;
-			}
-		}
+		continueBoot();
 	}
 
+	drawing::drawBitmapString(context::getBitmapFontSmall(), "\xC2\xA1 Continue", theme::getFooterTextColor(), 40, theme::getFooterY());
 	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Cancel", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
-	
-	delete(banks);
+}
+
+void autoBootScene::continueBoot() {
+	countdown::closeThread();
+
+	pointerVector* banks = settingsManager::getBankInfos();
+
+	for (uint32_t i = 0; i < banks->count(); i++)
+	{
+		bankDetails* bank = (bankDetails*)banks->get(i);
+		if (bank->slots > 0 && bank->autoBoot == true)
+		{
+			utils::setLedStates(SMC_LED_STATES_GREEN_STATE0 | SMC_LED_STATES_GREEN_STATE1 | SMC_LED_STATES_GREEN_STATE2 | SMC_LED_STATES_GREEN_STATE3);
+			settingsManager::launchBank(bank->id);
+			break;
+		}
+	}
 }

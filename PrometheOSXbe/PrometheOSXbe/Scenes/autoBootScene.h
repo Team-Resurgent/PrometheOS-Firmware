@@ -8,4 +8,5 @@ public:
 	autoBootScene();
 	void update();
 	void render();
+	void continueBoot();
 };

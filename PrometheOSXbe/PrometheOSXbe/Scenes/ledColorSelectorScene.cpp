@@ -12,7 +12,6 @@
 #include "..\inputManager.h"
 #include "..\settingsManager.h"
 #include "..\hdmiDevice.h"
-#include "..\xenium.h"
 #include "..\stringUtility.h"
 #include "..\xboxInternals.h"
 #include "..\theme.h"
@@ -31,7 +30,7 @@ void ledColorSelectorScene::update()
 	if (inputManager::buttonPressed(ButtonB))
 	{
 		mSceneResult = sceneResultCancelled;
-		xenium::setLedColor((xenium::ledColorEnum)settingsManager::getLedColor());
+		context::getModchip()->setLedColor(settingsManager::getLedColor());
 	}
 
 	// Select Actions
@@ -54,7 +53,7 @@ void ledColorSelectorScene::update()
 		{
 			mSelectedControl = mSelectedControl > 4 ? mSelectedControl - 1 : 7; 
 		}
-		xenium::setLedColor((xenium::ledColorEnum)mSelectedControl);
+		context::getModchip()->setLedColor(mSelectedControl);
 	}
 
 	// Right Actions
@@ -69,7 +68,7 @@ void ledColorSelectorScene::update()
 		{
 			mSelectedControl = mSelectedControl < 7 ? mSelectedControl + 1 : 4;
 		}
-		xenium::setLedColor((xenium::ledColorEnum)mSelectedControl);
+		context::getModchip()->setLedColor(mSelectedControl);
 	}
 
 	// Down Actions
@@ -84,7 +83,7 @@ void ledColorSelectorScene::update()
 		{
 			mSelectedControl -= 4;
 		}
-		xenium::setLedColor((xenium::ledColorEnum)mSelectedControl);
+		context::getModchip()->setLedColor(mSelectedControl);
 	}
 
 	// Up Actions
@@ -99,7 +98,7 @@ void ledColorSelectorScene::update()
 		{
 			mSelectedControl -= 4;
 		}
-		xenium::setLedColor((xenium::ledColorEnum)mSelectedControl);
+		context::getModchip()->setLedColor(mSelectedControl);
 	}
 }
 

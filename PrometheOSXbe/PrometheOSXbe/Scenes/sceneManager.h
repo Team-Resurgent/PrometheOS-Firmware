@@ -2,6 +2,8 @@
 
 #include "scene.h"
 
+#include <xtl.h>
+
 enum sceneItemEnum
 { 
 	sceneItemMainScene = 0,
@@ -33,13 +35,44 @@ enum sceneItemEnum
 	sceneItemGeneralOptionsScene = 26,
 	sceneItemFlashUpdateFlowScene = 27,
 	sceneItemFlashBackupScene = 28,
-	sceneItemPrometheOsThemesScene = 29,
+	sceneItemFlashUpdateRecoveryFlowScene = 29,
+	sceneItemFlashBackupRecoveryScene = 30,
+	sceneItemPrometheOsThemesScene = 31,
+	sceneItemAVSettingsScene = 32,
+	sceneItemHdmiSettingsScene = 33,
+	sceneItemHdmiVideoSettingsScene = 34,
+	sceneItemHdmiAdvancedScene = 35,
+	sceneItemHdmiInterpolationScene = 36,
+	sceneItemHddPasswordScene = 37
 }; 
+
+typedef struct sceneContainer 
+{
+	sceneItemEnum sceneItem;
+	scene* scene;
+	char* description;
+
+	sceneContainer(sceneItemEnum sceneItem, scene* scene, const char* description)
+	{
+		this->sceneItem = sceneItem;
+		this->scene = scene; 
+		this->description = strdup(description);
+	}
+
+	~sceneContainer()
+	{
+		delete(this->scene);
+		free(this->description);
+	}
+
+} sceneContainer;
 
 class sceneManager
 {
 public:
-	static void setScene(scene* scene);
 	static scene* getScene();
-	static void openScene(sceneItemEnum sceneItem);
+	static void pushScene(sceneItemEnum sceneItem);
+	static void popScene();
+private:
+	static void addScene(sceneContainer* sceneContainer);
 };

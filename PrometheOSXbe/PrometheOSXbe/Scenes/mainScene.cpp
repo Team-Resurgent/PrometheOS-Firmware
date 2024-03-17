@@ -10,7 +10,6 @@
 #include "..\inputManager.h"
 #include "..\settingsManager.h"
 #include "..\hdmiDevice.h"
-#include "..\xenium.h"
 #include "..\stringUtility.h"
 #include "..\socketUtility.h"
 #include "..\ftpServer.h"
@@ -24,14 +23,6 @@
 mainScene::mainScene()
 {
 	mSelectedControl = 0;
-	mIpAddress = strdup("0.0.0.0");
-	mFreeMemory = strdup("");
-	mCounter = 0; 
-}
-
-mainScene::~mainScene()
-{
-	free(mIpAddress);
 }
 
 void mainScene::update()
@@ -42,17 +33,17 @@ void mainScene::update()
 	{
 		if (mSelectedControl == 0) 
 		{
-			sceneManager::openScene(sceneItemLaunchScene);
+			sceneManager::pushScene(sceneItemLaunchScene);
 			return;
 		}
 		else if (mSelectedControl == 1) 
 		{
-			sceneManager::openScene(sceneItemBankManagementScene);
+			sceneManager::pushScene(sceneItemBankManagementScene);
 			return;
 		}
 		else if (mSelectedControl == 2) 
 		{
-			sceneManager::openScene(sceneItemSystemSettingsScene);
+			sceneManager::pushScene(sceneItemSystemSettingsScene);
 			return;
 		}
 		else if (mSelectedControl == 3) 
@@ -82,45 +73,10 @@ void mainScene::update()
 	}
 
 	network::init();
-
-	if (network::isReady() == true)
-	{
-		XNADDR addr;
-		memset(&addr, 0, sizeof(addr));
-		DWORD dwState = XNetGetTitleXnAddr(&addr);
-		if (dwState != XNET_GET_XNADDR_PENDING)
-		{
-			char* ipAddress = (XNetGetEthernetLinkStatus() & XNET_ETHERNET_LINK_ACTIVE) ? stringUtility::formatString("%i.%i.%i.%i", 
-				addr.ina.S_un.S_un_b.s_b1,
-				addr.ina.S_un.S_un_b.s_b2,
-				addr.ina.S_un.S_un_b.s_b3,
-				addr.ina.S_un.S_un_b.s_b4) : strdup("0.0.0.0");
-			if (stringUtility::equals(ipAddress, mIpAddress, false) == false)
-			{
-				free(mIpAddress);
-				mIpAddress = strdup(ipAddress);
-				mCounter = 0;
-			}
-			free(ipAddress);
-		}
-	}
 }
 
 void mainScene::render()
 {
-	if (mCounter == 0)
-	{
-		free(mFreeMemory);
-		mFreeMemory = stringUtility::formatSize(utils::getFreePhysicalMemory());
-		mCpuTempReading = temperatureManager::getCpuTemp();
-		mMbTempReading = temperatureManager::getMbTemp();
-		mCounter = 60;
-	}
-	else
-	{
-		mCounter--;
-	}
-
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
 	drawing::drawBitmapStringAligned(context::getBitmapFontLarge(), "\xC2\xA7\xC2\xA8\xC2\xA9\xC2\xAA\xC2\xAB\xC2\xAC\xC2\xAD\xC2\xAB\xC2\xA9\xC2\xAE", theme::getPrometheosColor(), theme::getPrometheosAlign(), 40, theme::getPrometheosY(), 640);
 
@@ -145,21 +101,23 @@ void mainScene::render()
 
 	component::button(mSelectedControl == 4, false, "Shutdown", 193, yPos, 322, 30);
 
-	char* ip = stringUtility::formatString("IP %s", mIpAddress);
+	char* currentIp = context::getCurrentIp();
+	char* ip = stringUtility::formatString("IP %s", currentIp);
 	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), ip, theme::getFooterTextColor(), horizAlignmentCenter, 60 + (150 * 0), theme::getFooterY(), 150);
 	free(ip);
+	free(currentIp);
 
-	char* cpuTemp = stringUtility::formatString("CPU Temp %i\xC2\xB1" "C", mCpuTempReading);
+	char* cpuTemp = stringUtility::formatString("CPU Temp %i\xC2\xB1" "C", context::getCurrentCpuTemp());
 	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), cpuTemp, theme::getFooterTextColor(), horizAlignmentCenter, 60 + (150 * 1), theme::getFooterY(), 150);
 	free(cpuTemp);
 
-	char* mbTemp = stringUtility::formatString("M/B Temp %i\xC2\xB1" "C", mMbTempReading);
+	char* mbTemp = stringUtility::formatString("M/B Temp %i\xC2\xB1" "C", context::getCurrentMbTemp());
 	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), mbTemp, theme::getFooterTextColor(), horizAlignmentCenter, 60 + (150 * 2), theme::getFooterY(), 150);
 	free(mbTemp);
 
-	char* memory = stringUtility::formatString("Free Mem %s", mFreeMemory);
+	char* memoryFormat = stringUtility::formatSize(context::getCurrentFreeMem());
+	char* memory = stringUtility::formatString("Free Mem %s", memoryFormat);
 	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), memory, theme::getFooterTextColor(), horizAlignmentCenter, 60 + (150 * 3), theme::getFooterY(), 150);
 	free(memory);
-
-	//drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "Team Cerbios + Team Resurgent", theme::getTextColor(), horizAlignmentCenter, 40, theme::getFooterY(), 640);
+	free(memoryFormat); 
 }

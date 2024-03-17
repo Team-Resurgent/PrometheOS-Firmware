@@ -10,7 +10,6 @@
 #include "..\inputManager.h"
 #include "..\settingsManager.h"
 #include "..\hdmiDevice.h"
-#include "..\xenium.h"
 #include "..\stringUtility.h"
 #include "..\alignment.h"
 #include "..\theme.h"
@@ -32,7 +31,7 @@ void removeScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		sceneManager::openScene(sceneItemBankManagementScene);
+		sceneManager::popScene();
 		return;
 	}
 

@@ -1,6 +1,8 @@
 #include "settingsManager.h"
+#include "modchip.h"
+#include "modchipXenium.h"
+#include "context.h"
 #include "versioning.h"
-#include "xenium.h"
 #include "crc32.h"
 #include "stringUtility.h"
 #include "utils.h"
@@ -21,8 +23,8 @@ semver settingsManager::getVersion()
 	semver version;
 	memset(&version, 0, sizeof(version));
 	version.major = 1;
-	version.minor = 1;
-	version.patch = 1;
+	version.minor = 3;
+	version.patch = 0;
 	return version;
 }
 
@@ -40,62 +42,42 @@ void settingsManager::initSettings()
 	memset(&mSettings, 0, sizeof(mSettings));
 	mSettings.version = getVersion();
 	mSettings.autoBootDelay = 5;
+	mSettings.musicVolume = 75;
+	mSettings.soundVolume = 100;
+	mSettings.minFanSpeed = 10;
 	mSettings.ledColor = 2;
 	mSettings.lcdBacklight = 100;
 	mSettings.lcdContrast = 60;
 
-#ifdef TEST
-	mSettings.banks[0].slots = 1;
-	stringUtility::copyString(&mSettings.banks[0].name[0], "Bank 1 Rom", 41);
-	mSettings.banks[1].slots = 1;
-	stringUtility::copyString(&mSettings.banks[1].name[0], "Bank 2 Rom", 41);
-	mSettings.banks[2].slots = 1;
-	stringUtility::copyString(&mSettings.banks[2].name[0], "Bank 3 Rom", 41);
-	mSettings.banks[3].slots = 1;
-	stringUtility::copyString(&mSettings.banks[3].name[0], "Bank 4 Rom", 41);
-
-	stringUtility::copyString(&mSettings.skinName[0], "TeamResurgent-Animated", 51);
-	stringUtility::copyString(&mSettings.soundPackName[0], "Cybernoid", 51);
-
-#endif
+//#ifdef TEST
+//	mSettings.banks[0].slots = 1;
+//	stringUtility::copyString(&mSettings.banks[0].name[0], "Bank 1 Rom", 41);
+//	mSettings.banks[1].slots = 1;
+//	stringUtility::copyString(&mSettings.banks[1].name[0], "Bank 2 Rom", 41);
+//	mSettings.banks[2].slots = 1;
+//	stringUtility::copyString(&mSettings.banks[2].name[0], "Bank 3 Rom", 41);
+//	mSettings.banks[3].slots = 1;
+//	stringUtility::copyString(&mSettings.banks[3].name[0], "Bank 4 Rom", 41);
+//
+//	stringUtility::copyString(&mSettings.skinName[0], "TeamResurgent-Animated", 51);
+//	stringUtility::copyString(&mSettings.soundPackName[0], "Cybernoid", 51);
+//
+//#endif
 }
 
 void settingsManager::loadSettings()
 {
-#ifndef TEST
-	utils::dataContainer* settingsData = xenium::readBank(xenium::bankRecovery, SETTINGS_OFFSET, sizeof(mSettings));
-	memcpy(&mSettings, settingsData->data, sizeof(mSettings));
-	uint32_t checksum = crc32::calculate(settingsData->data + 1, sizeof(mSettings) - 1);
-	free(settingsData);
-	if (checksum != mSettings.checksum || versioning::compareVersion(mSettings.version, getVersion()) != 0)
-	{
-		initSettings();
-		saveSettings();
-	}
-#else
-	initSettings();
-#endif
-	xenium::setLedColor((xenium::ledColorEnum)mSettings.ledColor);
+	context::getModchip()->loadSettings(mSettings);
 }
 
 void settingsManager::saveSettings()
 {
-	mSettings.checksum = crc32::calculate(((char*)&mSettings) + 1, sizeof(mSettings) - 1);
-	utils::dataContainer* dataContainer = new utils::dataContainer((char*)&mSettings, sizeof(mSettings), sizeof(mSettings));
-	xenium::eraseBank(xenium::bankRecovery, SETTINGS_OFFSET, dataContainer->size);
-	xenium::writeBank(xenium::bankRecovery, SETTINGS_OFFSET, dataContainer, 0, dataContainer->size);
-	if (xenium::verifyBank(xenium::bankRecovery, SETTINGS_OFFSET, dataContainer, 0, dataContainer->size) == false)
-	{
-		utils::debugPrint("Bank verify failed.\n");
-	}
-	delete(dataContainer);
-	xenium::setLedColor((xenium::ledColorEnum)mSettings.ledColor);
+	context::getModchip()->saveSettings(mSettings);
 }
 
 utils::dataContainer* settingsManager::getInstallerLogoData()
 {
-	utils::dataContainer* installerLogoData = xenium::readBank(xenium::bankRecovery, INSTALLER_LOGO_OFFSET, 32768);
-	return installerLogoData;
+	return context::getModchip()->getInstallerLogo();
 }
 
 settingsState* settingsManager::getSettings()
@@ -105,8 +87,9 @@ settingsState* settingsManager::getSettings()
 
 uint32_t settingsManager::getFreeSlots()
 {
-	uint32_t freeSlots = 4;
-	for (uint32_t i = 0; i < 4; i++)
+	uint32_t slotCount = context::getModchip()->getSlotCount();
+	uint32_t freeSlots = slotCount;
+	for (uint32_t i = 0; i < slotCount; i++)
 	{
 		freeSlots = freeSlots - mSettings.banks[i].slots;
 	}
@@ -206,8 +189,21 @@ void settingsManager::deleteBank(uint8_t id)
 
 void settingsManager::optimizeBanks(uint8_t slotsNeeded)
 {
+	uint32_t slotCount = context::getModchip()->getSlotCount();
+	if (slotCount < 2)
+	{
+		utils::debugPrint("Not enough slots to be worth optimizing");
+		return;
+	}
+
+	if (getFreeSlots() < slotsNeeded)
+	{
+		utils::debugPrint("Not enough free slots to be worth optimizing");
+		return;
+	}
+
 	bool needsOptimize = false;
-	if (slotsNeeded == 2)
+	if (slotCount == 4 && slotsNeeded == 2)
 	{
 		needsOptimize = !((mSettings.banks[0].slots == 0 && mSettings.banks[1].slots == 0) || (mSettings.banks[2].slots == 0 && mSettings.banks[3].slots == 0));
 	}
@@ -218,7 +214,7 @@ void settingsManager::optimizeBanks(uint8_t slotsNeeded)
 	}
 
 	int8_t destBankId = 0;
-	while (destBankId < 3)
+	while (destBankId < (int8_t)(slotCount - 1))
 	{
 		if (mSettings.banks[destBankId].slots != 0)
 		{
@@ -226,22 +222,18 @@ void settingsManager::optimizeBanks(uint8_t slotsNeeded)
 			continue;
 		}
 		int8_t sourceBankId = destBankId + 1;
-		while (sourceBankId < 4)
+		while (sourceBankId < (int8_t)slotCount)
 		{
 			if (mSettings.banks[sourceBankId].slots != 1)
 			{
 				sourceBankId = sourceBankId + max(mSettings.banks[sourceBankId].slots, 1);
 				continue;
 			}
-			xenium::bankEnum destBank = xenium::getBankFromIdAndSlots(destBankId, 1);
-			xenium::bankEnum sourceBank = xenium::getBankFromIdAndSlots(sourceBankId, 1);
-			if (destBank == xenium::bankInvalid || sourceBank == xenium::bankInvalid)
-			{
-				continue;
-			}
-			utils::dataContainer* bankData = xenium::readBank(sourceBank, 0, xenium::getBankSize(sourceBank));
-			xenium::eraseBank(destBank, 0, bankData->size);
-			xenium::writeBank(destBank, 0, bankData, 0, bankData->size);
+			uint8_t destBank = context::getModchip()->getBankFromIdAndSlots(destBankId, 1);
+			uint8_t sourceBank = context::getModchip()->getBankFromIdAndSlots(sourceBankId, 1);
+			utils::dataContainer* bankData = context::getModchip()->readBank(sourceBank);
+			context::getModchip()->eraseBank(destBank);
+			context::getModchip()->writeBank(destBank, bankData);
 			delete(bankData);
 
 			memcpy(&mSettings.banks[destBankId], &mSettings.banks[sourceBankId], sizeof(bankInfo));
@@ -279,7 +271,7 @@ bool settingsManager::tryGetFreeBank(uint8_t slotsNeeded, uint8_t& bankId)
 		}
 		if (spaceFound == true)
 		{
-			bankId = bank;;
+			bankId = bank;
 			return true;
 		}
 		bank += slotsNeeded;
@@ -290,72 +282,61 @@ bool settingsManager::tryGetFreeBank(uint8_t slotsNeeded, uint8_t& bankId)
 
 void settingsManager::eraseBank(uint8_t bankId, uint32_t size)
 {
-	xenium::setLedColor(xenium::ledColorAmber);
-
 	uint8_t slotsNeeded = (uint8_t)(size >> 18);
-	xenium::bankEnum bank = xenium::getBankFromIdAndSlots(bankId, slotsNeeded);
-	xenium::eraseBank(bank, 0, size);
-
-	xenium::setLedColor((xenium::ledColorEnum)mSettings.ledColor);
+	uint8_t bank = context::getModchip()->getBankFromIdAndSlots(bankId, slotsNeeded);
+	context::getModchip()->eraseBank(bank);
 }
 
 void settingsManager::writeBank(uint8_t bankId, utils::dataContainer* dataContainer, const char *name, uint8_t ledColor)
 {
-	xenium::setLedColor(xenium::ledColorBlue);
-
 	uint8_t slotsNeeded = (uint8_t)(dataContainer->size >> 18);
-	xenium::bankEnum bank = xenium::getBankFromIdAndSlots(bankId, slotsNeeded);
-	xenium::writeBank(bank, 0, dataContainer, 0, dataContainer->size);
-
+	uint8_t bank = context::getModchip()->getBankFromIdAndSlots(bankId, slotsNeeded);
+	context::getModchip()->writeBank(bank, dataContainer);
 	mSettings.banks[bankId].ledColor = ledColor;
 	mSettings.banks[bankId].slots = slotsNeeded;
 	char* nameCopy = strdup(name);
 	stringUtility::copyString((char*)&mSettings.banks[bankId].name[0], nameCopy, 40);
 	free(nameCopy);
-
-	xenium::setLedColor((xenium::ledColorEnum)mSettings.ledColor);
 	saveSettings();
 }
 
 bool settingsManager::verifyBank(uint8_t bankId, utils::dataContainer* dataContainer)
 {
-	xenium::setLedColor(xenium::ledColorPurple);
-
 	uint8_t slotsNeeded = (uint8_t)(dataContainer->size >> 18);
-	xenium::bankEnum bank = xenium::getBankFromIdAndSlots(bankId, slotsNeeded);
-	bool result = xenium::verifyBank(bank, 0, dataContainer, 0, dataContainer->size);
-
-	xenium::setLedColor((xenium::ledColorEnum)mSettings.ledColor);
+	uint8_t bank = context::getModchip()->getBankFromIdAndSlots(bankId, slotsNeeded);
+	bool result = context::getModchip()->verifyBank(bank, dataContainer);
 	return result;
 }
 
 utils::dataContainer* settingsManager::readBank(uint8_t bankId)
 {
-	xenium::setLedColor(xenium::ledColorWhite);
-
 	uint8_t slots = mSettings.banks[bankId].slots;
-	xenium::bankEnum readBank = xenium::getBankFromIdAndSlots(bankId, slots);
-	uint32_t size = xenium::getBankSize(readBank);
-	utils::dataContainer* result = xenium::readBank(readBank, 0, size);
-
-	xenium::setLedColor((xenium::ledColorEnum)mSettings.ledColor);
+	uint8_t bank = context::getModchip()->getBankFromIdAndSlots(bankId, slots);
+	utils::dataContainer* result = context::getModchip()->readBank(bank);
 	return result;
 }
 
 void settingsManager::launchBank(uint8_t bankId)
 {
 	lcdRender::waitStop();
-	bankInfo bank = settingsManager::getBankInfo(bankId);
-	if (bank.slots > 0)
+	bankInfo bankInfo = settingsManager::getBankInfo(bankId);
+	if (bankInfo.slots > 0)
 	{
-		xenium::launchBank(bankId, bank.slots, (xenium::ledColorEnum)bank.ledColor);
+		uint8_t bank = context::getModchip()->getBankFromIdAndSlots(bankId, bankInfo.slots);
+		context::getModchip()->launchBank(bank, bankInfo.ledColor);
 	}
 }
 
 void settingsManager::launchTsop()
 {
 	lcdRender::waitStop();
-	xenium::launchTsop();
+	context::getModchip()->launchTsop();
+}
+
+void settingsManager::launchRecovery()
+{
+	lcdRender::waitStop();
+	context::getModchip()->launchRecovery();
 }
 
 void settingsManager::editBank(uint8_t bankId, const char *name, uint8_t ledColor)
@@ -453,6 +434,39 @@ uint8_t settingsManager::getAutoBootDelay()
 void settingsManager::setAutoBootDelay(uint8_t autoBootDelay)
 {
 	mSettings.autoBootDelay = autoBootDelay;
+	saveSettings();
+}
+
+uint8_t settingsManager::getMusicVolume()
+{
+	return mSettings.musicVolume;
+}
+
+void settingsManager::setMusicVolume(uint8_t volume)
+{
+	mSettings.musicVolume = volume;
+	saveSettings();
+}
+
+uint8_t settingsManager::getSoundVolume()
+{
+	return mSettings.soundVolume;
+}
+
+void settingsManager::setSoundVolume(uint8_t volume)
+{
+	mSettings.soundVolume = volume;
+	saveSettings();
+}
+
+uint8_t settingsManager::getMinFanSpeed()
+{
+	return mSettings.minFanSpeed;
+}
+
+void settingsManager::setMinFanSpeed(uint8_t minFanSpeed)
+{
+	mSettings.minFanSpeed = minFanSpeed;
 	saveSettings();
 }
 

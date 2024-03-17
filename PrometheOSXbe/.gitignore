@@ -3,7 +3,19 @@
 *.ncb
 
 [Dd]ebug/
+[Dd]ebug-Xenium/
+[Dd]ebug-Xecuter/
+[Dd]ebug-Xchanger/
+[Dd]ebug-Aladdin1mb/
+[Dd]ebug-Aladdin2mb/
+[Dd]ebug-Dummy/
 [Dd]ebugPublic/
 [Rr]elease/
+[Rr]elease-Xenium/
+[Rr]elease-Xecuter/
+[Rr]elease-Xchanger/
+[Rr]elease-Aladdin1mb/
+[Rr]elease-Aladdin2mb/
+[Rr]elease-Dummy/
 [Rr]eleases/
 

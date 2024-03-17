@@ -4,6 +4,79 @@
 #include <xtl.h>
 #include <stdio.h>
 #include <string>
+#include <cmath>
+
+// Creates a "hexdump -Cv" style string - caller free()'s returned string
+char* utils::hexDump(void* data, uint32_t size) {
+	char ascii[17];
+	size_t i, j;
+	ascii[16] = '\0';
+
+	uint32_t rows = (uint32_t)ceil((float)(size / 16));
+	uint32_t bufSize = (rows + 1) * 79 + 2;
+
+	char* buf = (char*)malloc(bufSize);
+	char* retBuf = buf;
+
+	_snprintf(buf, 10, "00000000  ");
+	buf += 10;
+
+	for (i = 0; i < size; ++i) {
+		_snprintf(buf, 3, "%02x ", ((unsigned char*)data)[i]);
+		buf += 3;
+		if (((unsigned char*)data)[i] >= ' ' && ((unsigned char*)data)[i] <= '~') {
+			ascii[i % 16] = ((unsigned char*)data)[i];
+		} else {
+			ascii[i % 16] = '.';
+		}
+		if ((i+1) % 8 == 0 || i+1 == size) {
+			_snprintf(buf++, 1, " ");
+			if ((i+1) % 16 == 0) {
+				_snprintf(buf, 29, "|%s|\n%08lx  ", ascii, (i+1));
+				buf += 29;
+			} else if (i+1 == size) {
+				ascii[(i+1) % 16] = '\0';
+				if ((i+1) % 16 <= 8) {
+					_snprintf(buf++, 1, " ");
+				}
+				for (j = (i+1) % 16; j < 16; ++j) {
+					_snprintf(buf, 3, "   ");
+					buf += 3;
+				}
+				_snprintf(buf, 19, "|%s|\n", ascii);
+				buf += 19;
+			}
+		}
+	}
+
+	_snprintf(buf++, 1, "\n");
+	*buf = 0;
+
+	return retBuf;
+}
+
+void utils::hexDumpDebug(void* data, uint32_t size) {
+#ifdef _DEBUG
+	char* buf = hexDump(data, size);
+	debugPrint(buf);
+	free(buf);
+#endif
+}
+
+void utils::uSleep(uint64_t timeout) {
+	timeout *= 10; // 100ns units
+	KeDelayExecutionThread(1, 0, (PLARGE_INTEGER)(&timeout));
+}
+
+void utils::byteSwap16(uint8_t* buf, uint32_t size) {
+	uint8_t tmp;
+
+	for(uint32_t i = 0; i < size; i += 2) {
+		tmp = buf[i];
+		buf[i] = buf[i+1];
+		buf[i+1] = tmp;
+	}
+}
 
 void utils::debugPrint(const char* format, ...)
 {
@@ -172,8 +245,16 @@ uint32_t utils::roundUpToNextPowerOf2(uint32_t value)
 	return value;
 }
 
-void utils::uSleep(uint64_t timeout) 
+void utils::sleepMicroSecs(LARGE_INTEGER clockFreq, uint16_t microSecs)
 {
-    timeout *= 10; // 100ns units
-    KeDelayExecutionThread(1, 0, (PLARGE_INTEGER)(&timeout));
+	LARGE_INTEGER performanceCount;
+	LARGE_INTEGER currentCount;
+	QueryPerformanceCounter(&performanceCount);
+	LONGLONG waitTime = microSecs * clockFreq.QuadPart / 1000000;
+	do
+	{
+		QueryPerformanceCounter(&currentCount);
+		Sleep(0);
+	}
+	while ( currentCount.QuadPart - performanceCount.QuadPart < waitTime);
 }

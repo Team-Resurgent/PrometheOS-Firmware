@@ -41,4 +41,5 @@ public:
 	static void measureBitmapString(bitmapFont* font, const char* message, int* width, int* height);
 	static void drawBitmapString(bitmapFont* font, const char* message, uint32_t color, int x, int y);
 	static void drawBitmapStringAligned(bitmapFont* font, const char*  message, uint32_t color, horizAlignment hAlign, int x, int y, int width);
+	static utils::dataContainer* takeScreenshot();
 };

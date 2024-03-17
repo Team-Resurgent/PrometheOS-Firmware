@@ -3,6 +3,7 @@
 #include "inputManager.h"
 #include "math.h"
 #include "pointerMap.h"
+#include "modchip.h"
 #include "xboxInternals.h"
 
 #include <string>
@@ -39,6 +40,20 @@ typedef struct bitmapFont
 class context
 {
 public:
+	static void setModchip(modchip* modchip);
+	static modchip* getModchip();
+	static void setCurrentIp(const char* ip);
+	static char* getCurrentIp();
+	static void setCurrentFreeMem(uint32_t freeMem);
+	static uint32_t getCurrentFreeMem();
+	static void setCurrentTitle(const char* title);
+	static char* getCurrentTitle();
+	static void setCurrentFanSpeed(int32_t fanSpeed);
+	static int32_t getCurrentFanSpeed();
+	static void setCurrentCpuTemp(int32_t cpuTemp);
+	static int32_t getCurrentCpuTemp();
+	static void setCurrentMbTemp(int32_t mbTemp);
+	static int32_t getCurrentMbTemp();
 	static void setNetworkInitialized(bool value);
 	static bool getNetworkInitialized();
 	static void setD3dDevice(LPDIRECT3DDEVICE8 d3dDevice);
@@ -64,4 +79,16 @@ public:
 	static char* getSoundPackPath();
 	static void setMusicId(uint32_t musicId);
 	static uint32_t getMusicId();
+	static void setMasterPassword(utils::dataContainer* masterPassword);
+	static utils::dataContainer* getMasterPassword();
+	static void setUserPassword(utils::dataContainer* userPassword);
+	static utils::dataContainer* getUserPassword();
+	static void setDriveModel(const char* model);
+	static char* getDriveModel();
+	static void setDriveSeriall(const char* serial);
+	static char* getDriveSerial();
+	static void setTakeScreenshot(bool takeScreenshot);
+	static bool getTakeScreenshot();
+	static void setScreenshot(utils::dataContainer* screenshot);
+	static utils::dataContainer* getScreenshot();
 };

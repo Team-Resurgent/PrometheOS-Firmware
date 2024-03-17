@@ -48,6 +48,7 @@ Reason: Prepared 0.2 for Public Release
 
 
 #include <xtl.h>
+#include "..\xboxInternals.h"
 
 #ifdef _DEBUG
     #define OUTPUT_DEBUG_STRING(s) OutputDebugStringA(s)
@@ -96,33 +97,24 @@ typedef struct _STRINGX
 } UNICODE_STRING, *PUNICODE_STRING, ANSI_STRING, *PANSI_STRING;
 
 //for use with IOCTL
-typedef struct _IO_STATUS_BLOCK {
-    union 
-	{
-        LONG	Status;
-        LPVOID	Pointer;
-    };
-
-    LPLONG Information;
-} IO_STATUS_BLOCK, *PIO_STATUS_BLOCK;
+//typedef struct _IO_STATUS_BLOCK {
+//    union 
+//	{
+//        LONG	Status;
+//        LPVOID	Pointer;
+//    };
+//
+//    LPLONG Information;
+//} IO_STATUS_BLOCK, *PIO_STATUS_BLOCK;
 
 //for use with IOCTL
-typedef struct _OBJECT_ATTRIBUTES 
-{
-    HANDLE			RootDirectory;
-    PANSI_STRING	ObjectName;
-    ULONG			Attributes;
-} OBJECT_ATTRIBUTES, *POBJECT_ATTRIBUTES;
 
-// APC routine
-typedef VOID (NTAPI *PIO_APC_ROUTINE) (IN PVOID ApcContext, IN PIO_STATUS_BLOCK IoStatusBlock, IN ULONG Reserved);
 
 
 // Flags for OBJECT_ATTRIBUTES::Attributes
 #define OBJ_INHERIT             0x00000002L
 #define OBJ_PERMANENT           0x00000010L
 #define OBJ_EXCLUSIVE           0x00000020L
-#define OBJ_CASE_INSENSITIVE    0x00000040L
 #define OBJ_OPENIF              0x00000080L
 #define OBJ_OPENLINK            0x00000100L
 #define OBJ_KERNEL_HANDLE       0x00000200L
@@ -199,13 +191,13 @@ typedef VOID (NTAPI *PIO_APC_ROUTINE) (IN PVOID ApcContext, IN PIO_STATUS_BLOCK 
 
 //Kernel Exports for doing all the cool stuff !!
 extern "C" { 
-	XBOXAPI LONG WINAPI RtlInitAnsiString(OUT PANSI_STRING DestinationString, IN LPCSTR SourceString);
+	//XBOXAPI LONG WINAPI RtlInitAnsiString(OUT PANSI_STRING DestinationString, IN LPCSTR SourceString);
 
 
 
-	XBOXAPI LONG WINAPI NtCreateFile(OUT PHANDLE FileHandle, IN ACCESS_MASK DesiredAccess, IN POBJECT_ATTRIBUTES ObjectAttributes,  OUT PIO_STATUS_BLOCK IoStatusBlock, IN PLARGE_INTEGER AllocationSize OPTIONAL, IN ULONG FileAttributes, IN ULONG ShareAccess, IN ULONG CreateDisposition, IN ULONG CreateOptions);
+//	XBOXAPI LONG WINAPI NtCreateFile(OUT PHANDLE FileHandle, IN ACCESS_MASK DesiredAccess, IN POBJECT_ATTRIBUTES ObjectAttributes,  OUT IO_STATUS_BLOCK* IoStatusBlock, IN PLARGE_INTEGER AllocationSize OPTIONAL, IN ULONG FileAttributes, IN ULONG ShareAccess, IN ULONG CreateDisposition, IN ULONG CreateOptions);
 
-	XBOXAPI LONG WINAPI NtDeviceIoControlFile(IN HANDLE FileHandle, IN HANDLE hEvent OPTIONAL, IN PIO_APC_ROUTINE ApcRoutine OPTIONAL, IN PVOID ApcContext OPTIONAL, OUT PIO_STATUS_BLOCK IoStatusBlock, IN ULONG IoControlCode, IN PVOID InputBuffer OPTIONAL, IN ULONG InputBufferLength, OUT PVOID OutputBuffer OPTIONAL, IN ULONG OutputBufferLength);
+//	XBOXAPI LONG WINAPI NtDeviceIoControlFile(IN HANDLE FileHandle, IN HANDLE hEvent OPTIONAL, IN PIO_APC_ROUTINE ApcRoutine OPTIONAL, IN PVOID ApcContext OPTIONAL, OUT PIO_STATUS_BLOCK IoStatusBlock, IN ULONG IoControlCode, IN PVOID InputBuffer OPTIONAL, IN ULONG InputBufferLength, OUT PVOID OutputBuffer OPTIONAL, IN ULONG OutputBufferLength);
 
 	XBOXAPI VOID WINAPI HalEnableSecureTrayEject(VOID);
 

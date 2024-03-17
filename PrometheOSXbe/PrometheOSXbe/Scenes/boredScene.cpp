@@ -8,7 +8,6 @@
 #include "..\inputManager.h"
 #include "..\settingsManager.h"
 #include "..\hdmiDevice.h"
-#include "..\xenium.h"
 #include "..\stringUtility.h"
 #include "..\xboxConfig.h"
 #include "..\theme.h"
@@ -25,7 +24,8 @@ void boredScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		sceneManager::openScene(sceneItemPrometheOsSettingsScene);
+		sceneManager::popScene();
+		return;
 	}
 
 	//// Select Actions

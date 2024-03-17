@@ -1,23 +1,24 @@
 #include "flashBackup.h"
 
 #include "..\xboxInternals.h"
+#include "..\context.h"
 #include "..\stringUtility.h"
 #include "..\fileSystem.h"
 #include "..\utils.h"
-#include "..\settingsManager.h"
-#include "..\xenium.h"
 
 namespace
 {
 	HANDLE mThread;
+	bool mRecovery;
 	flashBackup::flashBackupData mData;
 }
 
-bool flashBackup::startThread()
+bool flashBackup::startThread(bool recovery)
 {
+	mRecovery = recovery;
 	memset(&mData, 0, sizeof(flashBackupData));
 	mData.currentStep = 0;
-	mData.totalSteps = 7;
+	mData.totalSteps = context::getModchip()->getFlashBankCount(mRecovery);
 
 	InitializeCriticalSection(&mData.mutex);
 
@@ -76,7 +77,15 @@ uint64_t WINAPI flashBackup::process(void* param)
 		return 0;
 	}
 
-	char* filePath = fileSystem::combinePath("E:\\PrometheOS\\Backup", "PrometheOS.bin");
+	char* filePath = NULL;
+	if (mRecovery == true)
+	{
+		filePath = fileSystem::combinePath("E:\\PrometheOS\\Backup", "Recovery.bin");
+	}
+	else
+	{
+		filePath = fileSystem::combinePath("E:\\PrometheOS\\Backup", "PrometheOS.bin");
+	}
 
 	uint32_t fileHandle;
 	if (fileSystem::fileOpen(filePath, fileSystem::FileModeWrite, fileHandle) == false)
@@ -87,44 +96,21 @@ uint64_t WINAPI flashBackup::process(void* param)
 
 	free(filePath);
 
-	for (uint32_t i = 0; i < 7; i++)
+	uint8_t banks = context::getModchip()->getFlashBankCount(mRecovery);
+	for (uint8_t i = 0; i < banks; i++)
 	{
 		EnterCriticalSection(&data->mutex);
 		data->currentStep = i + 1;
 		LeaveCriticalSection(&data->mutex);
 
-		xenium::bankEnum currentBank = xenium::bank1_256k;
-		if (i == 1)
-		{
-			currentBank = xenium::bank2_256k;
-		}
-		else if (i == 2)
-		{
-			currentBank = xenium::bank3_256k;
-		}
-		else if (i == 3)
-		{
-			currentBank = xenium::bank3_256k;
-		}
-		else if (i == 4)
-		{
-			currentBank = xenium::bankBootloader;
-		}
-		else if (i == 5)
-		{
-			currentBank = xenium::bankXeniumOS;
-		}
-		else if (i == 6)
-		{
-			currentBank = xenium::bankRecovery;
-		}
+		uint8_t bank = context::getModchip()->getFlashBank(mRecovery, i);
+		uint32_t bankSize = context::getModchip()->getBankSize(bank);
+		uint32_t memOffset = context::getModchip()->getBankMemOffset(bank);
 
-		uint32_t bankSize = xenium::getBankSize(currentBank);
-		uint32_t memOffset = xenium::getBankMemOffset(currentBank);
 		fileSystem::fileSeek(fileHandle, fileSystem::FileSeekModeStart, memOffset);
 
 		setResponse(data, flashBackupReading);
-		utils::dataContainer* bankData = xenium::readBank(currentBank, 0, bankSize);
+		utils::dataContainer* bankData = context::getModchip()->readBank(bank);
 
 		setResponse(data, flashBackupWriting);
 		uint32_t bytesWritten;
@@ -137,6 +123,11 @@ uint64_t WINAPI flashBackup::process(void* param)
 		}
 
 		delete(bankData);
+
+		if (mRecovery == true)
+		{
+			context::getModchip()->disableRecovery();
+		}
 	}
 
 	fileSystem::fileClose(fileHandle);

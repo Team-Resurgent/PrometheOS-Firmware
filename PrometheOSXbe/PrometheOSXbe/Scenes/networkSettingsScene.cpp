@@ -14,7 +14,6 @@
 #include "..\inputManager.h"
 #include "..\settingsManager.h"
 #include "..\hdmiDevice.h"
-#include "..\xenium.h"
 #include "..\stringUtility.h"
 #include "..\xboxConfig.h"
 #include "..\theme.h"
@@ -126,7 +125,8 @@ void networkSettingsScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		sceneManager::openScene(sceneItemSystemSettingsScene);
+		sceneManager::popScene();
+		return;
 	}
 
 	// Apply Action

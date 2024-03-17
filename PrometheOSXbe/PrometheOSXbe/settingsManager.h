@@ -44,6 +44,9 @@ typedef struct settingsState
 	char soundPackName[51];
 	uint32_t playerHiScore;
 	uint8_t autoBootDelay;
+	uint8_t musicVolume;
+	uint8_t soundVolume;
+	uint8_t minFanSpeed;
 	uint8_t ledColor;
 	bool lcdEnabled;
 	uint8_t lcdBacklight;
@@ -95,6 +98,7 @@ public:
 	static utils::dataContainer* readBank(uint8_t bankId);
 	static void launchBank(uint8_t id);
 	static void launchTsop();
+	static void launchRecovery();
 	static void editBank(uint8_t bankId, const char *name, uint8_t ledColor);
 	static networkModeEnum getNetworkMode();
 	static uint32_t getNetworkAddress();
@@ -111,6 +115,12 @@ public:
 	static void setPlayerHiScore(uint32_t playerScore);
 	static uint8_t getAutoBootDelay();
 	static void setAutoBootDelay(uint8_t autoBootDelay);
+	static uint8_t getMusicVolume();
+	static void setMusicVolume(uint8_t volume);
+	static uint8_t getSoundVolume();
+	static void setSoundVolume(uint8_t volume);
+	static uint8_t getMinFanSpeed();
+	static void setMinFanSpeed(uint8_t minFanSpeed);
 	static uint8_t getLedColor();
 	static void setLedColor(uint8_t ledColor);
 	static bool getLcdEnabled();

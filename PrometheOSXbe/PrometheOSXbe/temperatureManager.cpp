@@ -1,6 +1,7 @@
 #include "temperatureManager.h"
 #include "utils.h"
 #include "xboxInternals.h"
+#include "settingsManager.h"
 #include "xboxConfig.h"
 
 namespace
@@ -9,6 +10,7 @@ namespace
 	int32_t mCounter = 0;
 	int32_t mTargetTemp = 55;
 	int32_t mLastTemp = 0;
+	uint32_t mCpuFreq = 733;
 	int32_t mMinFanSpeed = 10;
 	int32_t mSystemFanSpeed = 0;
 	int32_t mCurrentFanSpeed = 0;
@@ -26,7 +28,8 @@ void temperatureManager::init()
 	mSystemFanSpeed = getFanSpeed();
 	mCurrentFanSpeed = mSystemFanSpeed;
 	mLastTemp = max(getCpuTemp(), getMbTemp());
-	mMinFanSpeed = xboxConfig::getCPUFreq() > 733 ? 30 : 10;
+	mCpuFreq = xboxConfig::getCPUFreq();
+	mMinFanSpeed = max(mCpuFreq > 733 ? 30 : 10, (settingsManager::getMinFanSpeed() / 2));
 }
 
 //https://github.com/rkalz/xbmc4xbox/blob/50f38fb2fce74f2d7679ffc14f3d5002b9c65b6a/xbmc/utils/FanController.cpp#L261
@@ -118,6 +121,8 @@ void temperatureManager::refresh()
 		return;
 	}
 	mCounter = 0;
+
+	mMinFanSpeed = max(mCpuFreq > 733 ? 30 : 10, (settingsManager::getMinFanSpeed() / 2));
 
 	int32_t temp = max(getCpuTemp(), getMbTemp());
 	float targetTempFloor = mTargetTemp - 0.75f;

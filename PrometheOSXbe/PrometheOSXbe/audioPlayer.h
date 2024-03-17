@@ -11,7 +11,6 @@ public:
 		bool repeat;
 		bool requestStop;
 		HANDLE thread;
-		CRITICAL_SECTION mutex;
 	} audioPlayerData;
 
 	typedef struct audioContainer 

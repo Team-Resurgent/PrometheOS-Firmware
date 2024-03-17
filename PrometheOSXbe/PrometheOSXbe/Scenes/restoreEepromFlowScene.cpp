@@ -12,7 +12,6 @@
 #include "..\inputManager.h"
 #include "..\settingsManager.h"
 #include "..\hdmiDevice.h"
-#include "..\xenium.h"
 #include "..\stringUtility.h"
 #include "..\xboxInternals.h"
 #include "..\fileSystem.h"
@@ -44,7 +43,7 @@ void restoreEepromFlowScene::update()
 		if (mFilePickerScene->getSceneResult() == sceneResultCancelled)
 		{
 			delete(mFilePickerScene);
-			sceneManager::openScene(sceneItemEepromToolsScene);
+			sceneManager::popScene();
 			return;
 		}
 		else if (mFilePickerScene->getSceneResult() == sceneResultDone)
@@ -66,13 +65,13 @@ void restoreEepromFlowScene::update()
 		if (mRestoreEepromScene->getSceneResult() == sceneResultCancelled)
 		{
 			delete(mRestoreEepromScene);
-			sceneManager::openScene(sceneItemEepromToolsScene);
+			sceneManager::popScene();
 			return;
 		}
 		else if (mRestoreEepromScene->getSceneResult() == sceneResultDone)
 		{
 			delete(mRestoreEepromScene);
-			sceneManager::openScene(sceneItemEepromToolsScene);
+			sceneManager::popScene();
 			return;
 		}
 	}

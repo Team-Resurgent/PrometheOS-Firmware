@@ -443,7 +443,7 @@ char* xboxConfig::getHdModString()
 		uint32_t version3;
 		HalReadSMBusByte(I2C_HDMI_ADDRESS1, I2C_HDMI_VERSION1, &version1);
 		HalReadSMBusByte(I2C_HDMI_ADDRESS1, I2C_HDMI_VERSION2, &version2);
-		HalReadSMBusByte(I2C_HDMI_ADDRESS1, I2C_HDMI_VERSION2, &version3);
+		HalReadSMBusByte(I2C_HDMI_ADDRESS1, I2C_HDMI_VERSION3, &version3);
 		return stringUtility::formatString("V%i.%i.%i", version1, version2, version3);
     } 
     return strdup("Not Detected");
