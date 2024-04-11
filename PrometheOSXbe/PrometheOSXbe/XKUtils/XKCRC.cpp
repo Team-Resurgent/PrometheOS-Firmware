@@ -56,34 +56,18 @@ XKCRC::~XKCRC(void)
 {
 }
 
-void XKCRC::QuickCRC(UCHAR* CRCVAL, UCHAR* inData, DWORD  dataLen)
+void XKCRC::QuickCRC(UCHAR* CRCVAL, UCHAR* inData, DWORD dataLen)
 {
+	unsigned long high = 0, low = 0;
 
-	LPBYTE CRC_Data = new BYTE[dataLen+4];
-	ZeroMemory(CRC_Data, dataLen+4);
-	memcpy(CRC_Data + 0x01 , inData, dataLen-1); //We Circle shift the whole bunch 1 byte to the right
-	memcpy(CRC_Data, inData + dataLen-1, 0x01); //We Circle shift the whole bunch 1 byte to the right
-
-    
-	BYTE CRCVALUE[4];
-	ZeroMemory(CRCVALUE,4);
-
-	for (int CRCPos=0; CRCPos<4; CRCPos++)
+	for (unsigned long i = 0; i < dataLen / sizeof(unsigned long); i++)
 	{
-		WORD CRCPosVal = 0xFFFF;
-	
-		for (DWORD l=CRCPos; l<dataLen; l+=4)
-		{
-			LPWORD tmpWrd = (LPWORD)(&CRC_Data[l]);
-			WORD ival = *tmpWrd;
-			CRCPosVal = CRCPosVal - ival;
-		}
+		unsigned long val = ((unsigned long *)inData)[i];
+		unsigned long long sum = ((unsigned long long)high << 32) | low;
 
-		CRCPosVal &= 0xFF00;
-		CRCVALUE[CRCPos] = (BYTE) (CRCPosVal >> 8);
+		high = (unsigned long)((sum + val) >> 32);
+		low += val;
 	}
 
-	memcpy(CRCVAL, CRCVALUE, 4);
-	delete[] CRC_Data;
-
+	*(unsigned long *)CRCVAL = ~(high + low);
 }
