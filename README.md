@@ -22,7 +22,7 @@ BEWARE: It is recommended you have a external xenium programmer incase you're no
 * Aladdin 1mb
 * Aladdin 2mb
 * Xchanger V2.5
-* Xecuter 3 (Original + Christmas Edition)
+* Xecuter 3 (Genuine *Purple* + Christmas Edition *Red & White*)
 * Open Xenium
 * Legacy Xenium
 
