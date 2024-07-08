@@ -17,6 +17,15 @@ Please see below for instructions regarding PrometheOS and how to use.
 
 BEWARE: It is recommended you have a external xenium programmer incase you're no longer able to boot into PrometheOS
 
+# Working Modchips
+
+* Aladdin 1mb
+* Aladdin 2mb
+* Xchanger V2.5
+* Xecuter 3 (Original + Christmas Edition)
+* Open Xenium
+* Legacy Xenium
+
 ## System Requirements
 ### Minimum
 * Visual Studio 2003 With XDK (5933 Recommended)
