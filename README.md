@@ -25,6 +25,7 @@ BEWARE: It is recommended you have a external xenium programmer incase you're no
 * Xecuter 3 (Genuine *Purple* + Christmas Edition *Red & White*)
 * Open Xenium
 * Legacy Xenium
+* Modxo
 
 ## System Requirements
 ### Minimum
@@ -39,7 +40,7 @@ Create a PR and we will be more than happy to review and update appropriately
 
 ### Building PromethOS Web
 
-* Open PrometheOSTools\PrometheOSTools.sln in VS2022 select PrometheOSWeb as startup project
+* Open PrometheOSUtility\PrometheOSUtility.sln in VS2022 select PrometheOSWeb as startup project
 * Build and run
 
 Notes:
@@ -56,7 +57,7 @@ BEWARE: Certain actions will write to Xenium flash unless you disable Xenium fla
 
 ### Packaging PromethOS firmware
 
-* Open PrometheOSTools\PrometheOSTools.sln in VS2022 select to build PrometheOSPacker as startup project
+* Open PrometheOSUtility\PrometheOSUtility.sln in VS2022 select to build PrometheOSPacker as startup project
 * Build and run
 * Follow on screen prompts
 * Flash your xenium to test (Beware it is recommended you have a xenium)
