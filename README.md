@@ -25,7 +25,7 @@ BEWARE: It is recommended you have a external xenium programmer incase you're no
 * Xecuter 3 (Genuine *Purple* + Christmas Edition *Red & White*)
 * Open Xenium
 * Legacy Xenium
-* Modxo ** New ** (Works woth Offical, YD-2040, RP2040 Zero pico's)
+* Modxo ** New ** (Works woth Offical, YD-2040 & RP2040 Zero pico's)
 
 ## System Requirements
 ### Minimum
