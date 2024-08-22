@@ -25,7 +25,7 @@ BEWARE: It is recommended you have a external xenium programmer incase you're no
 * Xecuter 3 (Genuine *Purple* + Christmas Edition *Red & White*)
 * Open Xenium
 * Legacy Xenium
-* Modxo
+* Modxo ** New **
 
 ## System Requirements
 ### Minimum
@@ -67,11 +67,6 @@ Notes:
 1) Modify variable prometheosWebTestIp with IP used in web .js files (this is essential so that when ran on Xbox it uses local xbox's IP)
 2) If you want to embed a installer logo modify the installerName variable appropriately
 3) If you would like the packaged result to be uploaded to Xbox / Xenium Programmer uncomment the FTP section of code entering relevant FTP details 
-
-### Testing With XEMU
-
-* Package PrometheOS as described in 'Packaging PromethOS firmware'
-* Run launchPrometheOS.bat in the Xemu folder
 
 Notes: 
 
