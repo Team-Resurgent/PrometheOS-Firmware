@@ -14,7 +14,6 @@ flashBackupScene::flashBackupScene(bool recovery)
 {
 	mProgress = strdup("");
 	mDone = false;
-	mSceneResult = sceneResultNone;
 	flashBackup::startThread(recovery);
 }
 
@@ -31,7 +30,7 @@ void flashBackupScene::update()
 	{
 		if (inputManager::buttonPressed(ButtonB))
 		{
-			sceneManager::popScene();
+			sceneManager::popScene(sceneResultDone);
 		}
 		return;
 	}
@@ -62,11 +61,6 @@ void flashBackupScene::render()
 	{
 		drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Back", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
 	}
-}
-
-sceneResult flashBackupScene::getSceneResult()
-{
-	return mSceneResult;
 }
 
 void flashBackupScene::setProgress(const char* message)

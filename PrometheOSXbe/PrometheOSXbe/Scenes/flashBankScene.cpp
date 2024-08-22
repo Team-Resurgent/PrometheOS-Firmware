@@ -1,4 +1,5 @@
 #include "flashBankScene.h"
+#include "sceneManager.h"
 
 #include "..\drawing.h"
 #include "..\ssfn.h"
@@ -13,7 +14,6 @@ flashBankScene::flashBankScene(const char* filePath, const char* bankName, uint8
 {
 	mProgress = strdup("");
 	mDone = false;
-	mSceneResult = sceneResultNone;
 	flashBank::startThread(filePath, bankName, ledColor);
 }
 
@@ -28,7 +28,8 @@ void flashBankScene::update()
 
 	if (mDone == true && inputManager::buttonPressed(ButtonB))
 	{
-		mSceneResult = sceneResultDone;
+		sceneManager::popScene(sceneResultDone);
+		return;
 	}
 
 	if (mDone == false)
@@ -60,11 +61,6 @@ void flashBankScene::render()
 	{
 		drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Back", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
 	}
-}
-
-sceneResult flashBankScene::getSceneResult()
-{
-	return mSceneResult;
 }
 
 void flashBankScene::setProgress(const char* message)

@@ -5,9 +5,10 @@
 #include "fileSystem.h"
 #include "inputManager.h"
 
-drive::drive(const char* mountPoint, const char* systemPath, driveType drive)
+drive::drive(const char* mountPoint, const char* mountPointAlias, const char* systemPath, driveType drive)
 {
 	mMountPoint = strdup(mountPoint);
+	mMountPointAlias = strdup(mountPointAlias);
 	mSystemPath = strdup(systemPath);
 	mMounted = false;
 	mDriveType = drive;
@@ -88,6 +89,11 @@ bool drive::isMounted()
 char* drive::getMountPoint()
 {
 	return strdup(mMountPoint);
+}
+
+char* drive::getMountPointAlias()
+{
+	return strdup(mMountPointAlias);
 }
 
 char* drive::getSystemPath()

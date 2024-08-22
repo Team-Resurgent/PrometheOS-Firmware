@@ -15,19 +15,19 @@
 
 skinSelectionScene::skinSelectionScene()
 {
-	mMenuItems = new pointerVector(false);
+	mMenuItems = new pointerVector<char*>(false);
 	mMenuItems->add(strdup("Random"));
 	mMenuItems->add(strdup("Default"));
 
 	char* currentSkinName = settingsManager::getSkinName();
 	mSelectedControl = stringUtility::equals(currentSkinName, "*", false) == true ? 0 : 1;
 
-	pointerVector* skins = theme::getSkins();
+	pointerVector<char*>* skins = theme::getSkins();
 	if (skins != NULL)
 	{
 		for (uint32_t i = 0; i < skins->count(); i++)
 		{
-			char* skinName = strdup((char*)skins->get(i));
+			char* skinName = strdup(skins->get(i));
 			mMenuItems->add(skinName);
 			if (stringUtility::equals(skinName, currentSkinName, true) == true)
 			{
@@ -71,7 +71,7 @@ void skinSelectionScene::update()
 		}
 		else
 		{
-			char* skinName = (char*)mMenuItems->get(mSelectedControl);
+			char* skinName = mMenuItems->get(mSelectedControl);
 			theme::loadSkin(skinName);
 			settingsManager::setSkinName(skinName);
 		}
@@ -114,7 +114,7 @@ void skinSelectionScene::render()
 	for (int32_t i = 0; i < itemCount; i++)
 	{
 		uint32_t index = start + i;
-		char* skinName = (char*)mMenuItems->get(index);
+		char* skinName = mMenuItems->get(index);
 		component::button(mSelectedControl == index, false, skinName, 193, yPos, 322, 30);
 		yPos += 40;
 	}

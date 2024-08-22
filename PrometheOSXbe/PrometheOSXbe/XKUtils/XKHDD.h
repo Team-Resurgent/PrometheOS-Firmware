@@ -82,15 +82,9 @@ Reason: Prepared for Public Release
 
 */
 #pragma once
-#if defined (_WINDOWS)
-	#pragma message ("Compiling for WINDOWS: " __FILE__)
-	#include <afxwin.h>         // MFC core and standard components
-#elif defined (_XBOX)
-	#pragma message ("Compiling for XBOX: " __FILE__)
-	#include <xtl.h>
-#else
-	#error ERR: Have to Define _WINDOWS or _XBOX !!
-#endif
+
+#include <xtl.h>
+
 
 //Important ATA IDENTIFY Structure offsets..
 //As per ATA Spec
@@ -131,18 +125,13 @@ Reason: Prepared for Public Release
 #define IDE_ERROR_SUCCESS				0x0000
 #define IDE_ERROR_ABORT					0x0004
 
-
 //Our SendATACommand needs this to figure our if we should 
 //read or write data to IDE registers..
 #define	IDE_COMMAND_READ				0x00
 #define	IDE_COMMAND_WRITE				0x01
 
-
-
 class XKHDD
 {
-private:
-
 public:
 
 
@@ -183,60 +172,12 @@ public:
 	};
 	typedef ATA_COMMAND_OBJ* LPATA_COMMAND_OBJ;
 
-
-
-#if defined (_WINDOWS)
-	// Defines and Data Structures for Windows 2000 and XP IOCTL And ATA PassThrough commands
-	// **************************************************************************************************************
-	#define FILE_DEVICE_CONTROLLER      0x00000004
-	#define IOCTL_SCSI_BASE             FILE_DEVICE_CONTROLLER
-	#define FILE_READ_ACCESS            0x0001
-	#define FILE_WRITE_ACCESS           0x0002
-	#define METHOD_BUFFERED             0
-
-	#define CTL_CODE(DeviceType, Function, Method, Access) (((DeviceType) << 16) | ((Access) << 14) | ((Function) << 2) | (Method))
-
-	#define IOCTL_IDE_PASS_THROUGH  CTL_CODE(IOCTL_SCSI_BASE, 0x040A, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
-	#define FILE_ANY_ACCESS         0
-	#define IOCTL_SCSI_RESCAN_BUS   CTL_CODE(IOCTL_SCSI_BASE, 0x0407, METHOD_BUFFERED, FILE_ANY_ACCESS)
-	
-	typedef struct ATA_PASS_THROUGH
-	{
-		BYTE		IdeReg[7];
-		ULONG		DataBufferSize;
-		UCHAR		DataBuffer[1];
-	};
-	typedef ATA_PASS_THROUGH* LPATA_PASS_THROUGH;
-	// **************************************************************************************************************
-#endif
-
-	
-	
-	//Default Constructor/Destructor..
 	XKHDD();
 	virtual ~XKHDD(void);
-
-
-//This is the Function for Sending ATA Commands to the HDD..
-//Right now we use Standard IOCTL stuff for Windows and direct 
-//port access for XBOX..  later version will include Windows Driver 
-//for direct port access in Windows so we can lock/unlock.  
-#if defined (_WINDOWS)
-	static BOOL	SendATACommand(UCHAR DeviceNum, LPATA_COMMAND_OBJ ATACommandObj, UCHAR ReadWrite);
-#elif defined (_XBOX)
 	static BOOL	SendATACommand(WORD IDEPort, LPATA_COMMAND_OBJ ATACommandObj, UCHAR ReadWrite);
-#endif
-
-
-	//Helper Functions to Parse Data from ATA IDENTIFY Command
 	static char* GetIDEModel(UCHAR* IDEData);
 	static char* GetIDESerial(UCHAR* IDEData);
 	static WORD	GetIDESecurityStatus(UCHAR* IDEData);
 	static int	CleanATAData(unsigned char *dst, unsigned char *src, int len);
-
-	//Given a XBOX HDDKey and ATA Identify data structure, this function calucates
-	//Password the xbox will use when trying to unlock a drive..
 	static void	GenerateHDDPwd(UCHAR* HDDKey, UCHAR* IDEData, UCHAR* HDDPass);
-
-
 };

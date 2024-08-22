@@ -1,1 +1,1 @@
-Place your source prometheos.bin folder here, so we can extract the bootloader from it.
+Place your source prometheos-[modchip].bin folder here, so we can extract the bootloader from it.

@@ -18,9 +18,9 @@
 
 ledColorSelectorScene::ledColorSelectorScene()
 {
-	mSelectedControl = 0;
-	mLedColor = 0;
-	mSceneResult = sceneResultNone;
+	mSelectedControl = 4;
+	mLedColor = mSelectedControl;
+	context::getModchip()->setLedColor(mSelectedControl);
 }
 
 void ledColorSelectorScene::update()
@@ -29,8 +29,9 @@ void ledColorSelectorScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		mSceneResult = sceneResultCancelled;
 		context::getModchip()->setLedColor(settingsManager::getLedColor());
+		sceneManager::popScene(sceneResultCancelled);
+		return;
 	}
 
 	// Select Actions
@@ -38,7 +39,8 @@ void ledColorSelectorScene::update()
 	if (inputManager::buttonPressed(ButtonA))
 	{
 		mLedColor = mSelectedControl;
-		mSceneResult = sceneResultDone;
+		sceneManager::popScene(sceneResultDone);
+		return;
 	}
 	
 	// Left Actions
@@ -128,9 +130,4 @@ void ledColorSelectorScene::render()
 uint8_t ledColorSelectorScene::getLedColor()
 {
 	return mLedColor;
-}
-
-sceneResult ledColorSelectorScene::getSceneResult()
-{
-	return mSceneResult;
 }

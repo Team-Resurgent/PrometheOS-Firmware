@@ -1,11 +1,6 @@
 #include "modchipXenium.h"
 #include "crc32.h"
-
-#ifndef TOOLS
 #include "settingsManager.h"
-#endif
-
-#define XENIUM_LPC_MEMORY_BASE 0xFF000000u
 
 #define XENIUM_LCD_DELAY 2
 
@@ -110,6 +105,12 @@ bool modchipXenium::isValidBankSize(uint32_t size)
 	return size == (256 * 1024) || size == (512 * 1024) || size == (1024 * 1024);
 }
 
+bool modchipXenium::isValidFlashSize(bool recovery, uint32_t size)
+{
+	return size == getFlashSize(recovery);
+}
+
+
 uint32_t modchipXenium::getBankSize(uint8_t bank)
 {
 	if (bank == XENIUM_BANK_BOOTLOADER) 
@@ -200,6 +201,11 @@ uint32_t modchipXenium::getBankMemOffset(uint8_t bank)
 	return 0;
 }
 
+uint32_t modchipXenium::getBankStartOffset(uint8_t bank)
+{
+	return 0;
+}
+
 uint8_t modchipXenium::getBankFromIdAndSlots(uint8_t id, uint8_t slots)
 {
 	if (id == 0 && slots == 1)
@@ -238,7 +244,7 @@ utils::dataContainer* modchipXenium::readBank(uint8_t bank)
 	setBank(bank); 
 	uint32_t bankSize = getBankSize(bank);
 	utils::dataContainer* dataContainer = new utils::dataContainer(bankSize);
-    volatile uint8_t* lpcMemMap = (volatile uint8_t *)XENIUM_LPC_MEMORY_BASE;
+    volatile uint8_t* lpcMemMap = (volatile uint8_t *)(LPC_MEMORY_BASE + getBankStartOffset(bank));
     memcpy(dataContainer->data, (void*)&lpcMemMap[0], bankSize);
 	setBank(XENIUM_BANK_BOOTLOADER);
 	return dataContainer;
@@ -250,15 +256,16 @@ void modchipXenium::eraseBank(uint8_t bank)
 
 	setLedColor(LED_COLOR_AMBER);
 
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)XENIUM_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
 
 	uint32_t memOffset = getBankMemOffset(bank);
+	uint32_t startOffset = getBankStartOffset(bank);
 	uint32_t bankSize = getBankSize(bank);
 
 	uint32_t offset = 0;
     while (offset < bankSize)
 	{
-		if (isEraseMemOffset(memOffset + offset))
+		if (isEraseMemOffset(memOffset + startOffset + offset))
 		{
 			sectorErase(offset);
 		}
@@ -280,7 +287,7 @@ void modchipXenium::writeBank(uint8_t bank, utils::dataContainer* dataContainer)
 
 	setLedColor(LED_COLOR_BLUE);
 
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)XENIUM_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)(LPC_MEMORY_BASE + getBankStartOffset(bank));
 
 	uint32_t memOffset = getBankMemOffset(bank);
 
@@ -316,7 +323,7 @@ bool modchipXenium::verifyBank(uint8_t bank, utils::dataContainer* dataContainer
 
 	setLedColor(LED_COLOR_PURPLE);
 
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)XENIUM_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
 
 	uint32_t memOffset = getBankMemOffset(bank);
 
@@ -366,6 +373,20 @@ uint8_t modchipXenium::getFlashBank(bool recovery, uint8_t bank)
 	return recovery ? 0 : banks[bank];
 }
 
+bankType modchipXenium::getFlashBankType(bool recovery, uint8_t bank)
+{
+	const bankType banks[] = { 
+		bankTypeUser, 
+		bankTypeUser, 
+		bankTypeUser, 
+		bankTypeUser,
+		bankTypeSystem,
+		bankTypeSystem,
+		bankTypeSystem,
+	};
+	return recovery ? bankTypeUser : banks[bank];
+}
+
 utils::dataContainer* modchipXenium::readFlash(bool recovery)
 {
 	utils::dataContainer* result = new utils::dataContainer(getFlashSize(recovery));
@@ -412,10 +433,10 @@ void modchipXenium::loadSettings(settingsState& settings)
 
 	setLedColor(LED_COLOR_WHITE);
 
-    volatile uint8_t* lpcMemMap = (volatile uint8_t *)XENIUM_LPC_MEMORY_BASE;
+    volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
 
     memcpy(&settings, (void*)&lpcMemMap[XENIUM_SETTINGS_OFFSET], sizeof(settings));
-	uint32_t checksum = crc32::calculate(((char*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
+	uint32_t checksum = crc32::calculate(((uint8_t*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
 
 	setBank(XENIUM_BANK_BOOTLOADER);
 
@@ -432,10 +453,10 @@ void modchipXenium::saveSettings(settingsState settings)
 {
 	setBank(XENIUM_SETTINGS_BANK); 
 
-	settings.checksum = crc32::calculate(((const char*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
+	settings.checksum = crc32::calculate(((uint8_t*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
 	utils::dataContainer* settingsData = new utils::dataContainer((char*)&settings, sizeof(settings), sizeof(settings));
 
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)XENIUM_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
 
 	setLedColor(LED_COLOR_AMBER);
 	sectorErase(XENIUM_SETTINGS_OFFSET);
@@ -467,7 +488,7 @@ utils::dataContainer* modchipXenium::getInstallerLogo()
 
 	utils::dataContainer* installerLogo = new utils::dataContainer(32768);
 
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)XENIUM_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
     memcpy(installerLogo->data, (void*)&lpcMemMap[XENIUM_INSTALLER_LOGO_OFFSET], installerLogo->size);
 
 	setBank(XENIUM_BANK_BOOTLOADER);
@@ -537,6 +558,21 @@ void modchipXenium::lcdSetCursorPosition(uint8_t row, uint8_t col)
 	Sleep(XENIUM_LCD_DELAY);
 }
 
+uint8_t modchipXenium::getLcdTypeCount()
+{
+	return 2;
+}
+
+char* modchipXenium::getLcdTypeString(uint8_t lcdEnableType)
+{
+	if (lcdEnableType == 1)
+	{
+		return strdup("SPI");
+	}
+	
+	return strdup("Disabled");
+}
+
 void modchipXenium::lcdInit(uint8_t backlight, uint8_t contrast)
 {
 	// show display
@@ -562,30 +598,9 @@ void modchipXenium::lcdInit(uint8_t backlight, uint8_t contrast)
 
 void modchipXenium::lcdPrintMessage(const char* message)
 {
-	//const uint8_t LCD[256] = 
- //   { //HD44780 charset ROM code A00
- //       0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
- //       0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
- //       0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
- //       0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f,
- //       0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f,
- //       0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5a, 0x5b, 0xa4, 0x5d, 0x5e, 0x5f,
- //       0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f,
- //       0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x7b, 0x7c, 0x7d, 0xb0, 0x20,
- //       0x20, 0x20, 0x2c, 0x20, 0x22, 0x20, 0x20, 0x20, 0x5e, 0x20, 0x53, 0x3c, 0x20, 0x20, 0x5a, 0x20,
- //       0x20, 0x27, 0x27, 0x22, 0x22, 0xa5, 0xb0, 0xb0, 0xb0, 0x20, 0x73, 0x3e, 0x20, 0x20, 0x7a, 0x59,
- //       0xff, 0x21, 0x20, 0x20, 0x20, 0x5c, 0x7c, 0x20, 0x22, 0x20, 0x20, 0xff, 0x0E, 0x0A, 0x09, 0x08, // Custom characters
- //       0xdf, 0x20, 0x20, 0x20, 0x27, 0xe4, 0x20, 0xa5, 0x20, 0x20, 0xdf, 0x3e, 0x20, 0x20, 0x20, 0x3f,
- //       0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x20, 0x43, 0x45, 0x45, 0x45, 0x45, 0x49, 0x49, 0x49, 0x49,
- //       0x44, 0x4e, 0x4f, 0x4f, 0x4f, 0x4f, 0x4f, 0x78, 0x30, 0x55, 0x55, 0x55, 0x55, 0x59, 0x20, 0xe2,
- //       0x61, 0x61, 0x61, 0x61, 0xe1, 0x61, 0x20, 0x63, 0x65, 0x65, 0x65, 0x65, 0x69, 0x69, 0x69, 0x69,
- //       0x6f, 0x6e, 0x6f, 0x6f, 0x6f, 0x6f, 0x6f, 0xfd, 0x6f, 0x75, 0x75, 0xfb, 0xf5, 0x79, 0x20, 0x79
- //   };
-
 	for (int i = 0; i < (int)strlen(message); ++i)
 	{
 		uint8_t cLCD = message[i];
-		//cLCD = LCD[cLCD];
 		lcdSendCharacter(cLCD, 0);
 		Sleep(XENIUM_LCD_DELAY);
 	}
@@ -672,7 +687,7 @@ void modchipXenium::sectorErase(uint32_t offset)
 	{
 		return;
 	}
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)XENIUM_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
 	lpcMemMap[0xAAAA] = 0xAA;
 	lpcMemMap[0x5555] = 0x55;
 	lpcMemMap[0xAAAA] = 0x80;

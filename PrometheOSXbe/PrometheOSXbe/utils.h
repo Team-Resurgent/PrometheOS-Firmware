@@ -64,7 +64,6 @@ public:
 	static void ioOutputShort(uint16_t port, uint16_t value);
 	static void ioOutputInt(uint16_t port, uint32_t value);
 	static void setLedStates(uint32_t ledStates);
-	static bool smcTransmitByteAndRecieve(unsigned char picAddressI2cFormat, uint8_t data, uint8_t& result);
 	static uint32_t roundUpToNextPowerOf2(uint32_t value);
 	static void sleepMicroSecs(LARGE_INTEGER clockFreq, uint16_t microSecs);
 };

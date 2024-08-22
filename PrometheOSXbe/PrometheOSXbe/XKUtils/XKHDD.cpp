@@ -162,84 +162,6 @@ char* XKHDD::GetIDESerial(UCHAR* IDEData)
 	return (char*)serial;
 }
 
-#if defined (_WINDOWS)
-//Windows Version of sending ATA Commands..  This is normal IOCTL stuff...
-BOOL XKHDD::SendATACommand(UCHAR DeviceNum, LPATA_COMMAND_OBJ ATACommandObj, UCHAR ReadWrite)
-{
-	BOOL retVal = FALSE;
-
-	char tmp[128];
-    sprintf(tmp, "\\\\.\\PhysicalDrive%u", DeviceNum);
-	//Open HDD and get handle to Open Device...
-    HANDLE Device = CreateFile(tmp, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-
-	if (Device == INVALID_HANDLE_VALUE)
-		return FALSE;
-  
-	//Set up ATA Pass through structures..
-	unsigned int Size = sizeof(ATA_PASS_THROUGH) + ATACommandObj->DATA_BUFFSIZE;
-	LPATA_PASS_THROUGH pAPT = (LPATA_PASS_THROUGH) VirtualAlloc(NULL, Size, MEM_COMMIT, PAGE_READWRITE);
-	ZeroMemory (pAPT, Size);
-		
-	if (pAPT)
-	{
-		memset(pAPT, 0, Size);
-		pAPT->DataBufferSize = ATACommandObj->DATA_BUFFSIZE;
-		pAPT->IdeReg[0] = ATACommandObj->IPReg.bFeaturesReg;
-		pAPT->IdeReg[1] = ATACommandObj->IPReg.bSectorCountReg;
-		pAPT->IdeReg[2] = ATACommandObj->IPReg.bSectorNumberReg;
-		pAPT->IdeReg[3] = ATACommandObj->IPReg.bCylLowReg;
-		pAPT->IdeReg[4] = ATACommandObj->IPReg.bCylHighReg;
-		pAPT->IdeReg[5] = ATACommandObj->IPReg.bDriveHeadReg;
-		pAPT->IdeReg[6] = ATACommandObj->IPReg.bCommandReg;
-
-		if (ATACommandObj->IPReg.bCommandReg == 0xEC)  
-		{
-			// For some Reason Win2K/XP sometimes needs to rescan bus before we get IDENTIFY info..
-			DWORD BytesReturned = 0;
-			(void)DeviceIoControl(Device, IOCTL_SCSI_RESCAN_BUS, NULL, 0, NULL, 0, &BytesReturned, FALSE);
-			Sleep(500);    
-		}
-
-		//Copy the data IN buffer so we can send ATA Command..
-		memcpy(pAPT->DataBuffer, ATACommandObj->DATA_BUFFER, ATACommandObj->DATA_BUFFSIZE);
-
-		DWORD BytesReturned = 0;
-		//Send the ATA/IDE Pass through command..
-		BOOL Status = DeviceIoControl(Device, IOCTL_IDE_PASS_THROUGH, pAPT, Size, pAPT, Size, &BytesReturned, FALSE);
-		
-		//Get the Error and Status registers of IDE command return
-		ATACommandObj->OPReg.bErrorReg =  pAPT->IdeReg[0];
-		ATACommandObj->OPReg.bStatusReg = pAPT->IdeReg[6];
-
-		//If the command was successfull, copy the ATA structure's data into the ouptut object... 
-		if (Status)
-		{
-			if (ATACommandObj->DATA_BUFFER)
-			{
-				if (ATACommandObj->DATA_BUFFSIZE > 0) 
-					ZeroMemory(ATACommandObj->DATA_BUFFER, ATACommandObj->DATA_BUFFSIZE);
-				if (BytesReturned > sizeof(ATA_PASS_THROUGH))
-				{
-					unsigned int ReturnedSize = BytesReturned - sizeof(ATA_PASS_THROUGH);
-					ATACommandObj->DATA_BUFFSIZE = ReturnedSize;
-					memcpy(ATACommandObj->DATA_BUFFER, pAPT->DataBuffer, ReturnedSize);
-				}
-			}
-			
-			retVal = TRUE;
-		}
-	}
-	else
-		retVal = FALSE;
-		
-	VirtualFree(pAPT, Size, MEM_RELEASE);
-	CloseHandle(Device);
-	return retVal;
-}
-
-
-#else
 //XBOX Version of Sending ATA Commands..  
 //Since XBOX runs everything in Kernel Mode, we use direct port access :)
 BOOL XKHDD::SendATACommand(WORD IDEPort, LPATA_COMMAND_OBJ ATACommandObj, UCHAR ReadWrite)
@@ -342,7 +264,5 @@ BOOL XKHDD::SendATACommand(WORD IDEPort, LPATA_COMMAND_OBJ ATACommandObj, UCHAR 
 
 	return retVal;
 }
-#endif
-
 
 

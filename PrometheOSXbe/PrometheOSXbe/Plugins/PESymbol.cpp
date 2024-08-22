@@ -181,8 +181,8 @@ LibraryEntry_t* PESymbol::FindOrLoadLibrary(const char* library)
 	LibraryEntry_t* RV = FindLibrary(library);
 	if (RV == NULL) 
 	{
-		char* fp = (char*)malloc(strlen("E:\\Root\\Libs\\") + strlen(library) + 2);
-		strcpy(fp, "E:\\Root\\Libs\\");
+		char* fp = (char*)malloc(strlen("HDD0-E:\\Root\\Libs\\") + strlen(library) + 2);
+		strcpy(fp, "HDD0-E:\\Root\\Libs\\");
 		strcat(fp, library);
 		
 		utils::debugPrint("Library [%s]: %s Loading\n", library, fp);

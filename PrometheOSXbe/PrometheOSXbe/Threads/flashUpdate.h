@@ -27,7 +27,7 @@ public:
 		CRITICAL_SECTION mutex;
 	} flashUpdateData;
 
-	static bool startThread(bool recovery, const char* filePath);
+	static bool startThread(bool recovery, bool update, const char* filePath);
 	static bool completed();
 	static flashUpdateResponse getResponse();
 	static void getProgress(uint32_t& currentStep, uint32_t& totalSteps);

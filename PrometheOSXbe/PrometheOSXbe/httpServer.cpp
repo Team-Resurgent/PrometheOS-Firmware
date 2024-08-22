@@ -12,7 +12,7 @@ namespace {
 
     SOCKADDR_IN mConnectionAddress;
     uint64_t mListenSocket;
-    pointerVector* mClientSockets = NULL;
+    pointerVector<HttpClientSocket*>* mClientSockets = NULL;
     int mPortIn;
     int m_iXferPort;
     uint64_t passive_socket;
@@ -44,7 +44,7 @@ bool WINAPI httpServer::listenThread(LPVOID lParam)
 
 	for (unsigned int i = 0; i < mClientSockets->count(); ++i)
 	{
-		HttpClientSocket* clientSocket = (HttpClientSocket*)mClientSockets->get(i);
+		HttpClientSocket* clientSocket = mClientSockets->get(i);
 
 		int result = socketUtility::endBrokerSocket(clientSocket->socket);
 		if (result == EXIT_FAILURE)
@@ -112,7 +112,7 @@ void httpServer::init()
 	mListenThreadHandle = NULL;
 
 	mPortIn = 80;
-	mClientSockets = new pointerVector(true);
+	mClientSockets = new pointerVector<HttpClientSocket*>(true);
 
 	utils::debugPrint("Socket server init on port %i\n", mPortIn);
 
@@ -146,9 +146,9 @@ RequestBody* httpServer::getRequestBody(utils::dataContainer* input, uint32_t& i
 	char* requestVerb = NULL;
 	char* requestPath = NULL;
 	char* requestQuery = NULL;
-	pointerVector* requestHeaders = NULL;
-	pointerVector* requestParts = NULL;
-	pointerVector* queryParts = NULL;
+	pointerVector<char*>* requestHeaders = NULL;
+	pointerVector<char*>* requestParts = NULL;
+	pointerVector<char*>* queryParts = NULL;
 	RequestBody* result = NULL;
 
 	request = getLine(input, index);
@@ -161,17 +161,17 @@ RequestBody* httpServer::getRequestBody(utils::dataContainer* input, uint32_t& i
 		goto cleanup;
 	}
 
-	requestVerb = strdup((char*)requestParts->get(0));
-	requestPath = stringUtility::replace((char*)requestParts->get(1), "/", "\\");
+	requestVerb = strdup(requestParts->get(0));
+	requestPath = stringUtility::replace(requestParts->get(1), "/", "\\");
 	requestQuery = strdup("");
 
 	queryParts = stringUtility::split(requestPath, "?", false);
 	if (queryParts->count() == 2)
 	{
 		free(requestPath);
-		requestPath = strdup((char*)queryParts->get(0));
+		requestPath = strdup(queryParts->get(0));
 		free(requestQuery);
-		requestQuery = strdup((char*)queryParts->get(1));
+		requestQuery = strdup(queryParts->get(1));
 	}
 
 	utils::debugPrint("Verb: %s\n", requestVerb);
@@ -230,7 +230,7 @@ void httpServer::refresh()
 
 	for (unsigned int i = 0; i < mClientSockets->count(); ++i)
 	{
-		HttpClientSocket* current_client = (HttpClientSocket*)mClientSockets->get(i);
+		HttpClientSocket* current_client = mClientSockets->get(i);
 
 		const int status = socketUtility::getReadStatus(current_client->socket);
 		if (status == SOCKET_ERROR)
@@ -266,10 +266,10 @@ void httpServer::refresh()
 
 					utils::debugPrint("Body size vs index) = %lu, index = %lu, diff = %lu\n", available_data_size, index, available_data_size - index);
 
-					pointerVector* contentLengthParts = getHeaderValueParts(current_client->requestBody->headers, "Content-Length:");
+					pointerVector<char*>* contentLengthParts = getHeaderValueParts(current_client->requestBody->headers, "Content-Length:");
 					if (contentLengthParts->count() == 1)
 					{
-						current_client->contentLength = stringUtility::toInt((char*)contentLengthParts->get(0));
+						current_client->contentLength = stringUtility::toInt(contentLengthParts->get(0));
 					}
 
 					if (current_client->contentLength > 0)
@@ -300,7 +300,7 @@ void httpServer::refresh()
 
 	for (unsigned int i = 0; i < mClientSockets->count(); ++i)
 	{
-		HttpClientSocket* current_client = (HttpClientSocket*)mClientSockets->get(i);
+		HttpClientSocket* current_client = mClientSockets->get(i);
 		
 		if (current_client->socket == INVALID_SOCKET)
 		{
@@ -373,7 +373,7 @@ void httpServer::refresh()
 	{
 		for (size_t i = mClientSockets->count(); i-- > 0;)
 		{
-			HttpClientSocket* current_client = (HttpClientSocket*)mClientSockets->get(i);
+			HttpClientSocket* current_client = mClientSockets->get(i);
 			if (current_client->socket == INVALID_SOCKET)
 			{
 				mClientSockets->remove(i);
@@ -420,9 +420,9 @@ char* httpServer::getLine(utils::dataContainer* input, uint32_t& index)
 	return result;
 }
 
-pointerVector* httpServer::getHeaders(utils::dataContainer* input, uint32_t& index)
+pointerVector<char*>* httpServer::getHeaders(utils::dataContainer* input, uint32_t& index)
 {
-	pointerVector* headers = new pointerVector(false);
+	pointerVector<char*>* headers = new pointerVector<char*>(false);
 	while (index < input->size)
 	{
 		char* line = getLine(input, index);
@@ -436,26 +436,26 @@ pointerVector* httpServer::getHeaders(utils::dataContainer* input, uint32_t& ind
 	return headers;
 }
 
-pointerVector* httpServer::getHeaderValueParts(pointerVector* headers, const char* header)
+pointerVector<char*>* httpServer::getHeaderValueParts(pointerVector<char*>* headers, const char* header)
 {
-	pointerVector* result = new pointerVector(false);
+	pointerVector<char*>* result = new pointerVector<char*>(false);
 
 	for (uint32_t i = 0; i < headers->count(); i++)
 	{
-		if (stringUtility::startsWith((char*)headers->get(i), header, true) == false)
+		if (stringUtility::startsWith(headers->get(i), header, true) == false)
 		{
 			continue;
 		}
 
-		char* temp = stringUtility::substr((char*)headers->get(i), strlen(header), -1);
+		char* temp = stringUtility::substr(headers->get(i), strlen(header), -1);
 		char* headerValue = stringUtility::trim(temp, ' ');
 
-		pointerVector* headerValueParts = stringUtility::split(headerValue, ";", true);
+		pointerVector<char*>* headerValueParts = stringUtility::split(headerValue, ";", true);
 
 		for (uint32_t j = 0; j < headerValueParts->count(); j++) 
 		{
 			utils::debugPrint("HeaderValuePart for %s %s\n", header, headerValueParts->get(j));
-			result->add(strdup((char*)headerValueParts->get(j)));
+			result->add(strdup(headerValueParts->get(j)));
 		}
 
 		free(temp);
@@ -495,9 +495,9 @@ utils::dataContainer* httpServer::processGet(RequestBody* requestBody)
 utils::dataContainer* httpServer::processPost(RequestBody* requestBody, utils::dataContainer* input)
 {
 	utils::dataContainer* postResponse = NULL;
-	pointerVector* contentTypeParts = NULL;
-	pointerVector* contentLengthParts = NULL;
-	pointerVector* formParts = NULL;
+	pointerVector<char*>* contentTypeParts = NULL;
+	pointerVector<char*>* contentLengthParts = NULL;
+	pointerVector<FormPart*>* formParts = NULL;
 	char* boundary = NULL;
 	char* boundaryDelimiter = NULL;
 
@@ -515,15 +515,15 @@ utils::dataContainer* httpServer::processPost(RequestBody* requestBody, utils::d
 		goto cleanup;
 	}
 
-	uint32_t contentLength = stringUtility::toInt((char*)contentLengthParts->get(0));
+	uint32_t contentLength = stringUtility::toInt(contentLengthParts->get(0));
 
-	if (stringUtility::equals((char*)contentTypeParts->get(0), "multipart/form-data", false) == false)
+	if (stringUtility::equals(contentTypeParts->get(0), "multipart/form-data", false) == false)
 	{
 		postResponse = generateResponse(500, "Invalid Content-Type, expected 'multipart/form-data'");
 		goto cleanup;
 	}
 
-	boundary = stringUtility::splitAfter((char*)contentTypeParts->get(1), "boundary=");
+	boundary = stringUtility::splitAfter(contentTypeParts->get(1), "boundary=");
 	if (strlen(boundary) == 0)
 	{
 		postResponse = generateResponse(500, "Unexpected boundary format");
@@ -532,13 +532,13 @@ utils::dataContainer* httpServer::processPost(RequestBody* requestBody, utils::d
 
 	boundaryDelimiter = stringUtility::formatString("--%s", boundary);
 
-	formParts = new pointerVector(true);
+	formParts = new pointerVector<FormPart*>(true);
 
 	uint32_t index = stringUtility::find(input->data, input->size, 0, boundaryDelimiter, false);
 	while (index != StringNotFouund) 
 	{
 		index += strlen(boundaryDelimiter) + 2;
-		pointerVector* formHeaders = getHeaders(input, index);
+		pointerVector<char*>* formHeaders = getHeaders(input, index);
 
 		uint32_t startPos = index;
 		index = stringUtility::find(input->data, input->size, index, boundaryDelimiter, false);
@@ -557,7 +557,7 @@ utils::dataContainer* httpServer::processPost(RequestBody* requestBody, utils::d
 
 	for (int i = 0; i < (int)formParts->count(); i++)
 	{
-		FormPart* part = (FormPart*)formParts->get(i);
+		FormPart* part = formParts->get(i);
 		utils::debugPrint("Form part length = %lu\n", part->body->size);
 		utils::debugPrint("Form part text = %s\n", part->body->data);
 	}

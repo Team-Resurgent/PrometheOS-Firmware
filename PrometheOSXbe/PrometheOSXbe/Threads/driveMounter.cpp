@@ -52,7 +52,7 @@ uint64_t WINAPI driveMounter::process(void* param)
 
 	if (data->onlyMountE == true)
 	{
-		driveManager::mountDrive("E");
+		driveManager::mountDrive("HDD0-E");
 	}
 	else
 	{

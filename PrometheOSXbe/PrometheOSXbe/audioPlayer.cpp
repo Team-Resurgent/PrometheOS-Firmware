@@ -1,5 +1,6 @@
 #include "audioPlayer.h"
 #include "stringUtility.h"
+#include "settingsManager.h"
 #include "fileSystem.h"
 #include "pointerMap.h"
 #include "context.h"
@@ -22,13 +23,11 @@ extern "C"
 
 namespace {
 
-	pointerMap* mAudioContainerMap;
+	pointerMap<audioContainer*>* mAudioContainerMap;
 	LPDIRECTSOUND8 mDirectSoundDevice;
 	uint32_t mUniqueSoundId;
 	bool mPause;
 	CRITICAL_SECTION mPlayerMutex;
-	uint32_t mSoundCount;
-
 }
 
 bool audioPlayer::init()
@@ -37,9 +36,8 @@ bool audioPlayer::init()
 
 	g_fDirectSoundDisableBusyWaitWarning = TRUE;
 
-	mAudioContainerMap = new pointerMap(true);
+	mAudioContainerMap = new pointerMap<audioContainer*>(true);
 	mUniqueSoundId = 0;
-	mSoundCount = 0;
 
 	HRESULT hr = DirectSoundCreate( NULL, &mDirectSoundDevice, NULL );
 	return SUCCEEDED(hr);
@@ -49,9 +47,9 @@ bool audioPlayer::close()
 {
 	for (uint32_t i = 0; i < mAudioContainerMap->count(); i++)
 	{
-		audioContainer* sound = (audioContainer*)mAudioContainerMap->get(i);
+		audioContainer* sound = mAudioContainerMap->get(i);
 		EnterCriticalSection(&mPlayerMutex);
-		sound->audioPlayerData->requestStop = true;
+		sound->requestStop = true;
 		LeaveCriticalSection(&mPlayerMutex);
 	}
 	delete(mAudioContainerMap);
@@ -66,7 +64,7 @@ bool audioPlayer::close()
 
 uint32_t audioPlayer::play(const char* soundName, bool repeat)
 {
-	if (mPause == true || mSoundCount == 20)
+	if (mPause == true || mAudioContainerMap->count() >= 20)
 	{
 		return 0;
 	}
@@ -78,21 +76,17 @@ uint32_t audioPlayer::play(const char* soundName, bool repeat)
 		return 0;
 	}
 
-	EnterCriticalSection(&mPlayerMutex);
-	mSoundCount++;
-	LeaveCriticalSection(&mPlayerMutex);
-
-	audioPlayerData* data = (audioPlayerData*)malloc(sizeof(audioPlayerData));
-	data->filePath =  fileSystem::combinePath(soundPackPath, soundName);
-	data->repeat = repeat;
-	data->requestStop = false;
-
 	mUniqueSoundId++;
 
 	audioContainer* sound = new audioContainer();
-	sound->audioPlayerData = data;
-	sound->audioPlayerData->thread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)process, (void*)data, 0, NULL);
+	sound->id = mUniqueSoundId;
+	sound->filePath =  fileSystem::combinePath(soundPackPath, soundName);
+	sound->repeat = repeat;
+	sound->requestStop = false;
+	sound->thread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)process, (void*)sound, 0, NULL);
 	mAudioContainerMap->add(mUniqueSoundId, sound);
+
+	utils::debugPrint("Sound %i play start with thread handle %i\n", mUniqueSoundId, sound->thread);
 
 	free(soundPackPath);
 
@@ -101,14 +95,14 @@ uint32_t audioPlayer::play(const char* soundName, bool repeat)
 
 bool audioPlayer::stop(uint32_t key)
 {
-	audioContainer* sound = (audioContainer*)mAudioContainerMap->get(key);
+	audioContainer* sound = mAudioContainerMap->get(key);
 	if (sound == NULL)
 	{
 		return false;
 	}
 	
 	EnterCriticalSection(&mPlayerMutex);
-	sound->audioPlayerData->requestStop = true;
+	sound->requestStop = true;
 	LeaveCriticalSection(&mPlayerMutex);
 	return true;
 }
@@ -118,33 +112,13 @@ void audioPlayer::pause(bool value)
 	mPause = value;
 }
 
-void audioPlayer::refresh()
-{
-	pointerVector* keys = mAudioContainerMap->keys();
-	for (uint32_t i = 0; i < keys->count(); i++)
-	{
-		char* key = (char*)keys->get(i);
-		audioContainer* sound = (audioContainer*)mAudioContainerMap->get(key);
-		DWORD exitCode;
-		if (sound != NULL && GetExitCodeThread(sound->audioPlayerData->thread, &exitCode)) 
-		{
-			if (exitCode != STILL_ACTIVE) 
-			{
-				CloseHandle(sound->audioPlayerData->thread);
-				mAudioContainerMap->removeKey(key);
-			}
-		}
-	}
-	delete(keys);
-}
-
 uint64_t WINAPI audioPlayer::process(void* param)
 {
-	audioPlayerData* data = (audioPlayerData*)param;
-	bool repeat = data->repeat;
+	audioContainer* container = (audioContainer*)param;
+	bool repeat = container->repeat;
 
 	int error;
-	stb_vorbis *vorbis = stb_vorbis_open_filename(data->filePath, &error, NULL);
+	stb_vorbis *vorbis = stb_vorbis_open_filename(container->filePath, &error, NULL);
 	if (vorbis == NULL)
 	{
 		return 0;
@@ -200,11 +174,13 @@ uint64_t WINAPI audioPlayer::process(void* param)
 
 	char* decodeBuffer = (char *)malloc(AUDIO_PACKETS * AUDIO_OUTPUT_BUF_SIZE);
 
+	utils::debugPrint("Sound %i play loop begin\n", container->id);
+
 	bool eof = false;
 	while (true)
 	{
 		EnterCriticalSection(&mPlayerMutex);
-		bool requestStop = data->requestStop;
+		bool requestStop = container->requestStop;
 		LeaveCriticalSection(&mPlayerMutex);
 
 		if (mPause == true)
@@ -216,6 +192,8 @@ uint64_t WINAPI audioPlayer::process(void* param)
 
 		if (eof == true || requestStop == true)
 		{
+			DirectSoundDoWork();
+			Sleep(10);
 			break;
 		}
 
@@ -270,8 +248,9 @@ uint64_t WINAPI audioPlayer::process(void* param)
 	free(decodeBuffer);
 	stb_vorbis_close(vorbis);
 
-	EnterCriticalSection(&mPlayerMutex);
-	mSoundCount--;
-	LeaveCriticalSection(&mPlayerMutex);
+	utils::debugPrint("Sound %i ending\n", container->id);
+
+	mAudioContainerMap->removeKey(container->id);
+
 	return 1;
 }

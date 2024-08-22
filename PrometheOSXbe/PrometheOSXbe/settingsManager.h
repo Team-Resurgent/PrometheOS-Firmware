@@ -7,14 +7,17 @@
 
 #include <string>
 
+#define MAX_SLOTS 16
+
 #pragma pack(push,1)
 
 typedef struct bankInfo 
 {
 	uint8_t ledColor;
 	uint8_t slots;
-	char name[41];
-	bool autoBoot;
+	uint8_t autoBoot;
+	uint8_t reserved0;
+	char name[64];
 } bankInfo;
 
 enum networkModeEnum
@@ -26,7 +29,7 @@ enum networkModeEnum
 
 typedef struct networkInfo 
 {
-	networkModeEnum networkMode;
+	uint32_t networkMode;
 	uint32_t address;
 	uint32_t subnet;
 	uint32_t gateway;
@@ -38,19 +41,29 @@ typedef struct settingsState
 {
 	uint32_t checksum;
     semver version;
-	bankInfo banks[4];
+	bankInfo banks[MAX_SLOTS];
 	networkInfo network;
-	char skinName[51];
-	char soundPackName[51];
-	uint32_t playerHiScore;
+	uint32_t snakeHiScore;
+	uint32_t invadersHiScore;
+	char skinName[64];
+	char soundPackName[64];
 	uint8_t autoBootDelay;
 	uint8_t musicVolume;
 	uint8_t soundVolume;
 	uint8_t minFanSpeed;
 	uint8_t ledColor;
-	bool lcdEnabled;
+	uint8_t lcdEnableType;
 	uint8_t lcdBacklight;
 	uint8_t lcdContrast;
+	uint8_t rtcEnable;
+	uint8_t driveSetup;
+	uint8_t udmaModeMaster;
+	uint8_t udmaModeSlave;
+	uint8_t splashDelay;
+	uint8_t vgaEnable;
+	uint8_t reserved0;
+	uint8_t reserved1;
+	uint8_t reserved2;
 } settingsState;
 
 #pragma pack(pop)
@@ -85,12 +98,13 @@ public:
 	static uint32_t getFreeSlots();
 	static char* getFreeSlotsJson();
 	static bankInfo getBankInfo(uint8_t id);
-	static pointerVector* getBankInfos();
+	static pointerVector<bankDetails*>* getBankInfos();
 	static char* getBankInfosJson();
 	static void toggleAutoBootBank(uint8_t id);
 	static bool hasAutoBootBank();
 	static void deleteBank(uint8_t id);
 	static void optimizeBanks(uint8_t slotsNeeded);
+	static bool tryGetLastUsedBank(uint8_t slotsNeeded, uint8_t& bankId);
 	static bool tryGetFreeBank(uint8_t slotsNeeded, uint8_t& bankId);
 	static void eraseBank(uint8_t bankId, uint32_t size);
 	static void writeBank(uint8_t bankId, utils::dataContainer* dataContainer, const char *name, uint8_t ledColor);
@@ -111,8 +125,10 @@ public:
 	static void setSkinName(const char* skinName);
 	static char* getSoundPackName();
 	static void setSoundPackName(const char* soundPackName);
-	static uint32_t getPlayerHiScore();
-	static void setPlayerHiScore(uint32_t playerScore);
+	static uint32_t getSnakeHiScore();
+	static void setSnakeHiScore(uint32_t playerScore);
+	static uint32_t getInvadersHiScore();
+	static void setInvadersHiScore(uint32_t playerScore);
 	static uint8_t getAutoBootDelay();
 	static void setAutoBootDelay(uint8_t autoBootDelay);
 	static uint8_t getMusicVolume();
@@ -123,10 +139,20 @@ public:
 	static void setMinFanSpeed(uint8_t minFanSpeed);
 	static uint8_t getLedColor();
 	static void setLedColor(uint8_t ledColor);
-	static bool getLcdEnabled();
-	static void setLcdEnabled(bool enabled);
+	static uint8_t getLcdEnableType();
+	static void setLcdEnableType(uint8_t lcdEnableType);
 	static uint8_t getLcdBacklight();
 	static void setLcdBacklight(uint8_t backlight);
 	static uint8_t getLcdContrast();
 	static void setLcdContrast(uint8_t contrast);
+	static bool getRtcEnable();
+	static void setRtcEnable(bool enable);
+	static uint8_t getDriveSetup();
+	static void setDriveSetup(uint8_t driveSetup);
+	static uint8_t getUdmaMode(bool master = true);
+	static void setUdmaMode(uint8_t udmaMode, bool master = true);
+	static uint8_t getSplashDelay();
+	static void setSplashDelay(uint8_t splashDelay);
+	static bool getVgaEnable();
+	static void setVgaEnable(bool enable);
 };

@@ -2,10 +2,19 @@
 #include "inputManager.h"
 #include "pointerMap.h"
 #include "modchip.h"
+#include "globalTypes.h"
+#include "modchipDummy.h"
+#include "modchipXenium.h"
+#include "modchipXecuter.h"
+#include "modchipModxo.h"
+#include "modchipAladdin1mb.h"
+#include "modchipAladdin2mb.h"
+#include "modchipXchanger.h"
 
 namespace 
 {
 	modchip* mModchip;
+	modchipType mModchipType;
 	char* mCurrentIp = NULL;
 	uint32_t mCurrentFreeMem = NULL;
 	char* mCurrentTitle = NULL;
@@ -18,7 +27,7 @@ namespace
 	int32_t mBufferHeight;
 	int32_t mBufferPitch;
 	int32_t* mBuffer;
-	pointerMap* mImageMap = NULL;
+	pointerMap<image*>* mImageMap = NULL;
 	bitmapFont* mBitmapFontSmall = NULL;
 	bitmapFont* mBitmapFontMedium = NULL;
 	bitmapFont* mBitmapFontLarge = NULL;
@@ -32,14 +41,52 @@ namespace
 	utils::dataContainer* mScreenshot = NULL;
 }
 
-void context::setModchip(modchip* modchip)
-{
-	mModchip = modchip;
-}
-
 modchip* context::getModchip()
 {
 	return mModchip;
+}
+
+
+void context::setModchipType(modchipType modchipType)
+{
+	if (mModchip != NULL)
+	{
+		delete(mModchip);
+	}
+	if (modchipType == modchipTypeXenium)
+	{
+		mModchip = new modchipXenium();
+	}
+	else if (modchipType == modchipTypeXecuter)
+	{
+		mModchip = new modchipXecuter();
+	}
+	else if (modchipType == modchipTypeModxo)
+	{
+		mModchip = new modchipModxo();
+	}
+	else if (modchipType == modchipTypeAladdin1mb)
+	{
+		mModchip = new modchipAladdin1mb();
+	}
+	else if (modchipType == modchipTypeAladdin2mb)
+	{
+		mModchip = new modchipAladdin2mb();
+	}
+	else if (modchipType == modchipTypeXchanger)
+	{
+		mModchip = new modchipXchanger();
+	}
+	else if (modchipType == modchipTypeDummy)
+	{
+		mModchip = new modchipDummy();
+	}
+	mModchipType = modchipType;
+}
+
+modchipType context::getModchipType()
+{
+	return mModchipType;
 }
 
 void context::setCurrentIp(const char* ip)
@@ -164,12 +211,12 @@ int32_t* context::getBuffer()
 	return mBuffer;
 }
 
-void context::setImageMap(pointerMap* imageMap)
+void context::setImageMap(pointerMap<image*>* imageMap)
 {
 	mImageMap = imageMap;
 }
 
-pointerMap* context::getImageMap()
+pointerMap<image*>* context::getImageMap()
 {
 	return mImageMap;
 }

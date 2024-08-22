@@ -14,8 +14,8 @@ public:
 	void update();
 	void render();
 private:
-	filePickerScene*	mFilePickerScene;
-	restoreEepromScene* mRestoreEepromScene;
 	uint32_t mCurrentSceneId;
 	char* mFilePath;
+	static void onFilePickerClosingCallback(sceneResult result, void* context, scene* scene);
+	static void onRestoreEepromClosingCallback(sceneResult result, void* context, scene* scene);
 };

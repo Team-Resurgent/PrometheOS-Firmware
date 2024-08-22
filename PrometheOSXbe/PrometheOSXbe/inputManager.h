@@ -50,6 +50,7 @@ class inputManager
 {
 public:
 	static void processController();
-	static bool buttonPressed(JoystickButton button);
+	static bool buttonDown(JoystickButton button, int port = -1);
+	static bool buttonPressed(JoystickButton button, int port = -1);
 	static bool isMemoryUnitMounted(char letter);
 };

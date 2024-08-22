@@ -16,21 +16,26 @@
 #include "..\xboxInternals.h"
 #include "..\theme.h"
 
-keyboardScene::keyboardScene(const char* text)
+keyboardScene::keyboardScene(uint32_t maxLen, const char* title, const char* label, const char* text)
 {
 	mSelectedControl = 33;
 	mCapitals = false;
 	mSymbols = false;
+	mMaxLen = maxLen;
+	mTitle = strdup(title);
+	mLabel = strdup(label);
 	mText = strdup(text);
-	mSceneResult = sceneResultNone;
 	mCounter = 0;
+	mCursorPos = strlen(mText);
+	calcShortStringRange(mText, mShortTextStart, mShortTextEnd);
 }
 
 keyboardScene::~keyboardScene()
 {
+	free(mTitle);
+	free(mLabel);
 	free(mText);
 }
-
 
 void keyboardScene::update()
 {
@@ -38,19 +43,25 @@ void keyboardScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		mSceneResult = sceneResultCancelled;
+		sceneManager::popScene(sceneResultCancelled);
+		return;
 	}
 
 	// Delete Action
 
 	if (inputManager::buttonPressed(ButtonX))
 	{
-		char* newText = stringUtility::substr(mText, 0, max(strlen(mText) - 1, 0));
-		free(mText);
-		mText = newText;
+		if (mCursorPos > 0)
+		{
+			char* newText = stringUtility::removeAtIndex(mText, mCursorPos);
+			free(mText);
+			mText = newText;
+			mCursorPos--;
+			calcShortStringRange(mText, mShortTextStart, mShortTextEnd);
+		}
 	}
 
-	if (inputManager::buttonPressed(ButtonLeftThumb) || inputManager::buttonPressed(ButtonTriggerLeft))
+	if (inputManager::buttonPressed(ButtonLeftThumb) || inputManager::buttonPressed(ButtonWhite))
 	{
 		mCapitals = !mCapitals;
 		if (mCapitals == true)
@@ -59,7 +70,7 @@ void keyboardScene::update()
 		}
 	}
 
-	if (inputManager::buttonPressed(ButtonRightThumb) || inputManager::buttonPressed(ButtonTriggerRight))
+	if (inputManager::buttonPressed(ButtonRightThumb) || inputManager::buttonPressed(ButtonBlack))
 	{
 		mSymbols = !mSymbols;
 		if (mSymbols == true)
@@ -92,9 +103,13 @@ void keyboardScene::update()
 		}
 		else if (mSelectedControl >= 1 && mSelectedControl <= 10)
 		{
-			char* newText = stringUtility::formatString("%s%c", mText, keys[mSelectedControl - 1]);
+			char* newText = stringUtility::insertAtIndex(mText, keys[mSelectedControl - 1], mCursorPos);
+			char* trimmedTest = stringUtility::substr(newText, 0, mMaxLen);
 			free(mText);
-			mText = newText;
+			free(newText);
+			mText = trimmedTest;
+			mCursorPos++;
+			calcShortStringRange(mText, mShortTextStart, mShortTextEnd);
 		}
 		else if (mSelectedControl == 11)
 		{
@@ -106,31 +121,46 @@ void keyboardScene::update()
 		}
 		else if (mSelectedControl >= 12 && mSelectedControl <= 21)
 		{
-			char* newText = stringUtility::formatString("%s%c", mText, keys[mSelectedControl - 2]);
+			char* newText = stringUtility::insertAtIndex(mText, keys[mSelectedControl - 2], mCursorPos);
+			char* trimmedTest = stringUtility::substr(newText, 0, mMaxLen);
 			free(mText);
-			mText = newText;
+			free(newText);
+			mText = trimmedTest;
+			mCursorPos++;
+			calcShortStringRange(mText, mShortTextStart, mShortTextEnd);
 		}
 		else if (mSelectedControl == 22)
 		{
-			char* newText = stringUtility::substr(mText, 0, max(strlen(mText) - 1, 0));
+			char* newText = stringUtility::removeAtIndex(mText, mCursorPos);
 			free(mText);
 			mText = newText;
+			mCursorPos--;
+			calcShortStringRange(mText, mShortTextStart, mShortTextEnd);
 		}
 		else if (mSelectedControl >= 23 && mSelectedControl <= 32)
 		{
-			char* newText = stringUtility::formatString("%s%c", mText, keys[mSelectedControl - 3]);
+			char* newText = stringUtility::insertAtIndex(mText, keys[mSelectedControl - 3], mCursorPos);
+			char* trimmedTest = stringUtility::substr(newText, 0, mMaxLen);
 			free(mText);
-			mText = newText;
+			free(newText);
+			mText = trimmedTest;
+			mCursorPos++;
+			calcShortStringRange(mText, mShortTextStart, mShortTextEnd);
 		}
 		else if (mSelectedControl == 33)
 		{
-			mSceneResult = sceneResultDone;
+			sceneManager::popScene(sceneResultDone);
+			return;
 		}
 		else if (mSelectedControl >= 34 && mSelectedControl <= 40)
 		{
-			char* newText = stringUtility::formatString("%s%c", mText, keys[mSelectedControl - 4]);
+			char* newText = stringUtility::insertAtIndex(mText, keys[mSelectedControl - 4], mCursorPos);
+			char* trimmedTest = stringUtility::substr(newText, 0, mMaxLen);
 			free(mText);
-			mText = newText;
+			free(newText);
+			mText = trimmedTest;
+			mCursorPos++;
+			calcShortStringRange(mText, mShortTextStart, mShortTextEnd);
 		}
 	}
 	
@@ -221,6 +251,22 @@ void keyboardScene::update()
 			mSelectedControl -= 11;
 		}
 	}
+
+	// Left Trigger
+
+	if (inputManager::buttonPressed(ButtonTriggerLeft))
+	{
+		mCursorPos = mCursorPos > 0 ? mCursorPos - 1 : 0;
+		calcShortStringRange(mText, mShortTextStart, mShortTextEnd);
+	}
+
+	// Right Trigger
+
+	if (inputManager::buttonPressed(ButtonTriggerRight))
+	{
+		mCursorPos = mCursorPos < strlen(mText) ? mCursorPos + 1 : strlen(mText);
+		calcShortStringRange(mText, mShortTextStart, mShortTextEnd);
+	}
 }
 
 void keyboardScene::render()
@@ -234,8 +280,11 @@ void keyboardScene::render()
 		mCounter--;
 	}
 
+	free(mTitle);
+	mTitle = stringUtility::formatString("pos = %i", mCursorPos);
+
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
-	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please enter a bank name...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), mTitle, theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
 	char* keys = "0123456789abcdefghijklmnopqrstuvwxyz ";
 	if (mCapitals == true)
@@ -251,13 +300,21 @@ void keyboardScene::render()
 	int32_t keyboardY = (context::getBufferHeight() - (((4 * 48) - 4) + 30 + 64)) / 2;
 	keyboardY += theme::getCenterOffset();
 
-	drawing::drawBitmapString(context::getBitmapFontSmall(), "Bank Name:", theme::getTextColor(), 40, keyboardY);
+	drawing::drawBitmapString(context::getBitmapFontSmall(), mLabel, theme::getTextColor(), 40, keyboardY);
 
 	keyboardY += 30;
 
-	char* tempText = mCounter < 30 ? stringUtility::formatString("%s\xC2\xAF", mText) : stringUtility::formatString("%s\xC2\xB0", mText);
-	component::textBox(tempText, false, false, horizAlignmentLeft, 40, keyboardY, 640, 44);
-	free(tempText);
+	int t = strlen(mText);
+	int cursorEnd1 = mCursorPos - mShortTextStart;
+	int cursorEnd2 = max(mShortTextEnd - mCursorPos, 0);
+
+	char* leftString = stringUtility::substr(mText, mShortTextStart, mCursorPos - mShortTextStart);
+	int q = strlen(leftString);
+	char* rightString = stringUtility::substr(mText, mCursorPos,  max(mShortTextEnd - mCursorPos, 0));
+	int v = strlen(rightString);
+	char* shortText = mCounter < 30 ? stringUtility::formatString("%s\xC2\xAF%s", leftString, rightString) : stringUtility::formatString("%s\xC2\xB0%s", leftString, rightString);
+	component::textBox(shortText, false, false, horizAlignmentLeft, 40, keyboardY, 640, 44);
+	free(shortText);
 
 	keyboardY += 64;
 
@@ -318,7 +375,7 @@ void keyboardScene::render()
 		component::button(mSelectedControl == 40, false, "Space", keyboardX + 108 + (54 * 6), keyboardY + (48 * 3), 212, 44);
 	}
 
-	drawing::drawBitmapString(context::getBitmapFontSmall(), "\xC2\xA1 Select", theme::getFooterTextColor(), 40, theme::getFooterY());
+	drawing::drawBitmapString(context::getBitmapFontSmall(), "\xC2\xA1 Select, \xC2\xA3 Delete", theme::getFooterTextColor(), 40, theme::getFooterY());
 	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Cancel", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
 }
 
@@ -334,7 +391,39 @@ char* keyboardScene::getText()
 	return strdup(mText);
 }
 
-sceneResult keyboardScene::getSceneResult()
+void keyboardScene::calcShortStringRange(const char* value, int& startPos, int &endPos)
 {
-	return mSceneResult;
+	int textWidth;
+	int textHeight;
+
+	int maxWidth = 640 - 30;
+
+	startPos = mCursorPos;
+	while (startPos >= 0)
+	{
+		char* leftString = stringUtility::substr(value, startPos, mCursorPos - startPos);
+		drawing::measureBitmapString(context::getBitmapFontSmall(), leftString, &textWidth, &textHeight);
+		free(leftString);
+		if (textWidth > maxWidth)
+		{
+			break;
+		}
+		startPos--;
+	}
+	startPos++;
+
+	endPos = startPos;
+	while (endPos <= strlen(value))
+	{
+		char* rightString = stringUtility::substr(value, startPos, endPos - startPos);
+		drawing::measureBitmapString(context::getBitmapFontSmall(), rightString, &textWidth, &textHeight);
+		free(rightString);
+		if (textWidth > maxWidth)
+		{
+			break;
+		}
+		endPos++;
+		
+	}
+	endPos--;
 }

@@ -1,9 +1,6 @@
 #include "modchipDummy.h"
 #include "crc32.h"
-
-#ifndef TOOLS
 #include "settingsManager.h"
-#endif
 
 #define DUMMY_BANK_TSOP 0
 #define DUMMY_BANK_BOOTLOADER 1
@@ -97,6 +94,11 @@ bool modchipDummy::isValidBankSize(uint32_t size)
 	return size == (256 * 1024) || size == (512 * 1024) || size == (1024 * 1024);
 }
 
+bool modchipDummy::isValidFlashSize(bool recovery, uint32_t size)
+{
+	return size == getFlashSize(recovery);
+}
+
 uint32_t modchipDummy::getBankSize(uint8_t bank)
 {
 	if (bank == DUMMY_BANK_BOOTLOADER) 
@@ -187,6 +189,11 @@ uint32_t modchipDummy::getBankMemOffset(uint8_t bank)
 	return 0;
 }
 
+uint32_t modchipDummy::getBankStartOffset(uint8_t bank)
+{
+	return 0;
+}
+
 uint8_t modchipDummy::getBankFromIdAndSlots(uint8_t id, uint8_t slots)
 {
 	if (id == 0 && slots == 1)
@@ -232,11 +239,12 @@ void modchipDummy::eraseBank(uint8_t bank)
 {
 	uint32_t bankSize = getBankSize(bank);
 	uint32_t memOffset = getBankMemOffset(bank);
+	uint32_t startOffset = getBankStartOffset(bank);
 
 	uint32_t offset = 0;
     while (offset < bankSize)
 	{
-		if (isEraseMemOffset(memOffset + offset))
+		if (isEraseMemOffset(memOffset + startOffset + offset))
 		{
 			sectorErase(memOffset + offset);
 		}
@@ -292,6 +300,20 @@ uint8_t modchipDummy::getFlashBank(bool recovery, uint8_t bank)
 	return recovery ? 0 : banks[bank];
 }
 
+bankType modchipDummy::getFlashBankType(bool recovery, uint8_t bank)
+{
+	const bankType banks[] = { 
+		bankTypeUser, 
+		bankTypeUser, 
+		bankTypeUser, 
+		bankTypeUser, 
+		bankTypeSystem,
+		bankTypeSystem,
+		bankTypeSystem,
+	};
+	return recovery ? bankTypeUser : banks[bank];
+}
+
 utils::dataContainer* modchipDummy::readFlash(bool recovery)
 {
 	utils::dataContainer* result = new utils::dataContainer(getFlashSize(recovery));
@@ -325,7 +347,7 @@ void modchipDummy::loadSettings(settingsState& settings)
 	uint32_t memOffset = getBankMemOffset(DUMMY_SETTINGS_BANK);
 
     memcpy(&settings, mFlashData + memOffset + DUMMY_SETTINGS_OFFSET , sizeof(settings));
-	uint32_t checksum = crc32::calculate(((char*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
+	uint32_t checksum = crc32::calculate(((uint8_t*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
 
 	if (checksum != settings.checksum || versioning::compareVersion(settings.version, settingsManager::getVersion()) != 0)
 	{
@@ -338,7 +360,7 @@ void modchipDummy::saveSettings(settingsState settings)
 {
 	uint32_t memOffset = getBankMemOffset(DUMMY_SETTINGS_BANK); 
 
-	settings.checksum = crc32::calculate(((const char*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
+	settings.checksum = crc32::calculate(((uint8_t*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
 	utils::dataContainer* settingsData = new utils::dataContainer((char*)&settings, sizeof(settings), sizeof(settings));
 
 	sectorErase(memOffset + DUMMY_SETTINGS_OFFSET);
@@ -366,6 +388,16 @@ void modchipDummy::lcdSendCharacter(uint8_t value, uint8_t command)
 
 void modchipDummy::lcdSetCursorPosition(uint8_t row, uint8_t col)
 {
+}
+
+uint8_t modchipDummy::getLcdTypeCount()
+{
+	return 0;
+}
+
+char* modchipDummy::getLcdTypeString(uint8_t lcdEnableType)
+{
+	return strdup("Disabled");
 }
 
 void modchipDummy::lcdInit(uint8_t backlight, uint8_t contrast)

@@ -207,32 +207,6 @@ void utils::setLedStates(uint32_t ledStates)
     HalWriteSMBusByte(SMC_SLAVE_ADDRESS, SMC_COMMAND_LED_OVERRIDE, SMC_LED_OVERRIDE_USE_REQUESTED_LED_STATES);
 }
 
-bool utils::smcTransmitByteAndRecieve(uint8_t picAddressI2cFormat, uint8_t data, uint8_t& result)
-{
-    int32_t retries = 400;
-    while(ioInputShort(I2C_IO_BASE + 0) & 0x0800);
-    while (retries--)
-    {
-        ioOutputByte(I2C_IO_BASE + 4, (picAddressI2cFormat << 1) | 1);
-        ioOutputByte(I2C_IO_BASE + 8, data);
-        ioOutputShort(I2C_IO_BASE + 0, 0xffff); 
-        ioOutputByte(I2C_IO_BASE + 2, 0x0a);
-        {
-            uint8_t b = 0x0;
-            while ((b & 0x36) == 0)
-            {
-                b = ioInputByte(I2C_IO_BASE + 0);
-            }
-            if ((b & 0x10) == 0x10)
-            {
-                result = ioInputByte(I2C_IO_BASE + 6);
-				return true;
-            }
-        }
-    }
-    return false;
-}
-
 uint32_t utils::roundUpToNextPowerOf2(uint32_t value) 
 {
 	value--;

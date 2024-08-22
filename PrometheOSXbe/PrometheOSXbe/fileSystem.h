@@ -64,8 +64,8 @@ public:
 
     } FileInfoDetail;
 	
-	static FileInfoDetail* fileGetFileInfoDetail(const char* path);
-	static pointerVector* fileGetFileInfoDetails(const char* path);
+	static fileSystem::FileInfoDetail* fileGetFileInfoDetail(const char* path);
+	static pointerVector<fileSystem::FileInfoDetail*>* fileGetFileInfoDetails(const char* path);
 	
 	static bool fileOpen(const char* path, FileMode const fileMode, uint32_t& fileHandle);
 	static bool fileRead(uint32_t fileHandle, char* readBuffer, uint32_t const bytesToRead, uint32_t& bytesRead);

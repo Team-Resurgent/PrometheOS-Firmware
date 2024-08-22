@@ -11,17 +11,17 @@ typedef struct RequestBody {
 	char* verb;
 	char* path;
 	char* query;
-	pointerVector* headers;
+	pointerVector<char*>* headers;
 } RequestBody;
 
 typedef struct FormPart {
 
-	pointerVector* headers;
+	pointerVector<char*>* headers;
 	utils::dataContainer* body;
 
 	FormPart() : headers(NULL), body(NULL) {}
 
-	FormPart(pointerVector* headers, utils::dataContainer* body) : headers(headers), body(body) {}
+	FormPart(pointerVector<char*>* headers, utils::dataContainer* body) : headers(headers), body(body) {}
 
 	~FormPart()
 	{
@@ -64,7 +64,7 @@ typedef struct HttpClientSocket {
 } HttpClientSocket;
 
 typedef utils::dataContainer* (*HttpOnGetCallback)(const char* path, const char* query);
-typedef utils::dataContainer* (*HttpOnPostCallback)(const char* path, const char* query, pointerVector* formParts);
+typedef utils::dataContainer* (*HttpOnPostCallback)(const char* path, const char* query, pointerVector<FormPart*>* formParts);
 typedef void (*HttpOnResponseSentCallback)();
 
 class httpServer 
@@ -86,8 +86,8 @@ private:
 	static RequestBody* getRequestBody(utils::dataContainer* input, uint32_t& index);
     static void refresh();
 	static char* getLine(utils::dataContainer* input, uint32_t& index);
-	static pointerVector* getHeaders(utils::dataContainer* input, uint32_t& index);
-	static pointerVector* getHeaderValueParts(pointerVector* headers, const char* header);
+	static pointerVector<char*>* getHeaders(utils::dataContainer* input, uint32_t& index);
+	static pointerVector<char*>* getHeaderValueParts(pointerVector<char*>* headers, const char* header);
 	static utils::dataContainer* processGet(RequestBody* requestBody);
 	static utils::dataContainer* processPost(RequestBody* requestBody, utils::dataContainer* input);
 };

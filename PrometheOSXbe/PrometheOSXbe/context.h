@@ -24,7 +24,7 @@ typedef struct image
 
 typedef struct bitmapFont
 {
-	pointerMap* charMap;
+	pointerMap<math::rectI*>* charMap;
 	image* image;
 	int lineHeight;
 	int spacing;
@@ -40,8 +40,9 @@ typedef struct bitmapFont
 class context
 {
 public:
-	static void setModchip(modchip* modchip);
 	static modchip* getModchip();
+	static void setModchipType(modchipType modchipType);
+	static modchipType getModchipType();
 	static void setCurrentIp(const char* ip);
 	static char* getCurrentIp();
 	static void setCurrentFreeMem(uint32_t freeMem);
@@ -66,8 +67,8 @@ public:
 	static int32_t getBufferPitch();
 	static void setBuffer(int32_t* buffer);
 	static int32_t* getBuffer();
-	static void setImageMap(pointerMap* imageMap);
-	static pointerMap* getImageMap();
+	static void setImageMap(pointerMap<image*>* imageMap);
+	static pointerMap<image*>* getImageMap();
 	static inputManager* getInputManager();
 	static void setBitmapFontSmall(bitmapFont* font);
 	static bitmapFont* getBitmapFontSmall();

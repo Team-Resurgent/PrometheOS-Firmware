@@ -11,10 +11,8 @@ public:
 	~restoreEepromScene();
 	void update();
 	void render();
-	sceneResult getSceneResult();
 private:
 	char* mFilePath;
 	char* mProgress;
-	sceneResult mSceneResult;
 	bool mDone;
 };

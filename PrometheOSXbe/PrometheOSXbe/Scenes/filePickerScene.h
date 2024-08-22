@@ -3,6 +3,7 @@
 #include "scene.h"
 
 #include "..\pointerVector.h"
+#include "..\fileSystem.h"
 
 enum filePickerType
 { 
@@ -20,17 +21,15 @@ public:
 	void update();
 	void render();
 	char* getFilePath();
-	sceneResult getSceneResult();
 private:
-	pointerVector* getFileInfoDetails();
+	pointerVector<fileSystem::FileInfoDetail*>* getFileInfoDetails();
 private:
 	bool mInitialized;
 	filePickerType mFilePickerType;
 	int mSelectedControl;
 	int mScrollPosition;
-	pointerVector* mMountedDrives;
+	pointerVector<char*>* mMountedDrives;
 	char* mCurrentPath;
-	pointerVector* mFileInfoDetails;
+	pointerVector<fileSystem::FileInfoDetail*>* mFileInfoDetails;
 	char* mFilePath;
-	sceneResult mSceneResult;
 };

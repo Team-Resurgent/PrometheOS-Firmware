@@ -13,7 +13,7 @@
 #include "..\theme.h"
 #include "..\audioPlayer.h"
 
-menuScene::menuScene(const char* title, const char* subTitle, pointerVector* sceneItems)
+menuScene::menuScene(const char* title, const char* subTitle, pointerVector<utils::intContainer*>* sceneItems)
 {
 	mSelectedControl = 0;
 	mTitle = strdup(title);
@@ -24,7 +24,14 @@ menuScene::menuScene(const char* title, const char* subTitle, pointerVector* sce
 menuScene::~menuScene()
 {
 	free(mTitle);
+	free(mSubTitle);
 	delete(mSceneItems);
+}
+
+void menuScene::setSubTilte(const char* subTitle)
+{
+	free(mSubTitle);
+	mSubTitle = strdup(subTitle);
 }
 
 void menuScene::update()
@@ -40,7 +47,7 @@ void menuScene::update()
 
 	if (inputManager::buttonPressed(ButtonA))
 	{
-		utils::intContainer* intContainer = (utils::intContainer*)mSceneItems->get(mSelectedControl);
+		utils::intContainer* intContainer = mSceneItems->get(mSelectedControl);
 		sceneItemEnum sceneItem = (sceneItemEnum)intContainer->value;
 		sceneManager::pushScene(sceneItem);
 	}
@@ -82,12 +89,24 @@ void menuScene::render()
 		for (int32_t i = 0; i < itemCount; i++)
 		{
 			uint32_t index = start + i;
-			utils::intContainer* intContainer = (utils::intContainer*)mSceneItems->get(index);
+			utils::intContainer* intContainer = mSceneItems->get(index);
 			sceneItemEnum sceneItem = (sceneItemEnum)intContainer->value;
 			char* menuText = NULL;
-			if (sceneItem == sceneItemSystemSettingsScene)
+			if (sceneItem == sceneItemSystemScene)
 			{
-				menuText = strdup("System Settings");
+				menuText = strdup("System");
+			}
+			else if (sceneItem == sceneItemFlashToolsScene)
+			{
+				menuText = strdup("Flash Tools");
+			}
+			else if (sceneItem == sceneItemSettingsScene)
+			{
+				menuText = strdup("Settings");
+			}
+			else if (sceneItem == sceneItemGamesScene)
+			{
+				menuText = strdup("Games");
 			}
 			else if (sceneItem == sceneItemUtilitiesScene)
 			{
@@ -96,6 +115,14 @@ void menuScene::render()
 			else if (sceneItem == sceneItemEepromToolsScene)
 			{
 				menuText = strdup("EEPROM Tools");
+			}
+			else if (sceneItem == sceneItemRtcExpansionScene)
+			{
+				menuText = strdup("RTC Expansion");
+			}
+			else if (sceneItem == sceneItemDateTimeScene)
+			{
+				menuText = strdup("Date Time");
 			}
 			else if (sceneItem == sceneItemFlashFlowScene)
 			{
@@ -120,6 +147,10 @@ void menuScene::render()
 			else if (sceneItem == sceneItemSystemInfoSceneConsole)
 			{
 				menuText = strdup("Console");
+			}
+			else if (sceneItem == sceneItemSystemInfoSceneStorage)
+			{
+				menuText = strdup("Storage");
 			}
 			else if (sceneItem == sceneItemSystemInfoSceneAudio)
 			{
@@ -177,9 +208,29 @@ void menuScene::render()
 			{
 				menuText = strdup("Snake");
 			}
+			else if (sceneItem == sceneItemInvadersScene)
+			{
+				menuText = strdup("Invaders");
+			}
 			else if (sceneItem == sceneItemGeneralOptionsScene)
 			{
 				menuText = strdup("General Options");
+			}
+			else if (sceneItem == sceneItemBootOptionsScene)
+			{
+				menuText = strdup("Boot Options");
+			}
+			else if (sceneItem == sceneItemAudioVideoOptionsScene)
+			{
+				menuText = strdup("Audio/Video Options");
+			}
+			else if (sceneItem == sceneItemLcdOptionsScene)
+			{
+				menuText = strdup("LCD Options");
+			}
+			else if (sceneItem == sceneItemMiscellaneousOptionsScene)
+			{
+				menuText = strdup("Miscellaneous Options");
 			}
 			else if (sceneItem == sceneItemFlashUpdateFlowScene)
 			{

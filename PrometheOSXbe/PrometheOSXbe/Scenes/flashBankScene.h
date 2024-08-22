@@ -13,12 +13,10 @@ public:
 	~flashBankScene();
 	void update();
 	void render();
-	sceneResult getSceneResult();
 private:
 	void setProgress(const char* message);
 	void processResponse(flashBank::flashBankResponse response);
 private:
 	bool mDone;
 	char* mProgress;
-	sceneResult mSceneResult;
 };

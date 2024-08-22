@@ -60,6 +60,7 @@
 				ForceCopy="TRUE"/>
 			<Tool
 				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
 				StackSize="0x40000"
 				IncludeDebugInfo="TRUE"
 				LimitAvailableMemoryTo64MB="FALSE"
@@ -68,6 +69,7 @@
 				NoLibWarn="TRUE"
 				TitleID="0x43423130"
 				TitleName="PrometheOS"
+				TitleImage=""
 				XBEVersion="1"/>
 		</Configuration>
 		<Configuration
@@ -121,13 +123,16 @@
 				ForceCopy="TRUE"/>
 			<Tool
 				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
 				StackSize="0x20000"
 				IncludeDebugInfo="TRUE"
 				LimitAvailableMemoryTo64MB="FALSE"
 				DontModifyHD="TRUE"
 				DontMountUD="TRUE"
 				NoLibWarn="TRUE"
-				TitleName="PrometheOS"/>
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
 		</Configuration>
 		<Configuration
 			Name="Profile_FastCap|Xbox"
@@ -181,13 +186,16 @@
 				ForceCopy="TRUE"/>
 			<Tool
 				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
 				StackSize="0x20000"
 				IncludeDebugInfo="TRUE"
 				LimitAvailableMemoryTo64MB="FALSE"
 				DontModifyHD="TRUE"
 				DontMountUD="TRUE"
 				NoLibWarn="TRUE"
-				TitleName="PrometheOS"/>
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
 		</Configuration>
 		<Configuration
 			Name="Release-Aladdin1mb|Xbox"
@@ -241,11 +249,14 @@
 				ForceCopy="TRUE"/>
 			<Tool
 				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
 				StackSize="0x20000"
 				LimitAvailableMemoryTo64MB="FALSE"
 				DontModifyHD="TRUE"
 				DontMountUD="TRUE"
-				TitleName="PrometheOS"/>
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
 		</Configuration>
 		<Configuration
 			Name="Release_LTCG|Xbox"
@@ -299,11 +310,14 @@
 				ForceCopy="TRUE"/>
 			<Tool
 				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
 				StackSize="0x20000"
 				LimitAvailableMemoryTo64MB="FALSE"
 				DontModifyHD="TRUE"
 				DontMountUD="TRUE"
-				TitleName="PrometheOS"/>
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
 		</Configuration>
 		<Configuration
 			Name="Debug-Xenium|Xbox"
@@ -354,6 +368,7 @@
 				ForceCopy="TRUE"/>
 			<Tool
 				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
 				StackSize="0x40000"
 				IncludeDebugInfo="TRUE"
 				LimitAvailableMemoryTo64MB="FALSE"
@@ -362,6 +377,7 @@
 				NoLibWarn="TRUE"
 				TitleID="0x43423130"
 				TitleName="PrometheOS"
+				TitleImage=""
 				XBEVersion="1"/>
 		</Configuration>
 		<Configuration
@@ -416,11 +432,14 @@
 				ForceCopy="TRUE"/>
 			<Tool
 				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
 				StackSize="0x20000"
 				LimitAvailableMemoryTo64MB="FALSE"
 				DontModifyHD="TRUE"
 				DontMountUD="TRUE"
-				TitleName="PrometheOS"/>
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
 		</Configuration>
 		<Configuration
 			Name="Debug-Dummy|Xbox"
@@ -471,6 +490,7 @@
 				ForceCopy="TRUE"/>
 			<Tool
 				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
 				StackSize="0x40000"
 				IncludeDebugInfo="TRUE"
 				LimitAvailableMemoryTo64MB="FALSE"
@@ -479,6 +499,7 @@
 				NoLibWarn="TRUE"
 				TitleID="0x43423130"
 				TitleName="PrometheOS"
+				TitleImage=""
 				XBEVersion="1"/>
 		</Configuration>
 		<Configuration
@@ -533,11 +554,14 @@
 				ForceCopy="TRUE"/>
 			<Tool
 				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
 				StackSize="0x20000"
 				LimitAvailableMemoryTo64MB="FALSE"
 				DontModifyHD="TRUE"
 				DontMountUD="TRUE"
-				TitleName="PrometheOS"/>
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
 		</Configuration>
 		<Configuration
 			Name="Release-Xecuter|Xbox"
@@ -591,11 +615,14 @@
 				ForceCopy="TRUE"/>
 			<Tool
 				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
 				StackSize="0x20000"
 				LimitAvailableMemoryTo64MB="FALSE"
 				DontModifyHD="TRUE"
 				DontMountUD="TRUE"
-				TitleName="PrometheOS"/>
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
 		</Configuration>
 		<Configuration
 			Name="Debug-Xecuter|Xbox"
@@ -646,6 +673,7 @@
 				ForceCopy="TRUE"/>
 			<Tool
 				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
 				StackSize="0x40000"
 				IncludeDebugInfo="TRUE"
 				LimitAvailableMemoryTo64MB="FALSE"
@@ -654,6 +682,7 @@
 				NoLibWarn="TRUE"
 				TitleID="0x43423130"
 				TitleName="PrometheOS"
+				TitleImage=""
 				XBEVersion="1"/>
 		</Configuration>
 		<Configuration
@@ -708,11 +737,14 @@
 				ForceCopy="TRUE"/>
 			<Tool
 				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
 				StackSize="0x20000"
 				LimitAvailableMemoryTo64MB="FALSE"
 				DontModifyHD="TRUE"
 				DontMountUD="TRUE"
-				TitleName="PrometheOS"/>
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
 		</Configuration>
 		<Configuration
 			Name="Debug-Xchanger|Xbox"
@@ -763,6 +795,7 @@
 				ForceCopy="TRUE"/>
 			<Tool
 				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
 				StackSize="0x40000"
 				IncludeDebugInfo="TRUE"
 				LimitAvailableMemoryTo64MB="FALSE"
@@ -771,6 +804,617 @@
 				NoLibWarn="TRUE"
 				TitleID="0x43423130"
 				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
+		</Configuration>
+		<Configuration
+			Name="Debug-Aladdin2mb|Xbox"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				OptimizeForProcessor="2"
+				AdditionalIncludeDirectories=""
+				PreprocessorDefinitions="_DEBUG;_XBOX;ALADDIN2MB"
+				MinimalRebuild="TRUE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				EnableEnhancedInstructionSet="1"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(OutDir)/$(ProjectName).pch"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="4"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="dsoundd.lib xapilibd.lib d3d8d.lib d3dx8d.lib xgraphicsd.lib dmusicd.lib xactengd.lib xsndtrkd.lib xvoiced.lib xonlined.lib xboxkrnl.lib xbdm.lib"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories=""
+				IgnoreDefaultLibraryNames=""
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeForWindows98="1"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="XboxDeploymentTool"
+				RemotePath="xe:\$(ProjectName)\$(TargetName).xbe"
+				AdditionalFiles=""
+				Progress="TRUE"
+				ForceCopy="TRUE"/>
+			<Tool
+				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
+				StackSize="0x40000"
+				IncludeDebugInfo="TRUE"
+				LimitAvailableMemoryTo64MB="FALSE"
+				DontModifyHD="TRUE"
+				DontMountUD="TRUE"
+				NoLibWarn="TRUE"
+				TitleID="0x43423130"
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
+		</Configuration>
+		<Configuration
+			Name="Release-Aladdin2mb|Xbox"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="1"
+				FavorSizeOrSpeed="2"
+				OmitFramePointers="TRUE"
+				OptimizeForProcessor="2"
+				PreprocessorDefinitions="NDEBUG;_XBOX;ALADDIN2MB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="TRUE"
+				EnableFunctionLevelLinking="TRUE"
+				EnableEnhancedInstructionSet="1"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(OutDir)/$(ProjectName).pch"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="dsound.lib xapilib.lib d3d8.lib d3dx8.lib xgraphics.lib dsound.lib dmusic.lib xacteng.lib xsndtrk.lib xvoice.lib xonline.lib xboxkrnl.lib"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				GenerateDebugInformation="FALSE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="1"
+				SetChecksum="TRUE"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="XboxDeploymentTool"
+				RemotePath="xe:\$(ProjectName)\$(TargetName).xbe"
+				AdditionalFiles=""
+				Progress="TRUE"
+				ForceCopy="TRUE"/>
+			<Tool
+				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
+				StackSize="0x20000"
+				LimitAvailableMemoryTo64MB="FALSE"
+				DontModifyHD="TRUE"
+				DontMountUD="TRUE"
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
+		</Configuration>
+		<Configuration
+			Name="Debug-Smartxx|Xbox"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				OptimizeForProcessor="2"
+				AdditionalIncludeDirectories=""
+				PreprocessorDefinitions="_DEBUG;_XBOX;SMARTXX"
+				MinimalRebuild="TRUE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				EnableEnhancedInstructionSet="1"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(OutDir)/$(ProjectName).pch"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="4"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="dsoundd.lib xapilibd.lib d3d8d.lib d3dx8d.lib xgraphicsd.lib dmusicd.lib xactengd.lib xsndtrkd.lib xvoiced.lib xonlined.lib xboxkrnl.lib xbdm.lib"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories=""
+				IgnoreDefaultLibraryNames=""
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeForWindows98="1"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="XboxDeploymentTool"
+				RemotePath="xe:\$(ProjectName)\$(TargetName).xbe"
+				AdditionalFiles=""
+				Progress="TRUE"
+				ForceCopy="TRUE"/>
+			<Tool
+				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
+				StackSize="0x40000"
+				IncludeDebugInfo="TRUE"
+				LimitAvailableMemoryTo64MB="FALSE"
+				DontModifyHD="TRUE"
+				DontMountUD="TRUE"
+				NoLibWarn="TRUE"
+				TitleID="0x43423130"
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
+		</Configuration>
+		<Configuration
+			Name="Release-Smartxx|Xbox"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="1"
+				FavorSizeOrSpeed="2"
+				OmitFramePointers="TRUE"
+				OptimizeForProcessor="2"
+				PreprocessorDefinitions="NDEBUG;_XBOX;SMARTXX"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="TRUE"
+				EnableFunctionLevelLinking="TRUE"
+				EnableEnhancedInstructionSet="1"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(OutDir)/$(ProjectName).pch"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="dsound.lib xapilib.lib d3d8.lib d3dx8.lib xgraphics.lib dsound.lib dmusic.lib xacteng.lib xsndtrk.lib xvoice.lib xonline.lib xboxkrnl.lib"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				GenerateDebugInformation="FALSE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="1"
+				SetChecksum="TRUE"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="XboxDeploymentTool"
+				RemotePath="xe:\$(ProjectName)\$(TargetName).xbe"
+				AdditionalFiles=""
+				Progress="TRUE"
+				ForceCopy="TRUE"/>
+			<Tool
+				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
+				StackSize="0x20000"
+				LimitAvailableMemoryTo64MB="FALSE"
+				DontModifyHD="TRUE"
+				DontMountUD="TRUE"
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
+		</Configuration>
+		<Configuration
+			Name="Debug-Modxo|Xbox"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				OptimizeForProcessor="2"
+				AdditionalIncludeDirectories=""
+				PreprocessorDefinitions="_DEBUG;_XBOX;MODXO"
+				MinimalRebuild="TRUE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				EnableEnhancedInstructionSet="1"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(OutDir)/$(ProjectName).pch"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="4"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="dsoundd.lib xapilibd.lib d3d8d.lib d3dx8d.lib xgraphicsd.lib dmusicd.lib xactengd.lib xsndtrkd.lib xvoiced.lib xonlined.lib xboxkrnl.lib xbdm.lib"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories=""
+				IgnoreDefaultLibraryNames=""
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeForWindows98="1"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="XboxDeploymentTool"
+				RemotePath="xe:\$(ProjectName)\$(TargetName).xbe"
+				AdditionalFiles=""
+				Progress="TRUE"
+				ForceCopy="TRUE"/>
+			<Tool
+				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
+				StackSize="0x40000"
+				IncludeDebugInfo="TRUE"
+				LimitAvailableMemoryTo64MB="FALSE"
+				DontModifyHD="TRUE"
+				DontMountUD="TRUE"
+				NoLibWarn="TRUE"
+				TitleID="0x43423130"
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
+		</Configuration>
+		<Configuration
+			Name="Release-Modxo|Xbox"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="1"
+				FavorSizeOrSpeed="2"
+				OmitFramePointers="TRUE"
+				OptimizeForProcessor="2"
+				PreprocessorDefinitions="NDEBUG;_XBOX;MODXO"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="TRUE"
+				EnableFunctionLevelLinking="TRUE"
+				EnableEnhancedInstructionSet="1"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(OutDir)/$(ProjectName).pch"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="dsound.lib xapilib.lib d3d8.lib d3dx8.lib xgraphics.lib dsound.lib dmusic.lib xacteng.lib xsndtrk.lib xvoice.lib xonline.lib xboxkrnl.lib"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				GenerateDebugInformation="FALSE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="1"
+				SetChecksum="TRUE"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="XboxDeploymentTool"
+				RemotePath="xe:\$(ProjectName)\$(TargetName).xbe"
+				AdditionalFiles=""
+				Progress="TRUE"
+				ForceCopy="TRUE"/>
+			<Tool
+				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
+				StackSize="0x20000"
+				LimitAvailableMemoryTo64MB="FALSE"
+				DontModifyHD="TRUE"
+				DontMountUD="TRUE"
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
+		</Configuration>
+		<Configuration
+			Name="Release-Xtremium|Xbox"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="1"
+				FavorSizeOrSpeed="2"
+				OmitFramePointers="TRUE"
+				OptimizeForProcessor="2"
+				PreprocessorDefinitions="NDEBUG;_XBOX;XTREMIUM"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="TRUE"
+				EnableFunctionLevelLinking="TRUE"
+				EnableEnhancedInstructionSet="1"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(OutDir)/$(ProjectName).pch"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="dsound.lib xapilib.lib d3d8.lib d3dx8.lib xgraphics.lib dsound.lib dmusic.lib xacteng.lib xsndtrk.lib xvoice.lib xonline.lib xboxkrnl.lib"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				GenerateDebugInformation="FALSE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="1"
+				SetChecksum="TRUE"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="XboxDeploymentTool"
+				RemotePath="xe:\$(ProjectName)\$(TargetName).xbe"
+				AdditionalFiles=""
+				Progress="TRUE"
+				ForceCopy="TRUE"/>
+			<Tool
+				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
+				StackSize="0x20000"
+				LimitAvailableMemoryTo64MB="FALSE"
+				DontModifyHD="TRUE"
+				DontMountUD="TRUE"
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
+		</Configuration>
+		<Configuration
+			Name="Debug-Xtremium|Xbox"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				OptimizeForProcessor="2"
+				AdditionalIncludeDirectories=""
+				PreprocessorDefinitions="_DEBUG;_XBOX;XTREMIUM"
+				MinimalRebuild="TRUE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				EnableEnhancedInstructionSet="1"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(OutDir)/$(ProjectName).pch"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="4"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="dsoundd.lib xapilibd.lib d3d8d.lib d3dx8d.lib xgraphicsd.lib dmusicd.lib xactengd.lib xsndtrkd.lib xvoiced.lib xonlined.lib xboxkrnl.lib xbdm.lib"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories=""
+				IgnoreDefaultLibraryNames=""
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeForWindows98="1"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="XboxDeploymentTool"
+				RemotePath="xe:\$(ProjectName)\$(TargetName).xbe"
+				AdditionalFiles=""
+				Progress="TRUE"
+				ForceCopy="TRUE"/>
+			<Tool
+				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS.xbe"
+				StackSize="0x40000"
+				IncludeDebugInfo="TRUE"
+				LimitAvailableMemoryTo64MB="FALSE"
+				DontModifyHD="TRUE"
+				DontMountUD="TRUE"
+				NoLibWarn="TRUE"
+				TitleID="0x43423130"
+				TitleName="PrometheOS"
+				TitleImage=""
+				XBEVersion="1"/>
+		</Configuration>
+		<Configuration
+			Name="Debug-Tools|Xbox"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				OptimizeForProcessor="2"
+				AdditionalIncludeDirectories=""
+				PreprocessorDefinitions="_DEBUG;_XBOX;TOOLS"
+				MinimalRebuild="TRUE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				EnableEnhancedInstructionSet="1"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(OutDir)/$(ProjectName).pch"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="4"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="dsoundd.lib xapilibd.lib d3d8d.lib d3dx8d.lib xgraphicsd.lib dmusicd.lib xactengd.lib xsndtrkd.lib xvoiced.lib xonlined.lib xboxkrnl.lib xbdm.lib"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories=""
+				IgnoreDefaultLibraryNames=""
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeForWindows98="1"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="XboxDeploymentTool"
+				RemotePath="xe:\$(ProjectName)\$(TargetName).xbe"
+				AdditionalFiles=""
+				Progress="TRUE"
+				ForceCopy="TRUE"/>
+			<Tool
+				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS-Tools.xbe"
+				StackSize="0x40000"
+				IncludeDebugInfo="TRUE"
+				LimitAvailableMemoryTo64MB="FALSE"
+				DontModifyHD="TRUE"
+				DontMountUD="TRUE"
+				NoLibWarn="TRUE"
+				TitleID="0x43423130"
+				TitleName="PrometheOS Tools"
+				TitleImage="$(ProjectDir)titleimage.xpr"
+				XBEVersion="1"/>
+		</Configuration>
+		<Configuration
+			Name="Release-Tools|Xbox"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="1"
+				FavorSizeOrSpeed="2"
+				OmitFramePointers="TRUE"
+				OptimizeForProcessor="2"
+				PreprocessorDefinitions="NDEBUG;_XBOX;TOOLS"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="TRUE"
+				EnableFunctionLevelLinking="TRUE"
+				EnableEnhancedInstructionSet="1"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(OutDir)/$(ProjectName).pch"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="dsound.lib xapilib.lib d3d8.lib d3dx8.lib xgraphics.lib dsound.lib dmusic.lib xacteng.lib xsndtrk.lib xvoice.lib xonline.lib xboxkrnl.lib"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				GenerateDebugInformation="FALSE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="1"
+				SetChecksum="TRUE"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="XboxDeploymentTool"
+				RemotePath="xe:\$(ProjectName)\$(TargetName).xbe"
+				AdditionalFiles=""
+				Progress="TRUE"
+				ForceCopy="TRUE"/>
+			<Tool
+				Name="XboxImageTool"
+				FileName="$(TargetDir)PrometheOS-Tools.xbe"
+				StackSize="0x20000"
+				LimitAvailableMemoryTo64MB="FALSE"
+				DontModifyHD="TRUE"
+				DontMountUD="TRUE"
+				TitleName="PrometheOS Tools"
+				TitleImage="$(ProjectDir)titleimage.xpr"
 				XBEVersion="1"/>
 		</Configuration>
 	</Configurations>
@@ -842,7 +1486,13 @@
 				RelativePath=".\modchipAladdin1mb.cpp">
 			</File>
 			<File
+				RelativePath=".\modchipAladdin2mb.cpp">
+			</File>
+			<File
 				RelativePath=".\modchipDummy.cpp">
+			</File>
+			<File
+				RelativePath=".\modchipModxo.cpp">
 			</File>
 			<File
 				RelativePath=".\modchipXchanger.cpp">
@@ -857,10 +1507,7 @@
 				RelativePath=".\network.cpp">
 			</File>
 			<File
-				RelativePath=".\pointerMap.cpp">
-			</File>
-			<File
-				RelativePath=".\pointerVector.cpp">
+				RelativePath=".\rtcManager.cpp">
 			</File>
 			<File
 				RelativePath=".\settingsManager.cpp">
@@ -921,13 +1568,16 @@
 					RelativePath=".\Scenes\audioSettingsScene.cpp">
 				</File>
 				<File
+					RelativePath=".\Scenes\audioVideoOptionsScene.cpp">
+				</File>
+				<File
 					RelativePath=".\Scenes\autoBootScene.cpp">
 				</File>
 				<File
 					RelativePath=".\Scenes\backupEepromScene.cpp">
 				</File>
 				<File
-					RelativePath=".\Scenes\boredScene.cpp">
+					RelativePath=".\Scenes\bootOptionsScene.cpp">
 				</File>
 				<File
 					RelativePath=".\Scenes\editFlowScene.cpp">
@@ -1012,6 +1662,66 @@
 							Name="VCCLCompilerTool"
 							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug-Aladdin2mb|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release-Aladdin2mb|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug-Smartxx|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release-Smartxx|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug-Modxo|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release-Modxo|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release-Xtremium|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug-Xtremium|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug-Tools|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release-Tools|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\Scenes\filePickerScene.cpp">
@@ -1032,9 +1742,6 @@
 					RelativePath=".\Scenes\flashUpdateScene.cpp">
 				</File>
 				<File
-					RelativePath=".\Scenes\generalOptionsScene.cpp">
-				</File>
-				<File
 					RelativePath=".\Scenes\hddLockUnlockScene.cpp">
 				</File>
 				<File
@@ -1050,6 +1757,9 @@
 					RelativePath=".\Scenes\hdmiVideoSettingsScene.cpp">
 				</File>
 				<File
+					RelativePath=".\Scenes\invadersScene.cpp">
+				</File>
+				<File
 					RelativePath=".\Scenes\keyboardScene.cpp">
 				</File>
 				<File
@@ -1059,6 +1769,9 @@
 					RelativePath=".\Scenes\launchScene.cpp">
 				</File>
 				<File
+					RelativePath=".\Scenes\lcdOptionsScene.cpp">
+				</File>
+				<File
 					RelativePath=".\Scenes\ledColorSelectorScene.cpp">
 				</File>
 				<File
@@ -1066,6 +1779,9 @@
 				</File>
 				<File
 					RelativePath=".\Scenes\menuScene.cpp">
+				</File>
+				<File
+					RelativePath=".\Scenes\miscellaneousOptionsScene.cpp">
 				</File>
 				<File
 					RelativePath=".\Scenes\networkSettingsScene.cpp">
@@ -1081,6 +1797,9 @@
 				</File>
 				<File
 					RelativePath=".\Scenes\restoreEepromScene.cpp">
+				</File>
+				<File
+					RelativePath=".\Scenes\rtcScene.cpp">
 				</File>
 				<File
 					RelativePath=".\Scenes\sceneManager.cpp">
@@ -1162,9 +1881,72 @@
 							Name="VCCLCompilerTool"
 							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug-Aladdin2mb|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release-Aladdin2mb|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug-Smartxx|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release-Smartxx|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug-Modxo|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release-Modxo|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release-Xtremium|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug-Xtremium|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug-Tools|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release-Tools|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\Scenes\skinSelectionScene.cpp">
+				</File>
+				<File
+					RelativePath=".\Scenes\snakeScene.cpp">
 				</File>
 				<File
 					RelativePath=".\Scenes\soundPackSelectionScene.cpp">
@@ -1257,6 +2039,9 @@
 				RelativePath=".\ftpServer.h">
 			</File>
 			<File
+				RelativePath=".\globalTypes.h">
+			</File>
+			<File
 				RelativePath=".\harddrive.h">
 			</File>
 			<File
@@ -1290,7 +2075,13 @@
 				RelativePath=".\modchipAladdin1mb.h">
 			</File>
 			<File
+				RelativePath=".\modchipAladdin2mb.h">
+			</File>
+			<File
 				RelativePath=".\modchipDummy.h">
+			</File>
+			<File
+				RelativePath=".\modchipModxo.h">
 			</File>
 			<File
 				RelativePath=".\modchipXchanger.h">
@@ -1312,6 +2103,9 @@
 			</File>
 			<File
 				RelativePath=".\resources.h">
+			</File>
+			<File
+				RelativePath=".\rtcManager.h">
 			</File>
 			<File
 				RelativePath=".\settingsManager.h">
@@ -1339,6 +2133,9 @@
 			</File>
 			<File
 				RelativePath=".\stringUtility.h">
+			</File>
+			<File
+				RelativePath=".\temperatureManager.h">
 			</File>
 			<File
 				RelativePath=".\theme.h">
@@ -1453,13 +2250,16 @@
 					RelativePath=".\Scenes\audioSettingsScene.h">
 				</File>
 				<File
+					RelativePath=".\Scenes\audioVideoOptionsScene.h">
+				</File>
+				<File
 					RelativePath=".\Scenes\autoBootScene.h">
 				</File>
 				<File
 					RelativePath=".\Scenes\backupEepromScene.h">
 				</File>
 				<File
-					RelativePath=".\Scenes\boredScene.h">
+					RelativePath=".\Scenes\bootOptionsScene.h">
 				</File>
 				<File
 					RelativePath=".\Scenes\editFlowScene.h">
@@ -1486,9 +2286,6 @@
 					RelativePath=".\Scenes\flashUpdateScene.h">
 				</File>
 				<File
-					RelativePath=".\Scenes\generalOptionsScene.h">
-				</File>
-				<File
 					RelativePath=".\Scenes\hddLockUnlockScene.h">
 				</File>
 				<File
@@ -1504,6 +2301,9 @@
 					RelativePath=".\Scenes\hdmiVideoSettingsScene.h">
 				</File>
 				<File
+					RelativePath=".\Scenes\invadersScene.h">
+				</File>
+				<File
 					RelativePath=".\Scenes\keyboardScene.h">
 				</File>
 				<File
@@ -1513,6 +2313,9 @@
 					RelativePath=".\Scenes\launchScene.h">
 				</File>
 				<File
+					RelativePath=".\Scenes\lcdOptionsScene.h">
+				</File>
+				<File
 					RelativePath=".\Scenes\ledColorSelectorScene.h">
 				</File>
 				<File
@@ -1520,6 +2323,9 @@
 				</File>
 				<File
 					RelativePath=".\Scenes\menuScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\miscellaneousOptionsScene.h">
 				</File>
 				<File
 					RelativePath=".\Scenes\networkSettingsScene.h">
@@ -1537,6 +2343,9 @@
 					RelativePath=".\Scenes\restoreEepromScene.h">
 				</File>
 				<File
+					RelativePath=".\Scenes\rtcScene.h">
+				</File>
+				<File
 					RelativePath=".\Scenes\scene.h">
 				</File>
 				<File
@@ -1544,6 +2353,9 @@
 				</File>
 				<File
 					RelativePath=".\Scenes\skinSelectionScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\snakeScene.h">
 				</File>
 				<File
 					RelativePath=".\Scenes\soundPackSelectionScene.h">

@@ -359,8 +359,13 @@ xboxConfig::xboxVersionEnum xboxConfig::getXboxVersion()
 		} else {  
 			return xboxVersion12or13;
 		}
-	} else if (strcmp(ver,("P2L")) == NULL) { 
-		return xboxVersion16or16b;
+	} else if (strcmp(ver,("P2L")) == NULL) {
+		ULONG StrapEMRS = ((*((volatile ULONG*)0xFD101000)) & 0x0000C0000) >> 18;
+		if(StrapEMRS == 3) { // Hynix
+			return xboxVersion16b;
+		} else { // 0x01 = Samsung
+			return xboxVersion16;
+		}
 	}
 	return xboxVersionUnknown;
 }
@@ -383,8 +388,10 @@ char* xboxConfig::getXboxVersionString()
         return strdup("1.2/1.3");
 	case xboxVersion14or15:
         return strdup("1.4/1.5");
-	case xboxVersion16or16b:
-        return strdup("1.6/1.6b");
+	case xboxVersion16:
+        return strdup("1.6");
+	case xboxVersion16b:
+        return strdup("1.6b");
 	}
 	return strdup("Unknown");
 }
@@ -418,12 +425,12 @@ char* xboxConfig::getAvPackString()
 
 char* xboxConfig::getEncoderString()
 {
-	unsigned char result = 0;
-	if (utils::smcTransmitByteAndRecieve(0x45, 0x00, result) == true)
+	DWORD temp = 0;
+	if (HalReadSMBusByte(0x8A, 0x00, &temp) == 0)
     {
 		return strdup("Conexant");
     }
-    else if (utils::smcTransmitByteAndRecieve(0x6a, 0x00, result) == true)
+    else if (HalReadSMBusByte(0xD4, 0x00, &temp) == 0)
     {
 		return strdup("Focus");
     }
@@ -449,6 +456,16 @@ char* xboxConfig::getHdModString()
     return strdup("Not Detected");
 }
 
+bool xboxConfig::getHasRtcExpansion()
+{
+	static int32_t hasRtc = -1;
+	if (hasRtc == -1)
+	{
+		uint32_t temp;
+		hasRtc = HalReadSMBusByte(0x68 << 1, 0, &temp) == 0 ? 1 : 0;
+	}
+	return hasRtc == 1;
+}
 
 double xboxConfig::RDTSC()
 {
@@ -466,35 +483,20 @@ double xboxConfig::RDTSC()
   return x;
 }
 
-unsigned long xboxConfig::getCPUFreq()
+double xboxConfig::getCPUFreq()
 {
 	double tcpu_fsb = RDTSC();
-	unsigned int twin_fsb = utils::ioInputInt(0x8008);
+	uint32_t twin_fsb = GetTickCount();
 
-	Sleep(200);
+	Sleep(300);
 
 	double tcpu_result = RDTSC();
-	unsigned int twin_result = utils::ioInputInt(0x8008);
+	uint32_t twin_result = GetTickCount();
 
 	double fcpu = (tcpu_result - tcpu_fsb);
 	fcpu /= (twin_result - twin_fsb);
-	fcpu *= 3.375;
-	unsigned long finalResult = (unsigned long)fcpu;
-	
-	if (finalResult < 704)
-	    finalResult = 700;
-	else if (finalResult < 736)
-	    finalResult = 733;
-	else if (finalResult < 750)
-	    finalResult = 740; 
-	else if (finalResult < 1100)
-	    finalResult = 1000;
-	else if (finalResult < 1410)
-	    finalResult = 1400; 
-	else
-	    finalResult = 1480;  
 
-	return finalResult;
+	return fcpu / 1000;
 }
 
 void xboxConfig::autoFix()

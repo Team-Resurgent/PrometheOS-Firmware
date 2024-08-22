@@ -14,5 +14,5 @@ public:
 	void render();
 private:
 	int mSelectedControl;
-	pointerVector* mMenuItems;
+	pointerVector<char*>* mMenuItems;
 };

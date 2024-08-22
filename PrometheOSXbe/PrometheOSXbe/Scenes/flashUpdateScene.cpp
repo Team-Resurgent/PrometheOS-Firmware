@@ -16,9 +16,9 @@ flashUpdateScene::flashUpdateScene(bool recovery, const char* filePath)
 	mStarted = false;
 	mDone = false;
 	mFailed = false;
-	mSceneResult = sceneResultNone;
 	mFilePath = strdup(filePath);
 	mRecovery = recovery;
+	mUpdate = true;
 }
 
 flashUpdateScene::~flashUpdateScene()
@@ -33,12 +33,17 @@ void flashUpdateScene::update()
 	{
 		if (inputManager::buttonPressed(ButtonB))
 		{
-			mSceneResult = sceneResultCancelled;
+			sceneManager::popScene(sceneResultCancelled);
+			return;
 		}
-		if (inputManager::buttonPressed(ButtonX))
+		else if (inputManager::buttonPressed(ButtonX))
 		{
 			mStarted = true;
-			flashUpdate::startThread(mRecovery, mFilePath);
+			flashUpdate::startThread(mRecovery, mUpdate, mFilePath);
+		}
+		else if (inputManager::buttonPressed(ButtonY))
+		{
+			mUpdate = !mUpdate;
 		}
 		return;
 	}
@@ -49,20 +54,25 @@ void flashUpdateScene::update()
 	{
 		if (mFailed == false && inputManager::buttonPressed(ButtonB))
 		{
+#ifndef TOOLS
 			if (mRecovery == true)
 			{
-				mSceneResult = sceneResultDone;
+				sceneManager::popScene(sceneResultDone);
+				return;
 			}
 			else
 			{
 				utils::reboot();
 			}
+#else
+			sceneManager::popScene(sceneResultDone);
+#endif
 		}
 		else if (mFailed == true && inputManager::buttonPressed(ButtonB))
 		{
 			mDone = false;
 			mFailed = false;
-			flashUpdate::startThread(mRecovery, mFilePath);
+			flashUpdate::startThread(mRecovery, mUpdate, mFilePath);
 		}
 		return;
 	}
@@ -95,11 +105,14 @@ void flashUpdateScene::render()
 
 	if (mStarted == false)
 	{
-		drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA3 To Confirm Update", theme::getFooterTextColor(), horizAlignmentLeft, 40, theme::getFooterY(), 640);
+		char* options = stringUtility::formatString("\xC2\xA3 To Confirm Update \xC2\xA4 Toggle Update/Restore (%s)", mUpdate ? "Update" : "Restore");
+		drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), options, theme::getFooterTextColor(), horizAlignmentLeft, 40, theme::getFooterY(), 640);
 		drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Back", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
+		free(options);
 	}
 	else if (mDone == true)
 	{
+#ifndef TOOLS
 		if (mRecovery == true)
 		{
 			drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), mFailed == true ? "\xC2\xA2 Retry" : "\xC2\xA2 Back", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
@@ -108,12 +121,10 @@ void flashUpdateScene::render()
 		{
 			drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), mFailed == true ? "\xC2\xA2 Retry" : "\xC2\xA2 Reboot", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
 		}
+#else
+		drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), mFailed == true ? "\xC2\xA2 Retry" : "\xC2\xA2 Back", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
+#endif
 	}
-}
-
-sceneResult flashUpdateScene::getSceneResult()
-{
-	return mSceneResult;
 }
 
 void flashUpdateScene::setProgress(const char* message)

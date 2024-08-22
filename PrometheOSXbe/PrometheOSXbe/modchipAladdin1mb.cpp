@@ -1,11 +1,6 @@
 #include "modchipAladdin1mb.h"
 #include "crc32.h"
-
-#ifndef TOOLS
 #include "settingsManager.h"
-#endif
-
-#define ALADDIN1MB_LPC_MEMORY_BASE 0xFF000000u
 
 #define ALADDIN1MB_LCD_DELAY 2
 
@@ -14,7 +9,17 @@
 #define ALADDIN1MB_REGISTER_DISP_O 0xF700u
 #define ALADDIN1MB_REGISTER_LCD_BL 0xF701u
 #define ALADDIN1MB_REGISTER_LCD_CT 0xF703u
+#define ALADDIN1MB_REGISTER_SPI 0xF70D
 #define ALADDIN1MB_REGISTER_BANKING 0xF70F
+
+#define ALADDIN1MB_SPI_MOSI_BIT 0x20
+#define ALADDIN1MB_SPI_CS_BIT 0x10
+#define ALADDIN1MB_SPI_CLK_BIT 0x40
+
+//OUT0 = CS
+//OUT1 = MOSI
+//OUT2 = CLK
+//WriteToIO(XBLAST_IO, (GenPurposeIOs.GPO3 << 7) | (GenPurposeIOs.GPO2 << 6) | (GenPurposeIOs.GPO1 << 5) | (GenPurposeIOs.GPO0 << 4) | GenPurposeIOs.EN_5V);
 
 #define ALADDIN1MB_DISP_EXT_CONTROL 0x08
 #define ALADDIN1MB_DISP_NW_FLAG 0x01
@@ -121,6 +126,11 @@ bool modchipAladdin1mb::isValidBankSize(uint32_t size)
 	return size == (256 * 1024);
 }
 
+bool modchipAladdin1mb::isValidFlashSize(bool recovery, uint32_t size)
+{
+	return size == getFlashSize(recovery);
+}
+
 uint32_t modchipAladdin1mb::getBankSize(uint8_t bank)
 {
 	if (bank == ALADDIN1MB_BANK_BOOTLOADER) 
@@ -155,6 +165,11 @@ uint32_t modchipAladdin1mb::getBankMemOffset(uint8_t bank)
 	return 0;
 }
 
+uint32_t modchipAladdin1mb::getBankStartOffset(uint8_t bank)
+{
+	return 0;
+}
+
 uint8_t modchipAladdin1mb::getBankFromIdAndSlots(uint8_t id, uint8_t slots)
 {
 	if (id == 0 && slots == 1)
@@ -169,7 +184,7 @@ utils::dataContainer* modchipAladdin1mb::readBank(uint8_t bank)
 	setBank(bank); 
 	uint32_t bankSize = getBankSize(bank);
 	utils::dataContainer* dataContainer = new utils::dataContainer(bankSize);
-    volatile uint8_t* lpcMemMap = (volatile uint8_t *)ALADDIN1MB_LPC_MEMORY_BASE;
+    volatile uint8_t* lpcMemMap = (volatile uint8_t *)(LPC_MEMORY_BASE + getBankStartOffset(bank));
     memcpy(dataContainer->data, (void*)&lpcMemMap[0], bankSize);
 	setBank(ALADDIN1MB_BANK_BOOTLOADER);
 	return dataContainer;
@@ -181,15 +196,16 @@ void modchipAladdin1mb::eraseBank(uint8_t bank)
 
 	setLedColor(LED_COLOR_AMBER);
 
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)ALADDIN1MB_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
 
 	uint32_t memOffset = getBankMemOffset(bank);
+	uint32_t startOffset = getBankStartOffset(bank);
 	uint32_t bankSize = getBankSize(bank);
 
 	uint32_t offset = 0;
     while (offset < bankSize)
 	{
-		if (isEraseMemOffset(memOffset + offset))
+		if (isEraseMemOffset(memOffset + startOffset + offset))
 		{
 			sectorErase(offset);
 		}
@@ -211,7 +227,7 @@ void modchipAladdin1mb::writeBank(uint8_t bank, utils::dataContainer* dataContai
 
 	setLedColor(LED_COLOR_BLUE);
 
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)ALADDIN1MB_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)(LPC_MEMORY_BASE + getBankStartOffset(bank));
 
     for (uint32_t i = 0; i < dataContainer->size; i++)
 	{
@@ -240,8 +256,6 @@ bool modchipAladdin1mb::verifyBank(uint8_t bank, utils::dataContainer* dataConta
 	utils::dataContainer* writtenData = readBank(bank);
 
 	setLedColor(LED_COLOR_PURPLE);
-
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)ALADDIN1MB_LPC_MEMORY_BASE;
 
 	bool ok = true;
     for (uint32_t i = 0; i < dataContainer->size; i++)
@@ -279,6 +293,16 @@ uint8_t modchipAladdin1mb::getFlashBank(bool recovery, uint8_t bank)
 		ALADDIN1MB_BANK_PROMETHEOS
 	};
 	return recovery ? 0 : banks[bank];
+}
+
+bankType modchipAladdin1mb::getFlashBankType(bool recovery, uint8_t bank)
+{
+	const bankType banks[] = { 
+		bankTypeUser, 
+		bankTypeSystem,
+		bankTypeSystem,
+	};
+	return recovery ? bankTypeUser : banks[bank];
 }
 
 utils::dataContainer* modchipAladdin1mb::readFlash(bool recovery)
@@ -327,10 +351,10 @@ void modchipAladdin1mb::loadSettings(settingsState& settings)
 
 	setLedColor(LED_COLOR_WHITE);
 
-    volatile uint8_t* lpcMemMap = (volatile uint8_t *)ALADDIN1MB_LPC_MEMORY_BASE;
+    volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
 
     memcpy(&settings, (void*)&lpcMemMap[ALADDIN1MB_SETTINGS_OFFSET], sizeof(settings));
-	uint32_t checksum = crc32::calculate(((char*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
+	uint32_t checksum = crc32::calculate(((uint8_t*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
 
 	setBank(ALADDIN1MB_BANK_BOOTLOADER);
 
@@ -347,10 +371,10 @@ void modchipAladdin1mb::saveSettings(settingsState settings)
 {
 	setBank(ALADDIN1MB_SETTINGS_BANK); 
 
-	settings.checksum = crc32::calculate(((const char*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
+	settings.checksum = crc32::calculate(((uint8_t*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
 	utils::dataContainer* settingsData = new utils::dataContainer((char*)&settings, sizeof(settings), sizeof(settings));
 
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)ALADDIN1MB_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
 
 	setLedColor(LED_COLOR_AMBER);
 	sectorErase(ALADDIN1MB_SETTINGS_OFFSET);
@@ -382,7 +406,7 @@ utils::dataContainer* modchipAladdin1mb::getInstallerLogo()
 
 void modchipAladdin1mb::lcdSendCharacter(uint8_t value, uint8_t command)
 {
-	uint8_t oDataHigh  = (value >> 2) & 0x28;
+	/*uint8_t oDataHigh  = (value >> 2) & 0x28;
 	oDataHigh |= (value >> 0) & 0x50;
 	outputByte(ALADDIN1MB_REGISTER_DISP_O, command | oDataHigh);	
 	outputByte(ALADDIN1MB_REGISTER_DISP_O, command | ALADDIN1MB_DISP_CON_E | oDataHigh);	
@@ -394,12 +418,48 @@ void modchipAladdin1mb::lcdSendCharacter(uint8_t value, uint8_t command)
 	outputByte(ALADDIN1MB_REGISTER_DISP_O, command | oDataLow);	
 	outputByte(ALADDIN1MB_REGISTER_DISP_O, command | ALADDIN1MB_DISP_CON_E | oDataLow);	
 	outputByte(ALADDIN1MB_REGISTER_DISP_O, command | oDataLow);	
-	Sleep(ALADDIN1MB_LCD_DELAY);
+	Sleep(ALADDIN1MB_LCD_DELAY);*/
+
+	mSpi &= ~ALADDIN1MB_SPI_CLK_BIT;
+	mSpi &= ~ALADDIN1MB_SPI_CS_BIT;
+	outputByte(ALADDIN1MB_REGISTER_SPI, mSpi);
+	utils::uSleep(0x1c);
+
+	uint8_t i = 8;
+	do
+	{
+		if ((value & 0x80) > 0)
+		{
+			mSpi |= ALADDIN1MB_SPI_MOSI_BIT;
+		} 
+		else
+		{
+			mSpi &= ~ALADDIN1MB_SPI_MOSI_BIT;
+		}
+
+		mSpi &= ~ALADDIN1MB_SPI_CLK_BIT;
+		outputByte(ALADDIN1MB_REGISTER_SPI, mSpi);
+		utils::uSleep(0x1c);
+
+		mSpi |= ALADDIN1MB_SPI_CLK_BIT;
+		outputByte(ALADDIN1MB_REGISTER_SPI, mSpi);
+		utils::uSleep(0x1c);
+
+		value = value << 1;
+		i--;
+	}
+	while (i > 0);
+
+	mSpi &= ~ALADDIN1MB_SPI_CLK_BIT;
+	mSpi |= ALADDIN1MB_SPI_CS_BIT;
+	outputByte(ALADDIN1MB_REGISTER_SPI, mSpi);
+	utils::uSleep(0x1c);
 }
+
 
 void modchipAladdin1mb::lcdSetCursorPosition(uint8_t row, uint8_t col)
 {
-	if (row > 3) 
+	/*if (row > 3) 
 	{
 		row = 3;
 	}
@@ -423,48 +483,124 @@ void modchipAladdin1mb::lcdSetCursorPosition(uint8_t row, uint8_t col)
 	}
 
 	lcdSendCharacter(ALADDIN1MB_DISP_DDRAM_SET | (value + col), ALADDIN1MB_DISP_CMD);
-	Sleep(10);
+	Sleep(10);*/
+
+	if (row > 3) 
+	{
+		row = 3;
+	}
+	if (col > 19)
+	{
+		col = 19; 
+	}
+	lcdSendCharacter(17, 0);
+	lcdSendCharacter(col, 0);
+	lcdSendCharacter(row, 0);
+	Sleep(ALADDIN1MB_LCD_DELAY);
+}
+
+uint8_t modchipAladdin1mb::getLcdTypeCount()
+{
+	return 3;
+}
+
+char* modchipAladdin1mb::getLcdTypeString(uint8_t lcdEnableType)
+{
+	if (lcdEnableType == 1)
+	{
+		return strdup("Parallel");
+	}
+	
+	if (lcdEnableType == 2)
+	{
+		return strdup("SPI");
+	}
+	
+	return strdup("Disabled");
 }
 
 void modchipAladdin1mb::lcdInit(uint8_t backlight, uint8_t contrast)
 {
-	outputByte(ALADDIN1MB_REGISTER_IO, ALADDIN1MB_LCD_EN5V);
+	uint8_t lcdEnableType = settingsManager::getLcdEnableType();
 
-	lcdSendCharacter(0x33, 0);
-	Sleep(ALADDIN1MB_LCD_DELAY);
+	if (lcdEnableType == 1)
+	{
+		outputByte(ALADDIN1MB_REGISTER_IO, ALADDIN1MB_LCD_EN5V);
 
-	lcdSendCharacter(0x32, 0);  
-	Sleep(ALADDIN1MB_LCD_DELAY);
+		lcdSendCharacter(0x33, 0);
+		Sleep(ALADDIN1MB_LCD_DELAY);
 
-	lcdSendCharacter(ALADDIN1MB_DISP_FUNCTION_SET | ALADDIN1MB_DISP_N_FLAG | ALADDIN1MB_DISP_RE_FLAG, ALADDIN1MB_DISP_CMD);
-	Sleep(ALADDIN1MB_LCD_DELAY);
-    lcdSendCharacter(ALADDIN1MB_DISP_SEGRAM_SET, ALADDIN1MB_DISP_CMD);
-	Sleep(ALADDIN1MB_LCD_DELAY);
-    lcdSendCharacter(ALADDIN1MB_DISP_EXT_CONTROL | ALADDIN1MB_DISP_NW_FLAG, ALADDIN1MB_DISP_CMD);
-	Sleep(ALADDIN1MB_LCD_DELAY);
-    lcdSendCharacter(ALADDIN1MB_DISP_FUNCTION_SET | ALADDIN1MB_DISP_N_FLAG, ALADDIN1MB_DISP_CMD); 
-	Sleep(ALADDIN1MB_LCD_DELAY);
-    lcdSendCharacter(ALADDIN1MB_DISP_CONTROL | ALADDIN1MB_DISP_D_FLAG, ALADDIN1MB_DISP_CMD);
-	Sleep(ALADDIN1MB_LCD_DELAY);
-    lcdSendCharacter(ALADDIN1MB_DISP_CLEAR, ALADDIN1MB_DISP_CMD);
-	Sleep(ALADDIN1MB_LCD_DELAY);
-    lcdSendCharacter(ALADDIN1MB_DISP_ENTRY_MODE_SET | ALADDIN1MB_DISP_ID_FLAG, ALADDIN1MB_DISP_CMD);
-	Sleep(ALADDIN1MB_LCD_DELAY);
-    lcdSendCharacter(ALADDIN1MB_DISP_HOME, ALADDIN1MB_DISP_CMD);  
-	Sleep(ALADDIN1MB_LCD_DELAY);
+		lcdSendCharacter(0x32, 0);  
+		Sleep(ALADDIN1MB_LCD_DELAY);
 
-	lcdSetBacklight(backlight);
-	lcdSetContrast(contrast);
-	Sleep(ALADDIN1MB_LCD_DELAY);
+		lcdSendCharacter(ALADDIN1MB_DISP_FUNCTION_SET | ALADDIN1MB_DISP_N_FLAG | ALADDIN1MB_DISP_RE_FLAG, ALADDIN1MB_DISP_CMD);
+		Sleep(ALADDIN1MB_LCD_DELAY);
+		lcdSendCharacter(ALADDIN1MB_DISP_SEGRAM_SET, ALADDIN1MB_DISP_CMD);
+		Sleep(ALADDIN1MB_LCD_DELAY);
+		lcdSendCharacter(ALADDIN1MB_DISP_EXT_CONTROL | ALADDIN1MB_DISP_NW_FLAG, ALADDIN1MB_DISP_CMD);
+		Sleep(ALADDIN1MB_LCD_DELAY);
+		lcdSendCharacter(ALADDIN1MB_DISP_FUNCTION_SET | ALADDIN1MB_DISP_N_FLAG, ALADDIN1MB_DISP_CMD); 
+		Sleep(ALADDIN1MB_LCD_DELAY);
+		lcdSendCharacter(ALADDIN1MB_DISP_CONTROL | ALADDIN1MB_DISP_D_FLAG, ALADDIN1MB_DISP_CMD);
+		Sleep(ALADDIN1MB_LCD_DELAY);
+		lcdSendCharacter(ALADDIN1MB_DISP_CLEAR, ALADDIN1MB_DISP_CMD);
+		Sleep(ALADDIN1MB_LCD_DELAY);
+		lcdSendCharacter(ALADDIN1MB_DISP_ENTRY_MODE_SET | ALADDIN1MB_DISP_ID_FLAG, ALADDIN1MB_DISP_CMD);
+		Sleep(ALADDIN1MB_LCD_DELAY);
+		lcdSendCharacter(ALADDIN1MB_DISP_HOME, ALADDIN1MB_DISP_CMD);  
+		Sleep(ALADDIN1MB_LCD_DELAY);
+
+		lcdSetBacklight(backlight);
+		lcdSetContrast(contrast);
+		Sleep(ALADDIN1MB_LCD_DELAY);
+	}
+
+	if (lcdEnableType == 2)
+	{
+		// show display
+		lcdSendCharacter(3, 0); 
+		Sleep(ALADDIN1MB_LCD_DELAY);
+
+		// hide cursor
+		lcdSendCharacter(4, 0);
+		Sleep(ALADDIN1MB_LCD_DELAY);
+
+		// scroll off
+		lcdSendCharacter(20, 0); 
+		Sleep(ALADDIN1MB_LCD_DELAY);
+
+		// wrap off
+		lcdSendCharacter(24, 0);
+		Sleep(ALADDIN1MB_LCD_DELAY);
+
+		lcdSetBacklight(backlight);
+		lcdSetContrast(contrast);
+		Sleep(ALADDIN1MB_LCD_DELAY);
+	}
 }
 
 void modchipAladdin1mb::lcdPrintMessage(const char* message)
 {
-	for (int i = 0; i < (int)strlen(message); ++i)
+	uint8_t lcdEnableType = settingsManager::getLcdEnableType();
+
+	if (lcdEnableType == 1)
 	{
-		uint8_t cLCD = message[i];
-		lcdSendCharacter(cLCD, ALADDIN1MB_DISP_DAT);
-		Sleep(ALADDIN1MB_LCD_DELAY);
+		for (int i = 0; i < (int)strlen(message); ++i)
+		{
+			uint8_t cLCD = message[i];
+			lcdSendCharacter(cLCD, ALADDIN1MB_DISP_DAT);
+			Sleep(ALADDIN1MB_LCD_DELAY);
+		}
+	}
+
+	if (lcdEnableType == 2)
+	{
+		for (int i = 0; i < (int)strlen(message); ++i)
+		{
+			uint8_t cLCD = message[i];
+			lcdSendCharacter(cLCD, 0);
+			Sleep(ALADDIN1MB_LCD_DELAY);
+		}
 	}
 }
 
@@ -474,8 +610,21 @@ void modchipAladdin1mb::lcdSetBacklight(uint8_t value)
 	{
 		value = 100;
 	}
-	outputByte(ALADDIN1MB_REGISTER_LCD_BL, (int)(value * 1.27f));
-	Sleep(ALADDIN1MB_LCD_DELAY);
+
+	uint8_t lcdEnableType = settingsManager::getLcdEnableType();
+
+	if (lcdEnableType == 1)
+	{
+		outputByte(ALADDIN1MB_REGISTER_LCD_BL, (int)(value * 1.27f));
+		Sleep(ALADDIN1MB_LCD_DELAY);
+	}
+
+	if (lcdEnableType == 2)
+	{
+		lcdSendCharacter(14, 0);
+		lcdSendCharacter(value, 0);
+		Sleep(ALADDIN1MB_LCD_DELAY);
+	}
 }
 
 void modchipAladdin1mb::lcdSetContrast(uint8_t value)
@@ -484,8 +633,21 @@ void modchipAladdin1mb::lcdSetContrast(uint8_t value)
 	{
 		value = 100;
 	}
-	outputByte(ALADDIN1MB_REGISTER_LCD_CT, (int)(value * 0.64f));
-	Sleep(ALADDIN1MB_LCD_DELAY);
+
+	uint8_t lcdEnableType = settingsManager::getLcdEnableType();
+
+	if (lcdEnableType == 1)
+	{
+		outputByte(ALADDIN1MB_REGISTER_LCD_CT, (int)(value * 0.64f));
+		Sleep(ALADDIN1MB_LCD_DELAY);
+	}
+
+	if (lcdEnableType == 2)
+	{
+		lcdSendCharacter(15, 0);
+		lcdSendCharacter(value, 0);
+		Sleep(ALADDIN1MB_LCD_DELAY);
+	}
 }
 
 // Private
@@ -517,7 +679,7 @@ bool modchipAladdin1mb::isProtectedMemOffset(uint32_t memOffset)
 
 void modchipAladdin1mb::sectorErase(uint32_t offset)
 {
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)ALADDIN1MB_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
 	lpcMemMap[0x5555] = 0xAA;
 	lpcMemMap[0x2AAA] = 0x55;
 	lpcMemMap[0x5555] = 0x80;
@@ -525,5 +687,5 @@ void modchipAladdin1mb::sectorErase(uint32_t offset)
 	lpcMemMap[0x2AAA] = 0x55;
 	lpcMemMap[offset] = 0x30;
 	while(lpcMemMap[0] != lpcMemMap[0]);
-    lpcMemMap[0x5555]=0xF0;
+    lpcMemMap[0x5555] = 0xF0;
 }

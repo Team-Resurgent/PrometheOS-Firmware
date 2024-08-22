@@ -94,12 +94,12 @@ namespace {
 		}
 	}
 
-	pointerVector* getDirectoryListing(const char* virtualPath)
+	pointerVector<fileSystem::FileInfoDetail*>* getDirectoryListing(const char* virtualPath)
 	{
 		if (stringUtility::equals(virtualPath, "/", false) == true)
 		{
-			pointerVector* fileInfoDetails = new pointerVector(true);
-			pointerVector* drives = driveManager::getMountedDrives();
+			pointerVector<fileSystem::FileInfoDetail*>* fileInfoDetails = new pointerVector<fileSystem::FileInfoDetail*>(true);
+			pointerVector<char*>* drives = driveManager::getMountedDrives();
 
 			for (size_t i = 0; i < drives->count(); i++)
 			{
@@ -107,7 +107,7 @@ namespace {
 				fileInfoDetail->isDirectory = true;
 				fileInfoDetail->isFile = false;
 				fileInfoDetail->isVirtual = true;
-				fileInfoDetail->path = strdup((char*)drives->get(i));
+				fileInfoDetail->path = driveManager::convertMountPointToMountPointAlias(drives->get(i));
 				fileInfoDetail->accessTime.day = 1;
 				fileInfoDetail->accessTime.month = 1;
 				fileInfoDetail->accessTime.year = 2000;
@@ -134,7 +134,7 @@ namespace {
 
 		char* ftpPath = driveManager::mapFtpPath(virtualPath);
 
-		pointerVector* fileInfoDetails = fileSystem::fileGetFileInfoDetails(ftpPath);;
+		pointerVector<fileSystem::FileInfoDetail*>* fileInfoDetails = fileSystem::fileGetFileInfoDetails(ftpPath);;
 		free(ftpPath);
 
 		if (fileInfoDetails == NULL)
@@ -143,7 +143,7 @@ namespace {
 		}
 		for (size_t i = 0; i < fileInfoDetails->count(); i++)
 		{
-			fileSystem::FileInfoDetail* fileInfoDetail = (fileSystem::FileInfoDetail*)fileInfoDetails->get(i);
+			fileSystem::FileInfoDetail* fileInfoDetail = fileInfoDetails->get(i);
 			fileInfoDetail->path =  fileSystem::getFileName(fileInfoDetail->path);
 		}
 
@@ -497,7 +497,7 @@ bool WINAPI ftpServer::connectionThread(uint64_t sCmd)
 				}
 				char* newVirtual = pszParam && *pszParam ? resolveRelative(currentVirtual, pszParam) : strdup(currentVirtual);
 				
-				pointerVector* fileInfoDetails = getDirectoryListing(newVirtual);
+				pointerVector<fileSystem::FileInfoDetail*>* fileInfoDetails = getDirectoryListing(newVirtual);
 				if (fileInfoDetails != NULL)
 				{
 					sprintf(szOutput, "150 Opening %s mode data connection for listing of \"%s\".\r\n", sPasv ? "passive" : "active", newVirtual);
@@ -509,7 +509,7 @@ bool WINAPI ftpServer::connectionThread(uint64_t sCmd)
 						for (size_t i = 0; i < fileInfoDetails->count(); i++)
 						{
 							char szLine[512];
-							fileSystem::FileInfoDetail* fileInfoDetail = (fileSystem::FileInfoDetail*)fileInfoDetails->get(i);
+							fileSystem::FileInfoDetail* fileInfoDetail = fileInfoDetails->get(i);
 							if (stricmp(szCmd, "NLST") == 0)
 							{
 								strcpy(szLine, fileInfoDetail->path);
@@ -561,7 +561,7 @@ bool WINAPI ftpServer::connectionThread(uint64_t sCmd)
 
 				char* newVirtual = pszParam && *pszParam ? resolveRelative(currentVirtual, pszParam) : strdup(currentVirtual);
 
-				pointerVector* fileInfoDetails = getDirectoryListing(newVirtual);
+				pointerVector<fileSystem::FileInfoDetail*>* fileInfoDetails = getDirectoryListing(newVirtual);
 				if (fileInfoDetails != NULL)
 				{
 					sprintf(szOutput, "212-Sending directory listing of \"%s\".\r\n", newVirtual);
@@ -570,7 +570,7 @@ bool WINAPI ftpServer::connectionThread(uint64_t sCmd)
 					for (size_t i = 0; i < fileInfoDetails->count(); i++)
 					{
 						char szLine[512];
-						fileSystem::FileInfoDetail* fileInfoDetail = (fileSystem::FileInfoDetail*)fileInfoDetails->get(i);
+						fileSystem::FileInfoDetail* fileInfoDetail = fileInfoDetails->get(i);
 						sprintf(szLine, "%c--------- 1 ftp ftp %llu ", fileInfoDetail->isDirectory ? 'd' : '-', fileInfoDetail->size);
 						strcat(szLine, months[fileInfoDetail->writeTime.month - 1]);
 						sprintf(szLine + strlen(szLine), " %2i %.2i:%.2i ", fileInfoDetail->writeTime.day, fileInfoDetail->writeTime.hour, fileInfoDetail->writeTime.minute);

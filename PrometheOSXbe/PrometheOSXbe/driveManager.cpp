@@ -8,7 +8,7 @@ namespace
 {
 	bool mInitialized;
 	bool mAllMounted;
-	pointerVector* m_drives = NULL;
+	pointerVector<drive*>* m_drives = NULL;
 }
 
 bool driveManager::getTotalNumberOfBytes(const char* mountPoint, uint64_t& totalSize)
@@ -17,7 +17,7 @@ bool driveManager::getTotalNumberOfBytes(const char* mountPoint, uint64_t& total
 
 	for (size_t i = 0; i < m_drives->count(); i++) 
 	{
-		drive* currentDrive = (drive*)m_drives->get(i);
+		drive* currentDrive = m_drives->get(i);
 		if (strcmp(currentDrive->getMountPoint(), mountPoint) == 0) 
 		{
 			totalSize = (uint64_t)currentDrive->getTotalNumberOfBytes();
@@ -33,7 +33,7 @@ bool driveManager::getTotalFreeNumberOfBytes(const char* mountPoint, uint64_t& t
 
 	for (size_t i = 0; i < m_drives->count(); i++) 
 	{
-		drive* currentDrive = (drive*)m_drives->get(i);
+		drive* currentDrive = m_drives->get(i);
 		char* currentMountPoint = currentDrive->getMountPoint();
 		if (strcmp(currentMountPoint, mountPoint) == 0) 
 		{
@@ -46,14 +46,14 @@ bool driveManager::getTotalFreeNumberOfBytes(const char* mountPoint, uint64_t& t
 	return false;
 }
 
-pointerVector* driveManager::getMountedDrives()
+pointerVector<char*>* driveManager::getMountedDrives()
 {
 	driveManager::mountAllDrives();
 
-	pointerVector *drives = new pointerVector(false);
+	pointerVector<char*>* drives = new pointerVector<char*>(false);
 	for (uint32_t i = 0; i < m_drives->count(); i++)
 	{
-		drive* currentDrive = (drive*)m_drives->get(i);
+		drive* currentDrive = m_drives->get(i);
 		if (currentDrive->isMounted()) 
 		{
 			drives->add(currentDrive->getMountPoint());
@@ -67,21 +67,23 @@ char* driveManager::mapFtpPath(const char* path)
 	char* tempPath = stringUtility::leftTrim(path, '/');
 	for (size_t i = 0; i < m_drives->count(); i++) 
 	{
-		drive* currentDrive = (drive*)m_drives->get(i);
-		char* mountPoint = currentDrive->getMountPoint();
-		if (stringUtility::startsWith(tempPath, mountPoint, true)) 
+		drive* currentDrive = m_drives->get(i);
+		char* mountPointAlias = currentDrive->getMountPointAlias();
+		if (stringUtility::startsWith(tempPath, mountPointAlias, true)) 
 		{
 			currentDrive->mount();
-			char* localFolder = stringUtility::substr(tempPath, strlen(mountPoint), -1);
+			char* localFolder = stringUtility::substr(tempPath, strlen(mountPointAlias), -1);
+			char* mountPoint = currentDrive->getMountPoint();
 			char* localPath = stringUtility::formatString("%s:%s", mountPoint, localFolder);
 			char* result = stringUtility::replace(localPath, "/", "\\");
 			free(localFolder);
+			free(mountPoint);
 			free(localPath);
 			free(tempPath);
-			free(mountPoint);
+			free(mountPointAlias);
 			return result;
 		}
-		free(mountPoint);
+		free(mountPointAlias);
 	}
 	free(tempPath);
 	return strdup(path);
@@ -92,52 +94,111 @@ bool driveManager::ftpPathMounted(const char* path)
 	char* tempPath = stringUtility::leftTrim(path, '/');
 	for (size_t i = 0; i < m_drives->count(); i++) 
 	{
-		drive* currentDrive = (drive*)m_drives->get(i);
-		char* mountPoint = currentDrive->getMountPoint();
-		if (stringUtility::startsWith(tempPath, mountPoint, true))
+		drive* currentDrive = m_drives->get(i);
+		char* mountPointAlias = currentDrive->getMountPointAlias();
+		if (stringUtility::startsWith(tempPath, mountPointAlias, true))
 		{
 			currentDrive->mount();
 			free(tempPath);
-			free(mountPoint);
+			free(mountPointAlias);
 			return currentDrive->isMounted() == true;
 		}
-		free(mountPoint);
+		free(mountPointAlias);
 	}
 	free(tempPath);
 	return false;
+}
+
+char* driveManager::convertMountPointToMountPointAlias(const char* path)
+{
+	for (size_t i = 0; i < m_drives->count(); i++) 
+	{
+		drive* currentDrive = m_drives->get(i);
+		char* temp = currentDrive->getMountPoint();
+		if (stringUtility::startsWith(path, temp, true))
+		{
+			char* tempMountPointAlias = currentDrive->getMountPointAlias();
+			char* localFolder = stringUtility::substr(path, strlen(temp), -1);
+			char* localPath = stringUtility::formatString("%s%s", tempMountPointAlias, localFolder);
+			free(localFolder);
+			free(tempMountPointAlias);
+			free(temp);
+			return localPath;
+		}
+		free(temp);
+	}
+	return strdup(path);
+}
+
+char* driveManager::convertMountPointAliasToMountPoint(const char* path)
+{
+	for (size_t i = 0; i < m_drives->count(); i++) 
+	{
+		drive* currentDrive = m_drives->get(i);
+		char* temp = currentDrive->getMountPointAlias();
+		if (stringUtility::startsWith(path, temp, true))
+		{
+			char* tempMountPoint = currentDrive->getMountPoint();
+			char* localFolder = stringUtility::substr(path, strlen(temp), -1);
+			char* localPath = stringUtility::formatString("%s%s", tempMountPoint, localFolder);
+			free(localFolder);
+			free(tempMountPoint);
+			free(temp);
+			return localPath;
+		}
+		free(temp);
+	}
+	return strdup(path);
 }
 
 void driveManager::init()
 {
 	if (mInitialized == false)
 	{
-		m_drives = new pointerVector(true);
+		m_drives = new pointerVector<drive*>(true);
 
-		m_drives->add(new drive("C", "\\Device\\Harddisk0\\Partition2\\", driveTypeHardDrive));
-		m_drives->add(new drive("D", "\\Device\\Cdrom0\\", driveTypeCdRom));
-		m_drives->add(new drive("E", "\\Device\\Harddisk0\\Partition1\\", driveTypeHardDrive));
-		m_drives->add(new drive("F", "\\Device\\Harddisk0\\Partition6\\", driveTypeHardDrive));
-		m_drives->add(new drive("G", "\\Device\\Harddisk0\\Partition7\\", driveTypeHardDrive));
-		m_drives->add(new drive("X", "\\Device\\Harddisk0\\Partition3\\", driveTypeHardDrive));
-		m_drives->add(new drive("Y", "\\Device\\Harddisk0\\Partition4\\", driveTypeHardDrive));
-		m_drives->add(new drive("Z", "\\Device\\Harddisk0\\Partition5\\", driveTypeHardDrive));
-		m_drives->add(new drive("R", "\\Device\\Harddisk0\\Partition8\\", driveTypeHardDrive));
-		m_drives->add(new drive("S", "\\Device\\Harddisk0\\Partition9\\", driveTypeHardDrive));
-		m_drives->add(new drive("V", "\\Device\\Harddisk0\\Partition10\\", driveTypeHardDrive));
-		m_drives->add(new drive("W", "\\Device\\Harddisk0\\Partition11\\", driveTypeHardDrive));
-		m_drives->add(new drive("A", "\\Device\\Harddisk0\\Partition12\\", driveTypeHardDrive));
-		m_drives->add(new drive("B", "\\Device\\Harddisk0\\Partition13\\", driveTypeHardDrive));
+		m_drives->add(new drive("DVD-ROM", "DVD-ROM", "\\Device\\Cdrom0\\", driveTypeCdRom));
+
+		m_drives->add(new drive("HDD0-C", "HDD0-C", "\\Device\\Harddisk0\\Partition2\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD0-E", "HDD0-E", "\\Device\\Harddisk0\\Partition1\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD0-F", "HDD0-F", "\\Device\\Harddisk0\\Partition6\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD0-G", "HDD0-G", "\\Device\\Harddisk0\\Partition7\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD0-H", "HDD0-H", "\\Device\\Harddisk0\\Partition8\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD0-I", "HDD0-I", "\\Device\\Harddisk0\\Partition9\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD0-J", "HDD0-J", "\\Device\\Harddisk0\\Partition10\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD0-K", "HDD0-K", "\\Device\\Harddisk0\\Partition11\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD0-L", "HDD0-L", "\\Device\\Harddisk0\\Partition12\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD0-M", "HDD0-M", "\\Device\\Harddisk0\\Partition13\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD0-N", "HDD0-N", "\\Device\\Harddisk0\\Partition14\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD0-X", "HDD0-X", "\\Device\\Harddisk0\\Partition3\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD0-Y", "HDD0-Y", "\\Device\\Harddisk0\\Partition4\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD0-Z", "HDD0-Z", "\\Device\\Harddisk0\\Partition5\\", driveTypeHardDrive));
+
+		m_drives->add(new drive("HDD1-C", "HDD1-C", "\\Device\\Harddisk1\\Partition2\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD1-E", "HDD1-E", "\\Device\\Harddisk1\\Partition1\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD1-F", "HDD1-F", "\\Device\\Harddisk1\\Partition6\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD1-G", "HDD1-G", "\\Device\\Harddisk1\\Partition7\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD1-H", "HDD1-H", "\\Device\\Harddisk1\\Partition8\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD1-I", "HDD1-I", "\\Device\\Harddisk1\\Partition9\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD1-J", "HDD1-J", "\\Device\\Harddisk1\\Partition10\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD1-K", "HDD1-K", "\\Device\\Harddisk1\\Partition11\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD1-L", "HDD1-L", "\\Device\\Harddisk1\\Partition12\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD1-M", "HDD1-M", "\\Device\\Harddisk1\\Partition13\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD1-N", "HDD1-N", "\\Device\\Harddisk1\\Partition14\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD1-X", "HDD1-X", "\\Device\\Harddisk1\\Partition3\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD1-Y", "HDD1-Y", "\\Device\\Harddisk1\\Partition4\\", driveTypeHardDrive));
+		m_drives->add(new drive("HDD1-Z", "HDD1-Z", "\\Device\\Harddisk1\\Partition5\\", driveTypeHardDrive));
+
+		m_drives->add(new drive("H", "MMU0", "", driveTypeMemoryUnit));
+		m_drives->add(new drive("I", "MMU1", "", driveTypeMemoryUnit));
+		m_drives->add(new drive("J", "MMU2", "", driveTypeMemoryUnit));
+		m_drives->add(new drive("K", "MMU3", "", driveTypeMemoryUnit));
+		m_drives->add(new drive("L", "MMU4", "", driveTypeMemoryUnit));
+		m_drives->add(new drive("M", "MMU5", "", driveTypeMemoryUnit));
+		m_drives->add(new drive("N", "MMU6", "", driveTypeMemoryUnit));
+		m_drives->add(new drive("O", "MMU7", "", driveTypeMemoryUnit));
 
 		//https://github.com/brentdc-nz/xbmc4xbox/blob/13cf4fbab8d70b154941a6b91e101bd05cc5b111/xbmc/utils/MemoryUnitManager.cpp#L77
-
-		m_drives->add(new drive("H", "", driveTypeMemoryUnit));
-		m_drives->add(new drive("I", "", driveTypeMemoryUnit));
-		m_drives->add(new drive("J", "", driveTypeMemoryUnit));
-		m_drives->add(new drive("K", "", driveTypeMemoryUnit));
-		m_drives->add(new drive("L", "", driveTypeMemoryUnit));
-		m_drives->add(new drive("M", "", driveTypeMemoryUnit));
-		m_drives->add(new drive("N", "", driveTypeMemoryUnit));
-		m_drives->add(new drive("O", "", driveTypeMemoryUnit));
 
 		mInitialized = true;
 	}
@@ -149,7 +210,7 @@ bool driveManager::mountDrive(const char* driveLetter)
 
 	for (size_t i = 0; i < m_drives->count(); i++)
 	{
-		drive* currentDrive = (drive*)m_drives->get(i);
+		drive* currentDrive = m_drives->get(i);
 		char* mountPoint = currentDrive->getMountPoint();
 
 		if (stringUtility::equals(mountPoint, driveLetter, true) == true)
@@ -168,7 +229,7 @@ void driveManager::mountAllDrives()
 
 	for (size_t i = 0; i < m_drives->count(); i++)
 	{
-		drive* currentDrive = (drive*)m_drives->get(i);
+		drive* currentDrive = m_drives->get(i);
 		currentDrive->mount();
 	}
 	mAllMounted = true;

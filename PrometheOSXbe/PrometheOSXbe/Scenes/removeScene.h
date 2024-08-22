@@ -3,6 +3,7 @@
 #include "scene.h"
 
 #include "..\pointerVector.h"
+#include "..\settingsManager.h"
 
 class removeScene : public scene
 {
@@ -13,5 +14,5 @@ public:
 	void render();
 private:
 	int mSelectedControl;
-	pointerVector* mBanks;
+	pointerVector<bankDetails*>* mBanks;
 };

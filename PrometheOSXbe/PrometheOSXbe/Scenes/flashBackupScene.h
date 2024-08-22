@@ -13,12 +13,10 @@ public:
 	~flashBackupScene();
 	void update();
 	void render();
-	sceneResult getSceneResult();
 private:
 	void setProgress(const char* message);
 	void processResponse(flashBackup::flashBackupResponse response);
 private:
 	bool mDone;
 	char* mProgress;
-	sceneResult mSceneResult;
 };

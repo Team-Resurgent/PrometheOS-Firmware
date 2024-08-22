@@ -13,7 +13,8 @@ public:
 		xboxVersion11,
 		xboxVersion12or13,
 		xboxVersion14or15,
-		xboxVersion16or16b,
+		xboxVersion16,
+		xboxVersion16b,
 		xboxVersionDebugKit,
 		xboxVersionDevKit
 	};
@@ -68,7 +69,8 @@ public:
 	static char* getAvPackString();
 	static char* getEncoderString();
 	static char* getHdModString();
-	static unsigned long getCPUFreq();
+	static bool getHasRtcExpansion();
+	static double getCPUFreq();
 	static void autoFix();
 private:
 	static double RDTSC();

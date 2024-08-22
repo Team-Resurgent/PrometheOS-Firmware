@@ -85,6 +85,61 @@ bool stringUtility::equals(const char* value1, const char* value2, bool caseInse
 	return strncmp(value1, value2, valueLength1) == 0;
 }
 
+char* stringUtility::insertAtIndex(const char* value, char toInsert, int index)
+{
+	int len = strlen(value);
+    
+    if (index < 0 || index > len) 
+	{
+        return strdup(value);
+    }
+
+    char* result = (char*)malloc(len + 2);
+    for (int i = 0; i < len + 1; ++i) 
+	{
+        if (i < index)
+		{
+            result[i] = value[i];
+        }
+        else if (i == index)
+		{
+            result[i] = toInsert;
+        }
+        else
+		{
+            result[i] = value[i - 1];
+        }
+    }
+    
+    result[len + 1] = '\0';
+    return result;
+}
+
+char* stringUtility::removeAtIndex(const char* value, int index)
+{
+	int len = strlen(value);
+
+    if (index <= 0 || index > len) 
+	{
+        return strdup(value);
+    }
+
+	char* result = (char*)malloc(len);
+    for (int i = 0; i < len - 1; ++i) 
+	{
+		if (i < (index - 1))
+		{
+			result[i] = value[i];
+		}
+		else
+		{
+			result[i] = value[i + 1];
+		}
+    }
+	result[len - 1] = '\0';
+	return result;
+}
+
 // Tested
 char* stringUtility::replace(const char* value, const char* search, const char* with)
 {
@@ -175,9 +230,9 @@ void stringUtility::fTrim(char *s) {
     memmove(s, p, l+1);
 }
 
-pointerVector* stringUtility::split(const char* value, const char* delimiter, bool trimValues) 
+pointerVector<char*>* stringUtility::split(const char* value, const char* delimiter, bool trimValues) 
 {
-	pointerVector* result = new pointerVector(false);
+	pointerVector<char*>* result = new pointerVector<char*>(false);
 
 	char* valueCopy = strdup(value);
 	char* position = valueCopy;

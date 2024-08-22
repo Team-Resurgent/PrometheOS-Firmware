@@ -69,7 +69,7 @@ uint64_t WINAPI lcdRender::process(void* param)
 	char* freeMemToDisplay = strdup("");
 	char* ipToDisplay = strdup("");
 	char* fanCpuToDisplay = strdup("");
-	bool enabled = settingsManager::getLcdEnabled();
+	uint8_t lcdEnableType = settingsManager::getLcdEnableType();
 	uint8_t backlight = settingsManager::getLcdBacklight();
 	uint8_t contrast = settingsManager::getLcdBacklight();
 
@@ -83,10 +83,10 @@ uint64_t WINAPI lcdRender::process(void* param)
 		requestStop = data->requestStop;
 		char* currentTitle = context::getCurrentTitle();
 		char* tempFreeMem = stringUtility::formatSize(context::getCurrentFreeMem());
-		char* currentFreeMem = stringUtility::formatString("Free Mem: %s", tempFreeMem);
+		char* currentFreeMem = stringUtility::formatString("Free Mem:%s", tempFreeMem);
 		free(tempFreeMem);
 		char* tempIp = context::getCurrentIp();
-		char* currentIp = stringUtility::formatString("IP: %s", tempIp);
+		char* currentIp = stringUtility::formatString("IP:%s", tempIp);
 		free(tempIp);
 		char* currentFanCpu = stringUtility::formatString("FAN:%i%% CPU:%ic", context::getCurrentFanSpeed(), context::getCurrentCpuTemp());
 		LeaveCriticalSection(&data->mutex);
@@ -103,8 +103,14 @@ uint64_t WINAPI lcdRender::process(void* param)
 			fanCpuToDisplay = strdup("");
 		}
 
-		if (settingsManager::getLcdEnabled())
+		uint8_t currentLcdEnableType = settingsManager::getLcdEnableType();
+		if (currentLcdEnableType > 0)
 		{
+			if (currentLcdEnableType != lcdEnableType)
+			{
+				initialized = false;
+			}
+
 			if (initialized == false)
 			{
 				initialized = true;
@@ -112,7 +118,7 @@ uint64_t WINAPI lcdRender::process(void* param)
 				Sleep(500);
 				for (int j = 0; j < 4; j++)
 				{
-					context::getModchip()->lcdSetCursorPosition(0, 3 - j);
+					context::getModchip()->lcdSetCursorPosition(3 - j, 0);
 					for (int i = 0; i < 20; i++)
 					{
 						context::getModchip()->lcdPrintMessage(" ");

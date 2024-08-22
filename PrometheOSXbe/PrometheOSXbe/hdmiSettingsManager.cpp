@@ -47,29 +47,34 @@ void hdmiSettingsManager::loadSettings()
 	initSettings();
 
 	uint32_t fileHandle;
-	if (fileSystem::fileOpen("C:\\ElpisHD\\settings.bin", fileSystem::FileModeRead, fileHandle))
+	if (fileSystem::fileOpen("HDD0-C:\\ElpisHD\\settings.bin", fileSystem::FileModeRead, fileHandle))
 	{
 		uint32_t fileSize;
 		if (fileSystem::fileSize(fileHandle, fileSize))
 		{
-			char* buffer = (char*)malloc(fileSize);
-			uint32_t bytesRead;
-			if (fileSystem::fileRead(fileHandle, buffer, fileSize, bytesRead) && bytesRead == fileSize)
-			{
-				if (versioning::compareVersion(mSettings.softwareVersion, getSoftwareVersion()) != 0)
-				{
-					initSettings();
-				}
-				if (versioning::compareVersion(mSettings.firmwareVersion, getFirmwareVersion()) != 0)
-				{
-					initSettings();
-				}
-			}
-			else
+			if (fileSize != sizeof(mSettings))
 			{
 				initSettings();
 			}
-			free(buffer);
+			else
+			{
+				uint32_t bytesRead;
+				if (fileSystem::fileRead(fileHandle, (char*)&mSettings, fileSize, bytesRead) && bytesRead == fileSize)
+				{
+					if (versioning::compareVersion(mSettings.softwareVersion, getSoftwareVersion()) != 0)
+					{
+						initSettings();
+					}
+					if (versioning::compareVersion(mSettings.firmwareVersion, getFirmwareVersion()) != 0)
+					{
+						initSettings();
+					}
+				}
+				else
+				{
+					initSettings();
+				}
+			}
 		}
 		fileSystem::fileClose(fileHandle);
 	}
@@ -77,10 +82,10 @@ void hdmiSettingsManager::loadSettings()
 
 void hdmiSettingsManager::saveSettings()
 {
-	if (fileSystem::directoryCreate("C:\\ElpisHD") == true)
+	if (fileSystem::directoryCreate("HDD0-C:\\ElpisHD") == true)
 	{
 		uint32_t bytesWritten;
-		fileSystem::fileWrite("C:\\ElpisHD\\settings.bin", (char*)&mSettings, sizeof(mSettings), bytesWritten);
+		fileSystem::fileWrite("HDD0-C:\\ElpisHD\\settings.bin", (char*)&mSettings, sizeof(mSettings), bytesWritten);
 	}
 }
 

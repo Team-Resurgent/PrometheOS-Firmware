@@ -13,7 +13,6 @@ public:
 	~flashUpdateScene();
 	void update();
 	void render();
-	sceneResult getSceneResult();
 private:
 	void setProgress(const char* message);
 	void processResponse(flashUpdate::flashUpdateResponse response);
@@ -24,5 +23,5 @@ private:
 	char* mProgress;
 	char* mFilePath;
 	bool mRecovery;
-	sceneResult mSceneResult;
+	bool mUpdate;
 };

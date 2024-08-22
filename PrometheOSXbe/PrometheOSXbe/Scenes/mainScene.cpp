@@ -31,6 +31,44 @@ void mainScene::update()
 
 	if (inputManager::buttonPressed(ButtonA))
 	{
+
+#ifdef TOOLS
+
+		if (mSelectedControl == 0) 
+		{
+			if (context::getModchipType() == modchipTypeXenium)
+			{
+				context::setModchipType(modchipTypeXecuter);
+			}
+			else if (context::getModchipType() == modchipTypeXecuter)
+			{
+				context::setModchipType(modchipTypeAladdin1mb);
+			}
+			else if (context::getModchipType() == modchipTypeAladdin1mb)
+			{
+				context::setModchipType(modchipTypeAladdin2mb);
+			}
+			else if (context::getModchipType() == modchipTypeAladdin2mb)
+			{
+				context::setModchipType(modchipTypeXchanger);
+			}
+			else if (context::getModchipType() == modchipTypeXchanger)
+			{
+				context::setModchipType(modchipTypeModxo);
+			}
+			else if (context::getModchipType() == modchipTypeModxo)
+			{
+				context::setModchipType(modchipTypeXenium);
+			}
+		}
+		else if (mSelectedControl == 1) 
+		{
+			sceneManager::pushScene(sceneItemFlashToolsScene);
+			return;
+		}
+
+#else
+
 		if (mSelectedControl == 0) 
 		{
 			sceneManager::pushScene(sceneItemLaunchScene);
@@ -41,9 +79,12 @@ void mainScene::update()
 			sceneManager::pushScene(sceneItemBankManagementScene);
 			return;
 		}
-		else if (mSelectedControl == 2) 
+
+#endif
+
+		if (mSelectedControl == 2) 
 		{
-			sceneManager::pushScene(sceneItemSystemSettingsScene);
+			sceneManager::pushScene(sceneItemSystemScene);
 			return;
 		}
 		else if (mSelectedControl == 3) 
@@ -78,10 +119,53 @@ void mainScene::update()
 void mainScene::render()
 {
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
+#ifndef TOOLS
 	drawing::drawBitmapStringAligned(context::getBitmapFontLarge(), "\xC2\xA7\xC2\xA8\xC2\xA9\xC2\xAA\xC2\xAB\xC2\xAC\xC2\xAD\xC2\xAB\xC2\xA9\xC2\xAE", theme::getPrometheosColor(), theme::getPrometheosAlign(), 40, theme::getPrometheosY(), 640);
+#else
+	drawing::drawBitmapStringAligned(context::getBitmapFontLarge(), "\xC2\xA7\xC2\xA8\xC2\xA9\xC2\xAA\xC2\xAB\xC2\xAC\xC2\xAD\xC2\xAB\xC2\xA9\xC2\xAE \xC2\xAC\xC2\xA9\xC2\xA9\xC2\xB4\xC2\xAE", theme::getPrometheosColor(), theme::getPrometheosAlign(), 40, theme::getPrometheosY(), 640);
+#endif
 
 	int32_t yPos = (context::getBufferHeight() - (5 * 40) - 10) / 2;
 	yPos += theme::getCenterOffset();
+
+#ifdef TOOLS
+
+	if (context::getModchipType() == modchipTypeDummy)
+	{
+		component::button(mSelectedControl == 0, false, "Modchip: Dummy", 193, yPos, 322, 30);
+	}
+	else if (context::getModchipType() == modchipTypeXenium)
+	{
+		component::button(mSelectedControl == 0, false, "Modchip: Xenium", 193, yPos, 322, 30);
+	}
+	else if (context::getModchipType() == modchipTypeXecuter)
+	{
+		component::button(mSelectedControl == 0, false, "Modchip: Xecuter", 193, yPos, 322, 30);
+	}
+	else if (context::getModchipType() == modchipTypeAladdin1mb)
+	{
+		component::button(mSelectedControl == 0, false, "Modchip: Aladdin 1MB", 193, yPos, 322, 30);
+	}
+	else if (context::getModchipType() == modchipTypeAladdin2mb)
+	{
+		component::button(mSelectedControl == 0, false, "Modchip: Aladdin 2MB", 193, yPos, 322, 30);
+	}
+	else if (context::getModchipType() == modchipTypeXchanger)
+	{
+		component::button(mSelectedControl == 0, false, "Modchip: Xchanger", 193, yPos, 322, 30);
+	}
+	else if (context::getModchipType() == modchipTypeModxo)
+	{
+		component::button(mSelectedControl == 0, false, "Modchip: Modxo", 193, yPos, 322, 30);
+	}
+
+	yPos += 40;
+
+	component::button(mSelectedControl == 1, false, "Flash Tools", 193, yPos, 322, 30);
+
+	yPos += 40;
+
+#else
 
 	component::button(mSelectedControl == 0, false, "Launch Bank", 193, yPos, 322, 30);
 
@@ -91,7 +175,9 @@ void mainScene::render()
 
 	yPos += 40;
 
-	component::button(mSelectedControl == 2, false, "System Settings", 193, yPos, 322, 30);
+#endif
+
+	component::button(mSelectedControl == 2, false, "System", 193, yPos, 322, 30);
 
 	yPos += 40;
 
