@@ -17,127 +17,84 @@
 #include "..\xboxInternals.h"
 #include "..\fileSystem.h"
 
+void editFlowScene::onEditClosingCallback(sceneResult result, void* context, scene* scene)
+{
+	editFlowScene* self = (editFlowScene*)context;
+	if (result == sceneResultCancelled)
+	{
+		self->mCurrentSceneId = 3;
+		return;
+	}
+	editScene* closingScene = (editScene*)scene;
+	self->mBankId = closingScene->getBankId();
+	self->mCurrentSceneId = 1;
+}
+
+void editFlowScene::onKeyboardClosingCallback(sceneResult result, void* context, scene* scene)
+{
+	editFlowScene* self = (editFlowScene*)context;
+	if (result == sceneResultCancelled)
+	{
+		self->mCurrentSceneId = 3;
+		return;
+	}
+	keyboardScene* closingScene = (keyboardScene*)scene;
+	self->mBankName = closingScene->getText();
+	self->mCurrentSceneId = context::getModchip()->supportsLed() == true ? 2 : 3;
+}
+
+void editFlowScene::onLedColorClosingCallback(sceneResult result, void* context, scene* scene)
+{
+	editFlowScene* self = (editFlowScene*)context;
+	if (result == sceneResultCancelled)
+	{
+		self->mCurrentSceneId = 3;
+		return;
+	}
+	ledColorSelectorScene* closingScene = (ledColorSelectorScene*)scene;
+	settingsManager::editBank(self->mBankId, self->mBankName, closingScene->getLedColor());
+	self->mCurrentSceneId = 3;
+}
+
 editFlowScene::editFlowScene()
 {
-	mEditScene = NULL;
-	mKeyboardScene = NULL;
-	mLedColorSelectorScene = NULL;
 	mCurrentSceneId = 0;
 	mBankId = 0;
 	mBankName = NULL;
-}
-
-editFlowScene::~editFlowScene()
-{
-	delete(mEditScene);
-	delete(mKeyboardScene);
-	delete(mLedColorSelectorScene);
 }
 
 void editFlowScene::update()
 {
 	if (mCurrentSceneId == 0)
 	{
-		if (mEditScene == NULL)
-		{
-			mEditScene = new editScene();
-		}
-		mEditScene->update();
-		if (mEditScene->getSceneResult() == sceneResultCancelled)
-		{
-			sceneManager::popScene();
-			return;
-		}
-		else if (mEditScene->getSceneResult() == sceneResultDone)
-		{
-			mBankId = mEditScene->getBankId();
-			delete(mEditScene);
-			mCurrentSceneId = 1;
-		}
+		sceneContainer* container = new sceneContainer(sceneItemGenericScene, new editScene(), "", this, onEditClosingCallback);
+		sceneManager::pushScene(container);
 		return;
 	}
 
 	if (mCurrentSceneId == 1)
 	{
-		if (mKeyboardScene == NULL)
-		{
-			bankInfo bank = settingsManager::getBankInfo(mBankId);
-			char* bankName = strdup(bank.name);
-			mKeyboardScene = new keyboardScene(bankName);
-			free(bankName);
-		}
-		mKeyboardScene->update();
-		if (mKeyboardScene->getSceneResult() == sceneResultCancelled)
-		{
-			sceneManager::popScene();
-			return;
-		}
-		else if (mKeyboardScene->getSceneResult() == sceneResultDone)
-		{
-			mBankName = mKeyboardScene->getText();
-			delete(mKeyboardScene);
-			if (context::getModchip()->supportsLed() == true)
-			{
-				mCurrentSceneId = 2;
-			}
-			else
-			{
-				settingsManager::editBank(mBankId, mBankName, 0);
-				sceneManager::popScene();
-				return;
-			}
-		}
+		bankInfo bank = settingsManager::getBankInfo(mBankId);
+		char* bankName = strdup(bank.name);
+		sceneContainer* container = new sceneContainer(sceneItemGenericScene, new keyboardScene(63, "Please enter a bank name...", "Bank Name:", bankName), "", this, onKeyboardClosingCallback);
+		free(bankName);
+		sceneManager::pushScene(container);
 		return;
 	}
 
 	if (mCurrentSceneId == 2)
 	{
-		if (mLedColorSelectorScene == NULL)
-		{
-			mLedColorSelectorScene = new ledColorSelectorScene();
-		}
-		mLedColorSelectorScene->update();
-		if (mLedColorSelectorScene->getSceneResult() == sceneResultCancelled)
-		{
-			sceneManager::popScene();
-			return;
-		}
-		else if (mLedColorSelectorScene->getSceneResult() == sceneResultDone)
-		{
-			settingsManager::editBank(mBankId, mBankName, mLedColorSelectorScene->getLedColor());
-			delete(mLedColorSelectorScene);
-			sceneManager::popScene();
-			return;
-		}
+		sceneContainer* container = new sceneContainer(sceneItemGenericScene, new ledColorSelectorScene(), "", this, onLedColorClosingCallback);
+		sceneManager::pushScene(container);
+		return;
+	}
+
+	if (mCurrentSceneId == 3)
+	{
+		sceneManager::popScene();
 	}
 }
 
 void editFlowScene::render()
 {
-	if (mCurrentSceneId == 0)
-	{
-		if (mEditScene != NULL) 
-		{
-			mEditScene->render();
-		}
-		return;
-	}
-
-	if (mCurrentSceneId == 1)
-	{
-		if (mKeyboardScene != NULL) 
-		{
-			mKeyboardScene->render();
-		}
-		return;
-	}
-
-	if (mCurrentSceneId == 2)
-	{
-		if (mLedColorSelectorScene != NULL) 
-		{
-			mLedColorSelectorScene->render();
-		}
-		return;
-	}
 }

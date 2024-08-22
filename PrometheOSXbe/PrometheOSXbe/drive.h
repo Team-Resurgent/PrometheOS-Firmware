@@ -15,16 +15,18 @@ enum driveType
 class drive
 {
 public:
-	drive(const char* mountPoint, const char* systemPath, driveType drive);
+	drive(const char* mountPoint, const char* mountPointAlias, const char* systemPath, driveType drive);
 	bool mount();  		
 	bool unmount();
 	bool isMounted();
 	char* getMountPoint();
+	char* getMountPointAlias();
 	char* getSystemPath();
 	uint64_t getTotalNumberOfBytes();
 	uint64_t getTotalFreeNumberOfBytes();
 protected:
 	char* mMountPoint;
+	char* mMountPointAlias;
 	char* mSystemPath;
 	bool mMounted;
 	driveType mDriveType;

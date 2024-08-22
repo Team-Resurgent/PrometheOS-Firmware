@@ -3,6 +3,7 @@
 #include "scene.h"
 
 #include "..\pointerVector.h"
+#include "..\settingsManager.h"
 
 class editScene : public scene
 {
@@ -11,11 +12,9 @@ public:
 	~editScene();
 	void update();
 	void render();
-	sceneResult getSceneResult();
 	uint8_t getBankId();
 private:
 	int mSelectedControl;
-	pointerVector* mBanks;
+	pointerVector<bankDetails*>* mBanks;
 	uint8_t mBankId;
-	sceneResult mSceneResult;
 };

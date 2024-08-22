@@ -20,7 +20,6 @@ editScene::editScene()
 	mSelectedControl = 0;
 	mBanks = settingsManager::getBankInfos();
 	mBankId = 0;
-	mSceneResult = sceneResultNone;
 }
 
 editScene::~editScene()
@@ -34,7 +33,8 @@ void editScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		mSceneResult = sceneResultCancelled;
+		sceneManager::popScene(sceneResultCancelled);
+		return;
 	}
 
 	// Select Actions
@@ -48,7 +48,8 @@ void editScene::update()
 				continue;
 			}
 			mBankId = (uint8_t)i;
-			mSceneResult = sceneResultDone;
+			sceneManager::popScene(sceneResultDone);
+			return;
 		}
 	}
 
@@ -72,15 +73,25 @@ void editScene::render()
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
 	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please select a bank to edit...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
-	if (mBanks->count() > 0)
+	int32_t maxItems = 7;
+
+	int32_t start = 0;
+	if ((int32_t)mBanks->count() >= maxItems)
 	{
-		int32_t yPos = (context::getBufferHeight() - ((mBanks->count() * 40) - 10)) / 2;
+		start = min(max(mSelectedControl - (maxItems / 2), 0), (int32_t)mBanks->count() - maxItems);
+	}
+
+	int32_t itemCount = min(start + maxItems, (int32_t)mBanks->count()) - start; 
+	if (itemCount > 0)
+	{
+		uint32_t yPos = (context::getBufferHeight() - ((itemCount * 40) - 10)) / 2;
 		yPos += theme::getCenterOffset();
 
-		for (uint32_t i = 0; i < mBanks->count(); i++)
+		for (int32_t i = 0; i < itemCount; i++)
 		{
-			bankDetails* bank = (bankDetails*)mBanks->get(i);
-			component::button(mSelectedControl == i, false, bank->name, 40, yPos, 640, 30);
+			uint32_t index = start + i;
+			bankDetails* bank = mBanks->get(index);
+			component::button(mSelectedControl == index, false, bank->name, 40, yPos, 640, 30);
 			yPos += 40;
 		}
 	}
@@ -89,16 +100,11 @@ void editScene::render()
 		int yPos = ((context::getBufferHeight() - 44) / 2);
 		yPos += theme::getCenterOffset();
 
-		component::textBox("No items", false, false, horizAlignmentCenter, 40, 225, 640, 44);
+		component::textBox("No items", false, false, horizAlignmentCenter, 40, yPos, 640, 44);
 	}
 	
 	drawing::drawBitmapString(context::getBitmapFontSmall(), "\xC2\xA1 Select", theme::getFooterTextColor(), 40, theme::getFooterY());
 	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Cancel", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
-}
-
-sceneResult editScene::getSceneResult()
-{
-	return mSceneResult;
 }
 
 uint8_t editScene::getBankId()

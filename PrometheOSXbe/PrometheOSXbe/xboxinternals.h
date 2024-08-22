@@ -281,6 +281,9 @@ typedef VOID (WINAPI *PIO_APC_ROUTINE) (PVOID ApcContext, IO_STATUS_BLOCK* IoSta
 extern "C" 
 {
 	extern STRING* XeImageFileName;
+	extern STRING* HalDiskModelNumber;
+	extern STRING* HalDiskSerialNumber;
+
 	LONG WINAPI IoCreateSymbolicLink(STRING*, STRING*);
 	LONG WINAPI IoDeleteSymbolicLink(STRING*);
 	LONG WINAPI IoDismountVolumeByName(STRING*);
@@ -297,13 +300,13 @@ extern "C"
 	NTSTATUS WINAPI XNetConfig(const XNetConfigParams* params, DWORD data);
 	NTSTATUS WINAPI XNetGetConfigStatus(XNetConfigStatus* status);
 
+	VOID WINAPI KeQuerySystemTime(LPFILETIME CurrentTime);
+	NTSTATUS WINAPI NtSetSystemTime(LPFILETIME SystemTime, LPFILETIME PreviousTime);
 	NTSTATUS WINAPI NtOpenFile(HANDLE* FileHandle, ACCESS_MASK DesiredAccess, OBJECT_ATTRIBUTES* ObjectAttributes, IO_STATUS_BLOCK* IoStatusBlock, ULONG ShareAccess, ULONG OpenOptions);
 	NTSTATUS WINAPI NtWriteFile(HANDLE FileHandle, HANDLE Event, PIO_APC_ROUTINE ApcRoutine, VOID* ApcContext, IO_STATUS_BLOCK* IoStatusBlock, VOID* Buffer, ULONG Length, LARGE_INTEGER* ByteOffset);
 	NTSTATUS WINAPI NtClose(HANDLE Handle);
 	NTSTATUS WINAPI NtDeviceIoControlFile(HANDLE FileHandle, HANDLE Event, PIO_APC_ROUTINE ApcRoutine, PVOID ApcContext, IO_STATUS_BLOCK* IoStatusBlock, ULONG IoControlCode, PVOID InputBuffer, ULONG InputBufferLength, PVOID OutputBuffer, ULONG OutputBufferLength);
 	NTSTATUS WINAPI RtlInitAnsiString(STRING* DestinationString, LPCSTR SourceString);
-
-
 
 	NTSTATUS WINAPI KeDelayExecutionThread(CHAR WaitMode, BOOLEAN Alertable, PLARGE_INTEGER Interval);
 	VOID WINAPI KeStallExecutionProcessor(ULONG usec);

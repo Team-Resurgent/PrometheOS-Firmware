@@ -4,6 +4,7 @@
 #include "launchScene.h"
 #include "removeScene.h"
 #include "filePickerScene.h"
+#include "ledColorSelectorScene.h"
 #include "flashBankScene.h"
 #include "audioSettingsScene.h"
 
@@ -18,12 +19,53 @@
 #include "..\xboxInternals.h"
 #include "..\fileSystem.h"
 
+void flashFlowScene::onFilePickerClosingCallback(sceneResult result, void* context, scene* scene)
+{
+	flashFlowScene* self = (flashFlowScene*)context;
+	if (result == sceneResultCancelled)
+	{
+		self->mCurrentSceneId = 4;
+		return;
+	}
+	filePickerScene* closingScene = (filePickerScene*)scene;
+	self->mFilePath = closingScene->getFilePath();
+	self->mCurrentSceneId = 1;
+}
+
+void flashFlowScene::onKeyboardClosingCallback(sceneResult result, void* context, scene* scene)
+{
+	flashFlowScene* self = (flashFlowScene*)context;
+	if (result == sceneResultCancelled)
+	{
+		self->mCurrentSceneId = 4;
+		return;
+	}
+	keyboardScene* closingScene = (keyboardScene*)scene;
+	self->mBankName = closingScene->getText();
+	self->mCurrentSceneId = context::getModchip()->supportsLed() == true ? 2 : 3;
+}
+
+void flashFlowScene::onLedColorClosingCallback(sceneResult result, void* context, scene* scene)
+{
+	flashFlowScene* self = (flashFlowScene*)context;
+	if (result == sceneResultCancelled)
+	{
+		self->mCurrentSceneId = 4;
+		return;
+	}
+	ledColorSelectorScene* closingScene = (ledColorSelectorScene*)scene;
+	self->mLedColor = closingScene->getLedColor();
+	self->mCurrentSceneId = 3;
+}
+
+void flashFlowScene::onFlashBankClosingCallback(sceneResult result, void* context, scene* scene)
+{
+	flashFlowScene* self = (flashFlowScene*)context;
+	self->mCurrentSceneId = 4;
+}
+
 flashFlowScene::flashFlowScene()
 {
-	mFilePickerScene = NULL;
-	mKeyboardScene = NULL;
-	mLedColorSelectorScene = NULL;
-	mFlashBankScene = NULL;
 	mCurrentSceneId = 0;
 	mFilePath = NULL;
 	mBankName = NULL;
@@ -32,10 +74,6 @@ flashFlowScene::flashFlowScene()
 
 flashFlowScene::~flashFlowScene()
 {
-	delete(mFilePickerScene);
-	delete(mKeyboardScene);
-	delete(mLedColorSelectorScene);
-	delete(mFlashBankScene);
 	free(mFilePath);
 }
 
@@ -43,127 +81,38 @@ void flashFlowScene::update()
 {
 	if (mCurrentSceneId == 0)
 	{
-		if (mFilePickerScene == NULL)
-		{
-			mFilePickerScene = new filePickerScene(filePickerTypeBios);
-		}
-		mFilePickerScene->update();
-		if (mFilePickerScene->getSceneResult() == sceneResultCancelled)
-		{
-			sceneManager::popScene();
-			return;
-		}
-		else if (mFilePickerScene->getSceneResult() == sceneResultDone)
-		{
-			mFilePath = mFilePickerScene->getFilePath();
-			delete(mFilePickerScene);
-			mCurrentSceneId = 1;
-		}
+		sceneContainer* container = new sceneContainer(sceneItemGenericScene, new filePickerScene(filePickerTypeBios), "", this, onFilePickerClosingCallback);
+		sceneManager::pushScene(container);
 		return;
 	}
 	
 	if (mCurrentSceneId == 1)
 	{
-		if (mKeyboardScene == NULL)
-		{
-			char* fileName = fileSystem::getFileNameWithoutExtension(mFilePath);
-			mKeyboardScene = new keyboardScene(fileName);
-			free(fileName);
-		}
-		mKeyboardScene->update();
-		if (mKeyboardScene->getSceneResult() == sceneResultCancelled)
-		{
-			sceneManager::popScene();
-			return;
-		}
-		else if (mKeyboardScene->getSceneResult() == sceneResultDone)
-		{
-			mBankName = mKeyboardScene->getText();
-			delete(mKeyboardScene);
-			mCurrentSceneId = context::getModchip()->supportsLed() == true ? 2 : 3;
-		}
+		char* fileName = fileSystem::getFileNameWithoutExtension(mFilePath);
+		sceneContainer* container = new sceneContainer(sceneItemGenericScene, new keyboardScene(63, "Please enter a bank name...", "Bank Name:", fileName), "", this, onKeyboardClosingCallback);
+		sceneManager::pushScene(container);
 		return;
 	}
 
 	if (mCurrentSceneId == 2)
 	{
-		if (mLedColorSelectorScene == NULL)
-		{
-			mLedColorSelectorScene = new ledColorSelectorScene();
-		}
-		mLedColorSelectorScene->update();
-		if (mLedColorSelectorScene->getSceneResult() == sceneResultCancelled)
-		{
-			delete(mLedColorSelectorScene);
-			sceneManager::popScene();
-			return;
-		}
-		else if (mLedColorSelectorScene->getSceneResult() == sceneResultDone)
-		{
-			mLedColor = mLedColorSelectorScene->getLedColor();
-			delete(mLedColorSelectorScene);
-			mCurrentSceneId = 3;
-		}
+		sceneContainer* container = new sceneContainer(sceneItemGenericScene, new ledColorSelectorScene(), "", this, onLedColorClosingCallback);
+		sceneManager::pushScene(container);
 		return;
 	}
 
 	if (mCurrentSceneId == 3)
 	{
-		if (mFlashBankScene == NULL)
-		{
-			mFlashBankScene = new flashBankScene(mFilePath, mBankName, mLedColor);
-		}
-		mFlashBankScene->update();
-		if (mFlashBankScene->getSceneResult() == sceneResultCancelled)
-		{
-			delete(mFlashBankScene);
-			sceneManager::popScene();
-			return;
-		}
-		else if (mFlashBankScene->getSceneResult() == sceneResultDone)
-		{
-			delete(mFlashBankScene);
-			sceneManager::popScene();
-			return;
-		}
+		sceneContainer* container = new sceneContainer(sceneItemGenericScene, new flashBankScene(mFilePath, mBankName, mLedColor), "", this, onFlashBankClosingCallback);
+		sceneManager::pushScene(container);
+	}
+
+	if (mCurrentSceneId == 4)
+	{
+		sceneManager::popScene();
 	}
 }
 
 void flashFlowScene::render()
 {
-	if (mCurrentSceneId == 0)
-	{
-		if (mFilePickerScene != NULL) 
-		{
-			mFilePickerScene->render();
-		}
-		return;
-	}
-
-	if (mCurrentSceneId == 1)
-	{
-		if (mKeyboardScene != NULL) 
-		{
-			mKeyboardScene->render();
-		}
-		return;
-	}
-
-	if (mCurrentSceneId == 2)
-	{
-		if (mLedColorSelectorScene != NULL) 
-		{
-			mLedColorSelectorScene->render();
-		}
-		return;
-	}
-
-	if (mCurrentSceneId == 3)
-	{
-		if (mFlashBankScene != NULL) 
-		{
-			mFlashBankScene->render();
-		}
-		return;
-	}
 }

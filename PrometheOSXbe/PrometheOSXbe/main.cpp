@@ -3,6 +3,7 @@
 #include <string>
 
 #include "harddrive.h"
+#include "rtcManager.h"
 #include "temperatureManager.h"
 #include "context.h"
 #include "drawing.h"
@@ -35,7 +36,9 @@
 #include "modchipXenium.h"
 #include "modchipXecuter.h"
 #include "modchipXchanger.h"
+#include "modchipModxo.h"
 #include "modchipAladdin1mb.h"
+#include "modchipAladdin2mb.h"
 #include "modchipDummy.h"
 #include "Threads\lcdRender.h"
 #include "Threads\flashBackup.h"
@@ -238,7 +241,7 @@ utils::dataContainer* onGetCallback(const char* path, const char* query)
 	return result;
 }
 
-utils::dataContainer* onPostCallback(const char* path, const char* query, pointerVector* formParts)
+utils::dataContainer* onPostCallback(const char* path, const char* query, pointerVector<FormPart*>* formParts)
 {
 	utils::debugPrint("Post reciecved\n");
 
@@ -249,14 +252,14 @@ utils::dataContainer* onPostCallback(const char* path, const char* query, pointe
 			return httpServer::generateResponse(400, "Unexpected form parts.");
 		}
 
-		FormPart* formPart = (FormPart*)formParts->get(0);
+		FormPart* formPart = formParts->get(0);
 
 		if (context::getModchip()->isValidBankSize(formPart->body->size) == false)
 		{
 			return httpServer::generateResponse(406, "Invalid size detected.");
 		}
 
-		FormPart* jsonPart = (FormPart*)formParts->get(1);
+		FormPart* jsonPart = formParts->get(1);
 
 		char* bankName = NULL;
 		uint8_t ledColor = 0;
@@ -342,39 +345,39 @@ typedef struct {
 
 DISPLAY_MODE displayModes[] =
 {
-    {   720,    480,    TRUE,   TRUE,  60 },         // 720x480 progressive 16x9
-    {   720,    480,    TRUE,   FALSE, 60 },         // 720x480 progressive 4x3
-    {   720,    480,    FALSE,  TRUE,  50 },         // 720x480 interlaced 16x9 50Hz
-    {   720,    480,    FALSE,  FALSE, 50 },         // 720x480 interlaced 4x3  50Hz
-    {   720,    480,    FALSE,  TRUE,  60 },         // 720x480 interlaced 16x9
-    {   720,    480,    FALSE,  FALSE, 60 },         // 720x480 interlaced 4x3
+    //{   720,    480,    TRUE,   TRUE,  60 },         // 720x480 progressive 16x9
+    //{   720,    480,    TRUE,   FALSE, 60 },         // 720x480 progressive 4x3
+    //{   720,    480,    FALSE,  TRUE,  50 },         // 720x480 interlaced 16x9 50Hz
+    //{   720,    480,    FALSE,  FALSE, 50 },         // 720x480 interlaced 4x3  50Hz
+    //{   720,    480,    FALSE,  TRUE,  60 },         // 720x480 interlaced 16x9
+    //{   720,    480,    FALSE,  FALSE, 60 },         // 720x480 interlaced 4x3
 
 
 	// Width  Height Progressive Widescreen
 
 	// HDTV Progressive Modes
- //   {  1280,    720,    TRUE,   TRUE,  60 },         // 1280x720 progressive 16x9
+    {  1280,    720,    TRUE,   TRUE,  60 },         // 1280x720 progressive 16x9
 
-	//// EDTV Progressive Modes
- //   {   720,    480,    TRUE,   TRUE,  60 },         // 720x480 progressive 16x9
- //   {   640,    480,    TRUE,   TRUE,  60 },         // 640x480 progressive 16x9
- //   {   720,    480,    TRUE,   FALSE, 60 },         // 720x480 progressive 4x3
- //   {   640,    480,    TRUE,   FALSE, 60 },         // 640x480 progressive 4x3
+	// EDTV Progressive Modes
+    {   720,    480,    TRUE,   TRUE,  60 },         // 720x480 progressive 16x9
+    {   640,    480,    TRUE,   TRUE,  60 },         // 640x480 progressive 16x9
+    {   720,    480,    TRUE,   FALSE, 60 },         // 720x480 progressive 4x3
+    {   640,    480,    TRUE,   FALSE, 60 },         // 640x480 progressive 4x3
 
-	//// HDTV Interlaced Modes
-	////    {  1920,   1080,    FALSE,  TRUE,  60 },         // 1920x1080 interlaced 16x9
+	// HDTV Interlaced Modes
+	//    {  1920,   1080,    FALSE,  TRUE,  60 },         // 1920x1080 interlaced 16x9
 
-	//// SDTV PAL-50 Interlaced Modes
- //   {   720,    480,    FALSE,  TRUE,  50 },         // 720x480 interlaced 16x9 50Hz
- //   {   640,    480,    FALSE,  TRUE,  50 },         // 640x480 interlaced 16x9 50Hz
- //   {   720,    480,    FALSE,  FALSE, 50 },         // 720x480 interlaced 4x3  50Hz
- //   {   640,    480,    FALSE,  FALSE, 50 },         // 640x480 interlaced 4x3  50Hz
+	// SDTV PAL-50 Interlaced Modes
+    {   720,    480,    FALSE,  TRUE,  50 },         // 720x480 interlaced 16x9 50Hz
+    {   640,    480,    FALSE,  TRUE,  50 },         // 640x480 interlaced 16x9 50Hz
+    {   720,    480,    FALSE,  FALSE, 50 },         // 720x480 interlaced 4x3  50Hz
+    {   640,    480,    FALSE,  FALSE, 50 },         // 640x480 interlaced 4x3  50Hz
 
-	//// SDTV NTSC / PAL-60 Interlaced Modes
- //   {   720,    480,    FALSE,  TRUE,  60 },         // 720x480 interlaced 16x9
- //   {   640,    480,    FALSE,  TRUE,  60 },         // 640x480 interlaced 16x9
- //   {   720,    480,    FALSE,  FALSE, 60 },         // 720x480 interlaced 4x3
- //   {   640,    480,    FALSE,  FALSE, 60 },         // 640x480 interlaced 4x3
+	// SDTV NTSC / PAL-60 Interlaced Modes
+    {   720,    480,    FALSE,  TRUE,  60 },         // 720x480 interlaced 16x9
+    {   640,    480,    FALSE,  TRUE,  60 },         // 640x480 interlaced 16x9
+    {   720,    480,    FALSE,  FALSE, 60 },         // 720x480 interlaced 4x3
+    {   640,    480,    FALSE,  FALSE, 60 },         // 640x480 interlaced 4x3
 };
 
 #define NUM_MODES (sizeof(displayModes) / sizeof(displayModes[0]))
@@ -519,7 +522,7 @@ void refreshInfo()
 	if (mCounter == 0)
 	{
 		context::setCurrentFreeMem(utils::getFreePhysicalMemory());
-		context::setCurrentFanSpeed(temperatureManager::getFanSpeed());
+		context::setCurrentFanSpeed(temperatureManager::getFanSpeed() * 2);
 		context::setCurrentCpuTemp(temperatureManager::getCpuTemp());
 		context::setCurrentMbTemp(temperatureManager::getMbTemp());
 		mCounter = 60;
@@ -529,21 +532,133 @@ void refreshInfo()
 		mCounter--;
 	}
 }
+#define WIFI_SSID_LENGTH 32 
+#define WIFI_PASSWORD_LENGTH 63 
+
+#define I2C_SLAVE_ADDRESS 0x60
+#define I2C_DATA_LENGTH 256
+
+#define I2C_READ_FLAG 0x00
+#define I2C_WRITE_FLAG 0x80
+
+#define I2C_COMMAND_EFFECT 0x00
+#define I2C_COMMAND_EFFECT_PARAM (I2C_COMMAND_EFFECT + 1)
+#define I2C_COMMAND_EFFECT_COLOR1_R (I2C_COMMAND_EFFECT_PARAM + 1)
+#define I2C_COMMAND_EFFECT_COLOR1_G (I2C_COMMAND_EFFECT_COLOR1_R + 1)
+#define I2C_COMMAND_EFFECT_COLOR1_B (I2C_COMMAND_EFFECT_COLOR1_G + 1)
+#define I2C_COMMAND_EFFECT_COLOR2_R (I2C_COMMAND_EFFECT_COLOR1_B + 1)
+#define I2C_COMMAND_EFFECT_COLOR2_G (I2C_COMMAND_EFFECT_COLOR2_R + 1)
+#define I2C_COMMAND_EFFECT_COLOR2_B (I2C_COMMAND_EFFECT_COLOR2_G + 1)
+#define I2C_COMMAND_COLOR1_R (I2C_COMMAND_EFFECT_COLOR2_B + 1)
+#define I2C_COMMAND_COLOR1_G (I2C_COMMAND_COLOR1_R + 1)
+#define I2C_COMMAND_COLOR1_B (I2C_COMMAND_COLOR1_G + 1)
+#define I2C_COMMAND_COLOR2_R (I2C_COMMAND_COLOR1_B + 1)
+#define I2C_COMMAND_COLOR2_G (I2C_COMMAND_COLOR2_R + 1)
+#define I2C_COMMAND_COLOR2_B (I2C_COMMAND_COLOR2_G + 1)
+#define I2C_COMMAND_COLOR3_R (I2C_COMMAND_COLOR2_B + 1)
+#define I2C_COMMAND_COLOR3_G (I2C_COMMAND_COLOR3_R + 1)
+#define I2C_COMMAND_COLOR3_B (I2C_COMMAND_COLOR3_G + 1)
+#define I2C_COMMAND_COLOR4_R (I2C_COMMAND_COLOR3_B + 1)
+#define I2C_COMMAND_COLOR4_G (I2C_COMMAND_COLOR4_R + 1)
+#define I2C_COMMAND_COLOR4_B (I2C_COMMAND_COLOR4_G + 1)
+#define I2C_COMMAND_WIFI_SSID_START (I2C_COMMAND_COLOR4_B + 1)
+#define I2C_COMMAND_WIFI_SSID_END (I2C_COMMAND_WIFI_SSID_START + WIFI_SSID_LENGTH - 1)
+#define I2C_COMMAND_WIFI_PASSWORD_START (I2C_COMMAND_WIFI_SSID_END + 1)
+#define I2C_COMMAND_WIFI_PASSWORD_END (I2C_COMMAND_WIFI_PASSWORD_START + WIFI_PASSWORD_LENGTH - 1)
+
+#define I2C_COMMAND_APPLY 0x7E
+#define I2C_COMMAND_SET_COMMAND 0x7F
+
+#define WIFI_SSID "EqUiNoX"
+#define WIFI_PASSWORD "R1chm0nd"
+
+void writeScratchSetting(uint8_t command, uint8_t value)
+{
+	HalWriteSMBusByte(I2C_SLAVE_ADDRESS << 1, command | I2C_WRITE_FLAG, value);
+	Sleep(1);
+}
+
+void applySettings()
+{
+	HalWriteSMBusByte(I2C_SLAVE_ADDRESS << 1, I2C_COMMAND_APPLY | I2C_WRITE_FLAG, 0x00);
+	Sleep(1);
+}
+
+void writeColor(uint8_t command, uint8_t r, uint8_t g, uint8_t b)
+{
+	writeScratchSetting(command, r);
+	writeScratchSetting(command + 1, g);
+	writeScratchSetting(command + 2, b);
+
+	applySettings();
+	Sleep(100);
+}
+
+void writeWifiDetails()
+{
+	uint8_t ssid_len = strlen(WIFI_SSID);
+	for (uint8_t i = 0; i < ssid_len; i++)
+	{
+		writeScratchSetting(I2C_COMMAND_WIFI_SSID_START + i, WIFI_SSID[i]);
+	}
+
+	uint8_t password_len = strlen(WIFI_PASSWORD);
+	for (uint8_t i = 0; i < password_len; i++)
+	{
+		writeScratchSetting(I2C_COMMAND_WIFI_PASSWORD_START + i, WIFI_PASSWORD[i]);
+	}
+
+	applySettings();
+}
+
+void readSetting(uint8_t command, uint8_t* value)
+{
+	HalWriteSMBusByte(I2C_SLAVE_ADDRESS << 1, I2C_COMMAND_SET_COMMAND | I2C_WRITE_FLAG, command);
+	Sleep(1);
+
+	uint32_t temp = 0;
+	HalReadSMBusByte(I2C_SLAVE_ADDRESS << 1, I2C_READ_FLAG, &temp);
+	Sleep(1);
+
+	*value = (uint8_t)temp;
+}
 
 void __cdecl main()
 {
+#ifndef TOOLS
 	utils::debugPrint("Welcome to PrometheOS\n");
+#else
+	utils::debugPrint("Welcome to PrometheOS Tools\n");
+#endif
+
+	/*writeWifiDetails();
+
+	while (true)
+	{
+		writeColor(I2C_COMMAND_COLOR2_R, 0xff, 0x00, 0x00);
+		writeColor(I2C_COMMAND_COLOR2_R, 0xff, 0xff, 0x00);
+		writeColor(I2C_COMMAND_COLOR2_R, 0x00, 0xff, 0x00);
+		writeColor(I2C_COMMAND_COLOR2_R, 0x00, 0xff, 0xff);
+		writeColor(I2C_COMMAND_COLOR2_R, 0x00, 0x00, 0xff);
+		writeColor(I2C_COMMAND_COLOR2_R, 0xff, 0x00, 0xff);
+	}*/
 
 #ifdef XENIUM
-	context::setModchip((modchip*)new modchipXenium());
+	context::setModchipType(modchipTypeXenium);
 #elif XECUTER
-	context::setModchip((modchip*)new modchipXecuter());
+	context::setModchipType(modchipTypeXecuter);
 #elif XCHANGER
-	context::setModchip((modchip*)new modchipXchanger());
+	context::setModchipType(modchipTypeXchanger);
+#elif MODXO
+	context::setModchipType(modchipTypeModxo);
 #elif ALADDIN1MB
-	context::setModchip((modchip*)new modchipAladdin1mb());
+	context::setModchipType(modchipTypeAladdin1mb);
+#elif ALADDIN2MB
+	context::setModchipType(modchipTypeAladdin2mb);
 #elif DUMMY
-	context::setModchip((modchip*)new modchipDummy());
+	context::setModchipType(modchipTypeDummy);
+#elif TOOLS
+	context::setModchipType(modchip::detectModchip());
 #endif
 
 	//XboxPartitionTable PartTbl;
@@ -566,8 +681,8 @@ void __cdecl main()
 
 	context::setNetworkInitialized(false);
 
-	driveManager::mountDrive("C");
-	driveManager::mountDrive("E");
+	driveManager::mountDrive("HDD0-C");
+	driveManager::mountDrive("HDD0-E");
 	
 	xboxConfig::init();
 	xboxConfig::autoFix();
@@ -576,6 +691,12 @@ void __cdecl main()
 	if (hdmiDevice::detectDevice() == true)
 	{
 		hdmiSettingsManager::loadSettings();
+	}
+
+	if (settingsManager::getRtcEnable() == true && xboxConfig::getHasRtcExpansion() == true)
+	{
+		rtcDateTime dateTime = rtcManager::getDateTime();
+		rtcManager::setXboxDateTime(dateTime);
 	}
 
 	httpServer::registerOnGetCallback(onGetCallback);
@@ -592,7 +713,7 @@ void __cdecl main()
 		}
 	}
 
-	context::setImageMap(new pointerMap(false));
+	context::setImageMap(new pointerMap<image*>(true));
 
 	drawing::loadFont(&font_sfn[0]);
 
@@ -615,6 +736,7 @@ void __cdecl main()
 	//\xC2\xB1 = Deg
 	//\xC2\xB2 = LT
 	//\xC2\xB3 = RT
+	//\xC2\xB4 = L
 
 	bitmapFont* fontSmall = drawing::generateBitmapFont("FreeSans", SSFN_STYLE_REGULAR, 18, 18, 0, 256);
 	context::setBitmapFontSmall(fontSmall);
@@ -627,7 +749,6 @@ void __cdecl main()
 	drawing::renderRoundedRect("panel-stroke", 24, 24, 6, 0x01010100, 0xffffffff, 2);
 
 	lcdRender::startThread();
-
 
 	sceneManager::pushScene(sceneItemMainScene);
 	if (settingsManager::hasAutoBootBank() == true)
@@ -662,7 +783,6 @@ void __cdecl main()
     {
 		context::getD3dDevice()->BeginScene();
 
-		audioPlayer::refresh();
 		temperatureManager::refresh();
 		inputManager::processController();
 		drawing::clearBackground((uint32_t)frameIndex);

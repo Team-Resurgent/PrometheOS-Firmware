@@ -12,7 +12,6 @@ public:
 	void update();
 	void render();
 	uint32_t getValue();
-	sceneResult getSceneResult();
 private:
 	void keyboardButton(bool selected, bool active, char key, int x, int y, int width, int height);
 	char* addChar(char* value, int charIndex);
@@ -25,6 +24,5 @@ private:
 	char* mIp3;
 	char* mIp4;
 	int mPart;
-	sceneResult mSceneResult;
 	int mCounter;
 };

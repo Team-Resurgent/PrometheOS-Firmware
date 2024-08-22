@@ -71,7 +71,7 @@ uint64_t WINAPI flashBackup::process(void* param)
 	flashBackupData* data = (flashBackupData*)param;
 	setResponse(data, flashBackupProcessing);
 
-	if (fileSystem::directoryCreate("E:\\PrometheOS") == false || fileSystem::directoryCreate("E:\\PrometheOS\\Backup") == false)
+	if (fileSystem::directoryCreate("HDD0-E:\\PrometheOS") == false || fileSystem::directoryCreate("HDD0-E:\\PrometheOS\\Backup") == false)
 	{
 		setResponse(data, flashBackupFailedToCreateDirectory);
 		return 0;
@@ -80,11 +80,35 @@ uint64_t WINAPI flashBackup::process(void* param)
 	char* filePath = NULL;
 	if (mRecovery == true)
 	{
-		filePath = fileSystem::combinePath("E:\\PrometheOS\\Backup", "Recovery.bin");
+		filePath = fileSystem::combinePath("HDD0-E:\\PrometheOS\\Backup", "Recovery.bin");
+	}
+	else if (context::getModchipType() == modchipTypeXenium)
+	{
+		filePath = fileSystem::combinePath("HDD0-E:\\PrometheOS\\Backup", "PrometheOS-Xenium.bin");
+	}
+	else if (context::getModchipType() == modchipTypeXecuter)
+	{
+		filePath = fileSystem::combinePath("HDD0-E:\\PrometheOS\\Backup", "PrometheOS-Xecuter.bin");
+	}
+	else if (context::getModchipType() == modchipTypeAladdin1mb)
+	{
+		filePath = fileSystem::combinePath("HDD0-E:\\PrometheOS\\Backup", "PrometheOS-Aladdin1mb.bin");
+	}
+	else if (context::getModchipType() == modchipTypeAladdin2mb)
+	{
+		filePath = fileSystem::combinePath("HDD0-E:\\PrometheOS\\Backup", "PrometheOS-Aladdin2mb.bin");
+	}
+	else if (context::getModchipType() == modchipTypeXchanger)
+	{
+		filePath = fileSystem::combinePath("HDD0-E:\\PrometheOS\\Backup", "PrometheOS-Xchanger.bin");
+	}
+	else if (context::getModchipType() == modchipTypeModxo)
+	{
+		filePath = fileSystem::combinePath("HDD0-E:\\PrometheOS\\Backup", "PrometheOS-Modxo.bin");
 	}
 	else
 	{
-		filePath = fileSystem::combinePath("E:\\PrometheOS\\Backup", "PrometheOS.bin");
+		filePath = fileSystem::combinePath("HDD0-E:\\PrometheOS\\Backup", "PrometheOS.bin");
 	}
 
 	uint32_t fileHandle;

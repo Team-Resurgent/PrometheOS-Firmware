@@ -45,6 +45,45 @@ void component::button(bool selected, bool active, const char* label, int x, int
 	}
 }
 
+void component::splitButton(bool selected, bool active, const char* label1, int label1Width, const char* label2, int x, int y, int width, int height)
+{
+	int textWidth;
+	int textHeight;
+	drawing::measureBitmapString(context::getBitmapFontSmall(), label2, &textWidth, &textHeight);
+
+	if (active)
+	{
+		if (selected) 
+		{
+			panel(theme::getButtonActiveHoverFillColor(), theme::getButtonActiveHoverStrokeColor(), x, y, width, height);
+			drawing::drawBitmapString(context::getBitmapFontSmall(), label1, theme::getButtonActiveHoverTextColor(), x + 10, y + ((height - textHeight) / 2) - 3);
+			drawing::drawBitmapString(context::getBitmapFontSmall(), label2, theme::getButtonActiveHoverTextColor(), x + 10 + label1Width, y + ((height - textHeight) / 2) - 3);
+		}
+		else
+		{
+			panel(theme::getButtonActiveFillColor(), theme::getButtonActiveStrokeColor(), x, y, width, height);
+			drawing::drawBitmapString(context::getBitmapFontSmall(), label1, theme::getButtonActiveTextColor(), x + 10, y + ((height - textHeight) / 2) - 3);
+			drawing::drawBitmapString(context::getBitmapFontSmall(), label2, theme::getButtonActiveTextColor(), x + 10 + label1Width, y + ((height - textHeight) / 2) - 3);
+		}
+	}
+	else
+	{
+		if (selected) 
+		{
+			panel(theme::getButtonInactiveHoverFillColor(), theme::getButtonInactiveHoverStrokeColor(), x, y, width, height);
+			drawing::drawBitmapString(context::getBitmapFontSmall(), label1, theme::getButtonInactiveHoverTextColor(), x + 10, y + ((height - textHeight) / 2) - 3);
+			drawing::drawBitmapString(context::getBitmapFontSmall(), label2, theme::getButtonInactiveHoverTextColor(), x + 10 + label1Width, y + ((height - textHeight) / 2) - 3);
+		}
+		else
+		{
+			panel(theme::getButtonInactiveFillColor(), theme::getButtonInactiveStrokeColor(), x, y, width, height);
+			drawing::drawBitmapString(context::getBitmapFontSmall(), label1, theme::getButtonInactiveTextColor(), x + 10, y + ((height - textHeight) / 2) - 3);
+			drawing::drawBitmapString(context::getBitmapFontSmall(), label2, theme::getButtonInactiveTextColor(), x + 10 + label1Width, y + ((height - textHeight) / 2) - 3);
+		}
+	}
+}
+
+
 void component::fileButton(bool selected, bool active, bool isFile, const char* label, int x, int y, int width, int height)
 {
 	int textWidth;

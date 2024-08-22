@@ -3,6 +3,7 @@
 #include "removeScene.h"
 #include "flashFlowScene.h"
 #include "editFlowScene.h"
+#include "keypadScene.h"
 #include "audioSettingsScene.h"
 #include "videoSettingsScene.h"
 #include "keypadScene.h"
@@ -19,10 +20,39 @@
 #include "..\theme.h"
 #include "..\network.h"
 
+void networkSettingsScene::onKeypadClosingCallback(sceneResult result, void* context, scene* scene)
+{
+	networkSettingsScene* self = (networkSettingsScene*)context;
+	if (result == sceneResultCancelled)
+	{
+		return;
+	}
+	keypadScene* closingScene = (keypadScene*)scene;
+	if (self->mSelectedControl == 1)
+	{
+		self->mAddress = closingScene->getValue();
+	}
+	else if (self->mSelectedControl == 2)
+	{
+		self->mSubnet = closingScene->getValue();
+	}
+	else if (self->mSelectedControl == 3)
+	{
+		self->mGateway = closingScene->getValue();
+	}
+	else if (self->mSelectedControl == 4)
+	{
+		self->mPrimaryDns = closingScene->getValue();
+	}
+	else if (self->mSelectedControl == 5)
+	{
+		self->mSecondaryDns = closingScene->getValue();
+	}
+}
+
 networkSettingsScene::networkSettingsScene()
 {
 	mSelectedControl = 0;
-	mKeypadScene = NULL;
 	mNetworkMode = settingsManager::getNetworkMode();
 	mAddress = settingsManager::getNetworkAddress();
 	mSubnet = settingsManager::getNetworkSubnet();
@@ -61,11 +91,6 @@ networkSettingsScene::networkSettingsScene()
 
 }
 
-networkSettingsScene::~networkSettingsScene()
-{
-	delete(mKeypadScene);
-}
-
 void networkSettingsScene::update()
 {
 	if (mRefreshNetwork == true && network::isReady())
@@ -82,43 +107,6 @@ void networkSettingsScene::update()
 			mSecondaryDns = network::getSecondaryDns();
 		}
 		mRefreshNetwork = false;
-	}
-
-	if (mKeypadScene != NULL)
-	{
-		mKeypadScene->update();
-		if (mKeypadScene->getSceneResult() == sceneResultCancelled)
-		{
-			delete(mKeypadScene);
-			mKeypadScene = NULL;
-			return;
-		}
-		else if (mKeypadScene->getSceneResult() == sceneResultDone)
-		{
-			if (mSelectedControl == 1)
-			{
-				mAddress = mKeypadScene->getValue();
-			}
-			else if (mSelectedControl == 2)
-			{
-				mSubnet = mKeypadScene->getValue();
-			}
-			else if (mSelectedControl == 3)
-			{
-				mGateway = mKeypadScene->getValue();
-			}
-			else if (mSelectedControl == 4)
-			{
-				mPrimaryDns = mKeypadScene->getValue();
-			}
-			else if (mSelectedControl == 5)
-			{
-				mSecondaryDns = mKeypadScene->getValue();
-			}
-			delete(mKeypadScene);
-			mKeypadScene = NULL;
-		}
-		return;
 	}
 
 	// Exit Action
@@ -159,23 +147,33 @@ void networkSettingsScene::update()
 		}
 		else if (mSelectedControl == 1 && mNetworkMode == networkModeStatic)
 		{
-			mKeypadScene = new keypadScene("Please enter IP...", mAddress);
+			sceneContainer* container = new sceneContainer(sceneItemGenericScene, new keypadScene("Please enter IP...", mAddress), "", this, onKeypadClosingCallback);
+			sceneManager::pushScene(container);
+			return;
 		}
 		else if (mSelectedControl == 2 && mNetworkMode == networkModeStatic)
 		{
-			mKeypadScene = new keypadScene("Please enter Subnet...", mSubnet);
+			sceneContainer* container = new sceneContainer(sceneItemGenericScene, new keypadScene("Please enter Subnet...", mSubnet), "", this, onKeypadClosingCallback);
+			sceneManager::pushScene(container);
+			return;
 		}
 		else if (mSelectedControl == 3 && mNetworkMode == networkModeStatic)
 		{
-			mKeypadScene = new keypadScene("Please enter Gateway...", mGateway);
+			sceneContainer* container = new sceneContainer(sceneItemGenericScene, new keypadScene("Please enter Gateway...", mGateway), "", this, onKeypadClosingCallback);
+			sceneManager::pushScene(container);
+			return;
 		}
 		else if (mSelectedControl == 4 && (mNetworkMode == networkModeStatic || mNetworkMode == networkModeDynamicManualDns))
 		{
-			mKeypadScene = new keypadScene("Please enter Primary DNS...", mPrimaryDns);
+			sceneContainer* container = new sceneContainer(sceneItemGenericScene, new keypadScene("Please enter Primary DNS...", mPrimaryDns), "", this, onKeypadClosingCallback);
+			sceneManager::pushScene(container);
+			return;
 		}
 		else if (mSelectedControl == 5 && (mNetworkMode == networkModeStatic || mNetworkMode == networkModeDynamicManualDns))
 		{
-			mKeypadScene = new keypadScene("Please enter Secondary DNS...", mSecondaryDns);
+			sceneContainer* container = new sceneContainer(sceneItemGenericScene, new keypadScene("Please enter Secondary DNS...", mSecondaryDns), "", this, onKeypadClosingCallback);
+			sceneManager::pushScene(container);
+			return;
 		}
 	}
 	
@@ -196,12 +194,6 @@ void networkSettingsScene::update()
 
 void networkSettingsScene::render()
 {
-	if (mKeypadScene != NULL)
-	{
-		mKeypadScene->render();
-		return;
-	}
-
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
 	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Network Settings...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 

@@ -35,7 +35,6 @@ keypadScene::keypadScene(const char* title, uint32_t address)
 		mIp4 = stringUtility::formatString("%i", (address >> 24) & 0xff);
 	}
 	mPart = 0;
-	mSceneResult = sceneResultNone;
 	mCounter = 0;
 }
 
@@ -55,7 +54,8 @@ void keypadScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		mSceneResult = sceneResultCancelled;
+		sceneManager::popScene(sceneResultCancelled);
+		return;
 	}
 
 	// Delete Action
@@ -166,7 +166,8 @@ void keypadScene::update()
 		}
 		else if (mSelectedControl == 11)
 		{
-			mSceneResult = sceneResultDone;
+			sceneManager::popScene(sceneResultDone);
+			return;
 		}
 
 	}
@@ -333,9 +334,4 @@ void keypadScene::keyboardButton(bool selected, bool active, char key, int x, in
 uint32_t keypadScene::getValue()
 {
 	return (stringUtility::toInt(mIp4) << 24) | (stringUtility::toInt(mIp3) << 16) | (stringUtility::toInt(mIp2) << 8) | stringUtility::toInt(mIp1);
-}
-
-sceneResult keypadScene::getSceneResult()
-{
-	return mSceneResult;
 }

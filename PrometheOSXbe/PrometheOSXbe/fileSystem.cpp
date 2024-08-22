@@ -17,7 +17,7 @@ namespace
 
 	uint32_t mMaxFileContainerID = 0;
 
-	pointerMap* mFileContainerMap = new pointerMap(false);
+	pointerMap<FileContainer*>* mFileContainerMap = new pointerMap<FileContainer*>(true);
 
 	uint32_t addFileContainer(FileContainer* fileContainer)
 	{
@@ -29,7 +29,7 @@ namespace
 
 	FileContainer* getFileContainer(uint32_t fileHandle)
 	{
-		FileContainer* fileContainer = (FileContainer*)mFileContainerMap->get(fileHandle);
+		FileContainer* fileContainer = mFileContainerMap->get(fileHandle);
 		return fileContainer;
 	}
 
@@ -53,67 +53,67 @@ fileSystem::FileInfoDetail* fileSystem::fileGetFileInfoDetail(const char* path)
 	fileInfoDetail->path = strdup(path);
 	fileInfoDetail->isDirectory = (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 	fileInfoDetail->isFile = (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
+	fileInfoDetail->accessTime.month = 1;
+	fileInfoDetail->accessTime.day = 1;
+	fileInfoDetail->accessTime.year = 2000;
+	fileInfoDetail->accessTime.hour = 0;
+	fileInfoDetail->accessTime.minute = 0;
+	fileInfoDetail->accessTime.second = 0;
+	fileInfoDetail->writeTime.month = 1;
+	fileInfoDetail->writeTime.day = 1;
+	fileInfoDetail->writeTime.year = 2000;
+	fileInfoDetail->writeTime.hour = 0;
+	fileInfoDetail->writeTime.minute = 0;
+	fileInfoDetail->writeTime.second = 0;
 
 	HANDLE fileHandle = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, fileInfoDetail->isDirectory ? FILE_FLAG_BACKUP_SEMANTICS : 0, NULL);
-	if (fileHandle == INVALID_HANDLE_VALUE)
+	if (fileHandle != INVALID_HANDLE_VALUE)
     {
-		delete(fileInfoDetail);
-        return NULL;
-    }
-
-	FILETIME fileTimeAccess;
-	FILETIME fileTimeWrite;
-	if (GetFileTime(fileHandle, NULL, &fileTimeAccess, &fileTimeWrite) == FALSE)
-	{
-		delete(fileInfoDetail);
-        return NULL;
-	}
-
-	SYSTEMTIME systemTimeAccessLocal;
-	if (FileTimeToSystemTime(&fileTimeAccess, &systemTimeAccessLocal) == FALSE)
-	{
-		delete(fileInfoDetail);
-        return NULL;
-	}
-
-	fileInfoDetail->accessTime.month = systemTimeAccessLocal.wMonth;
-	fileInfoDetail->accessTime.day = systemTimeAccessLocal.wDay;
-	fileInfoDetail->accessTime.year = systemTimeAccessLocal.wYear;
-	fileInfoDetail->accessTime.hour = systemTimeAccessLocal.wHour;
-	fileInfoDetail->accessTime.minute = systemTimeAccessLocal.wMinute;
-	fileInfoDetail->accessTime.second = systemTimeAccessLocal.wSecond;
-
-	if (fileTimeWrite.dwHighDateTime != 0 || fileTimeWrite.dwLowDateTime)
-	{
-		FILETIME fileTimeWriteLocal;
-		if (FileTimeToLocalFileTime(&fileTimeWrite, &fileTimeWriteLocal) == FALSE)
+		FILETIME fileTimeAccess;
+		FILETIME fileTimeWrite;
+		if (GetFileTime(fileHandle, NULL, &fileTimeAccess, &fileTimeWrite) == FALSE)
 		{
 			delete(fileInfoDetail);
 			return NULL;
 		}
 
-		SYSTEMTIME systemTimeWriteLocal;
-		if (FileTimeToSystemTime(&fileTimeWriteLocal, &systemTimeWriteLocal) == FALSE)
+		SYSTEMTIME systemTimeAccessLocal;
+		if (FileTimeToSystemTime(&fileTimeAccess, &systemTimeAccessLocal) == FALSE)
 		{
 			delete(fileInfoDetail);
 			return NULL;
 		}
 
-		fileInfoDetail->writeTime.month = systemTimeWriteLocal.wMonth;
-		fileInfoDetail->writeTime.day = systemTimeWriteLocal.wDay;
-		fileInfoDetail->writeTime.year = systemTimeWriteLocal.wYear;
-		fileInfoDetail->writeTime.hour = systemTimeWriteLocal.wHour;
-		fileInfoDetail->writeTime.minute = systemTimeWriteLocal.wMinute;
-		fileInfoDetail->writeTime.second = systemTimeAccessLocal.wSecond;
-	}
-	else
-	{
-		fileInfoDetail->writeTime.month = 0;
-		fileInfoDetail->writeTime.day = 0;
-		fileInfoDetail->writeTime.year = 0;
-		fileInfoDetail->writeTime.hour = 0;
-		fileInfoDetail->writeTime.minute = 0;
-		fileInfoDetail->writeTime.second = 0;
+		fileInfoDetail->accessTime.month = systemTimeAccessLocal.wMonth;
+		fileInfoDetail->accessTime.day = systemTimeAccessLocal.wDay;
+		fileInfoDetail->accessTime.year = systemTimeAccessLocal.wYear;
+		fileInfoDetail->accessTime.hour = systemTimeAccessLocal.wHour;
+		fileInfoDetail->accessTime.minute = systemTimeAccessLocal.wMinute;
+		fileInfoDetail->accessTime.second = systemTimeAccessLocal.wSecond;
+
+		if (fileTimeWrite.dwHighDateTime != 0 || fileTimeWrite.dwLowDateTime)
+		{
+			FILETIME fileTimeWriteLocal;
+			if (FileTimeToLocalFileTime(&fileTimeWrite, &fileTimeWriteLocal) == FALSE)
+			{
+				delete(fileInfoDetail);
+				return NULL;
+			}
+
+			SYSTEMTIME systemTimeWriteLocal;
+			if (FileTimeToSystemTime(&fileTimeWriteLocal, &systemTimeWriteLocal) == FALSE)
+			{
+				delete(fileInfoDetail);
+				return NULL;
+			}
+
+			fileInfoDetail->writeTime.month = systemTimeWriteLocal.wMonth;
+			fileInfoDetail->writeTime.day = systemTimeWriteLocal.wDay;
+			fileInfoDetail->writeTime.year = systemTimeWriteLocal.wYear;
+			fileInfoDetail->writeTime.hour = systemTimeWriteLocal.wHour;
+			fileInfoDetail->writeTime.minute = systemTimeWriteLocal.wMinute;
+			fileInfoDetail->writeTime.second = systemTimeAccessLocal.wSecond;
+		}
 	}
 
 	DWORD fileSize = GetFileSize(fileHandle, NULL);
@@ -123,9 +123,9 @@ fileSystem::FileInfoDetail* fileSystem::fileGetFileInfoDetail(const char* path)
 	return fileInfoDetail;
 }
 
-pointerVector* fileSystem::fileGetFileInfoDetails(const char* path)
+pointerVector<fileSystem::FileInfoDetail*>* fileSystem::fileGetFileInfoDetails(const char* path)
 {
-	pointerVector* fileInfoDetails = new pointerVector(true);
+	pointerVector<FileInfoDetail*>* fileInfoDetails = new pointerVector<FileInfoDetail*>(true);
 
 	WIN32_FIND_DATAA findData;
 
@@ -163,8 +163,8 @@ pointerVector* fileSystem::fileGetFileInfoDetails(const char* path)
 	{
 		for (uint32_t j = i + 1; j < fileInfoDetails->count(); j++) 
 		{
-			FileInfoDetail* fileInfoDetail1 = (FileInfoDetail*)fileInfoDetails->get(i);
-			FileInfoDetail* fileInfoDetail2 = (FileInfoDetail*)fileInfoDetails->get(j);
+			FileInfoDetail* fileInfoDetail1 = fileInfoDetails->get(i);
+			FileInfoDetail* fileInfoDetail2 = fileInfoDetails->get(j);
 			if (stricmp(fileInfoDetail1->path, fileInfoDetail2->path) > 0) 
 			{
 				fileInfoDetails->swap(i, j);
@@ -196,12 +196,11 @@ bool fileSystem::fileOpen(const char* path, FileMode const fileMode, uint32_t& f
 	else if (fileMode == FileModeAppendUpdate) {
 		access = "a+b";
 	}
-	FileContainer* fileContainer = (FileContainer*)malloc(sizeof(FileContainer));
-	memset(fileContainer, 0, sizeof(FileContainer));
+	FileContainer* fileContainer = new FileContainer();
 	fileContainer->file = fopen(path, access);
 	if (fileContainer->file == NULL)
 	{
-		free(fileContainer);
+		delete(fileContainer);
 		return false;
 	}
 	fileHandle = addFileContainer(fileContainer);
@@ -232,7 +231,7 @@ bool fileSystem::fileWrite(uint32_t fileHandle, char* writeBuffer, uint32_t byte
 bool fileSystem::fileWrite(const char* path, char* writeBuffer, uint32_t bytesToWrite, uint32_t& bytesWritten)
 {
 	uint32_t fileHandle;
-	if (fileOpen(path, fileSystem::FileModeWrite, fileHandle) == false)
+	if (fileOpen(path, FileModeWrite, fileHandle) == false)
 	{
 		return false;
 	}
@@ -337,7 +336,7 @@ bool fileSystem::directoryCreate(const char* path)
 
 bool fileSystem::directoryDelete(const char* path, bool const recursive)
 {
-	pointerVector* fileInfoDetails = fileSystem::fileGetFileInfoDetails(path);
+	pointerVector<FileInfoDetail*>* fileInfoDetails = fileGetFileInfoDetails(path);
 	if (fileInfoDetails == NULL)
 	{
 		return false;
@@ -345,7 +344,7 @@ bool fileSystem::directoryDelete(const char* path, bool const recursive)
 
 	for (uint32_t i = 0; i < fileInfoDetails->count(); i++)
 	{
-		FileInfoDetail* fileInfoDetail = (FileInfoDetail*)fileInfoDetails->get(i);
+		FileInfoDetail* fileInfoDetail = fileInfoDetails->get(i);
 		if (fileInfoDetail->isDirectory) 
 		{
 			const char* directoryToDelete = fileInfoDetail->path;
@@ -437,7 +436,7 @@ bool fileSystem::fileSize(uint32_t fileHandle, uint32_t& size)
 
 bool fileSystem::fileExists(const char* path, bool& exists)
 {
-	fileSystem::FileInfoDetail* fileInfoDetail = fileSystem::fileGetFileInfoDetail(path);
+	FileInfoDetail* fileInfoDetail = fileGetFileInfoDetail(path);
 	if (fileInfoDetail == NULL) 
 	{
 		exists = false;
@@ -450,7 +449,7 @@ bool fileSystem::fileExists(const char* path, bool& exists)
 
 bool fileSystem::directoryExists(const char* path, bool& exists)
 {
-	fileSystem::FileInfoDetail* fileInfoDetail = fileSystem::fileGetFileInfoDetail(path);
+	FileInfoDetail* fileInfoDetail = fileGetFileInfoDetail(path);
 	if (fileInfoDetail == NULL) 
 	{
 		exists = false;

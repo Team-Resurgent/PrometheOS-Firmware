@@ -21,7 +21,6 @@
 
 restoreEepromScene::restoreEepromScene(const char* filePath)
 {
-	mSceneResult = sceneResultNone;
 	mFilePath = strdup(filePath);
 	mProgress = strdup("Ready");
 	mDone = false;
@@ -38,7 +37,15 @@ void restoreEepromScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		mSceneResult = sceneResultCancelled;
+		if (mDone == true)
+		{
+			utils::reboot();
+		}
+		else
+		{
+			sceneManager::popScene(sceneResultCancelled);
+			return;
+		}
 	}
 
 	// Select Actions
@@ -87,10 +94,5 @@ void restoreEepromScene::render()
 	{
         drawing::drawBitmapString(context::getBitmapFontSmall(), "\xC2\xA1 Restore", theme::getFooterTextColor(), 40, theme::getFooterY());
     }
-	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Back", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
-}
-
-sceneResult restoreEepromScene::getSceneResult()
-{
-	return mSceneResult;
+	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), mDone == true ?  "\xC2\xA2 Reboot" : "\xC2\xA2 Back", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
 }

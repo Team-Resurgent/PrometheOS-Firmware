@@ -2,10 +2,7 @@
 
 #include "modchip.h"
 #include "xboxInternals.h"
-
-#ifndef TOOLS
 #include "settingsManager.h"
-#endif
 
 class modchipAladdin1mb : public modchip
 {
@@ -23,8 +20,10 @@ public:
 	bool supportsRecovery();
 	void disableRecovery();
 	bool isValidBankSize(uint32_t size);
+	bool isValidFlashSize(bool recovery, uint32_t size);
 	uint32_t getBankSize(uint8_t bank);
 	uint32_t getBankMemOffset(uint8_t bank);
+	uint32_t getBankStartOffset(uint8_t bank);
 	uint8_t getBankFromIdAndSlots(uint8_t id, uint8_t slots);
 	utils::dataContainer* readBank(uint8_t bank);
 	void eraseBank(uint8_t bank);
@@ -33,6 +32,7 @@ public:
 
 	uint8_t getFlashBankCount(bool recovery);
 	uint8_t getFlashBank(bool recovery, uint8_t bank);
+	bankType getFlashBankType(bool recovery, uint8_t bank);
 	utils::dataContainer* readFlash(bool recovery);
 
 	void launchBank(uint8_t bank, uint8_t ledColor);
@@ -48,6 +48,8 @@ public:
 
 	void lcdSendCharacter(uint8_t value, uint8_t command);
 	void lcdSetCursorPosition(uint8_t row, uint8_t col);
+	uint8_t getLcdTypeCount();
+	char* getLcdTypeString(uint8_t lcdEnableType);
 	void lcdInit(uint8_t backlight, uint8_t contrast);
 	void lcdPrintMessage(const char* message);
 	void lcdSetBacklight(uint8_t value);

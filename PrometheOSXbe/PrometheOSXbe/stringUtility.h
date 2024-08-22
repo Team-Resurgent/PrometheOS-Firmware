@@ -16,12 +16,14 @@ public:
 	static bool startsWith(const char* value, const char* startsWith, bool caseInsensitive);
 	static bool endsWith(const char* value, const char* endsWith, bool caseInsensitive);
 	static bool equals(const char* value1, const char* value2, bool caseInsensitive);
+	static char* stringUtility::insertAtIndex(const char* value, char toInsert, int index);
+	static char* removeAtIndex(const char* value, int index);
 	static char* replace(const char* value, const char* search, const char* with);
 	static char* leftTrim(const char* value, const char trimChar);
 	static char* rightTrim(const char* value, const char trimChar);
 	static char* trim(const char* value, const char trimChar);
 	static void fTrim(char *s);
-	static pointerVector* split(const char* value, const char* delimiter, bool trimValues);
+	static pointerVector<char*>* split(const char* value, const char* delimiter, bool trimValues);
 	static char* splitAfter(const char* value, const char* search);
 	static char* substr(const char* value, uint32_t offset, int32_t length);
 	static int32_t find(const char* value, uint32_t length, uint32_t startPos, const char* search, bool caseInsensitive);

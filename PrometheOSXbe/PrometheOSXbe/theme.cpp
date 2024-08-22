@@ -152,6 +152,26 @@ uint32_t theme::getSnakeTailColor()
 	return mThemeData.SNAKE_TAIL_COLOR;
 }
 
+uint32_t theme::getInvadersWallColor()
+{
+	return mThemeData.INVADERS_WALL_COLOR;
+}
+
+uint32_t theme::getInvadersPlayerColor()
+{
+	return mThemeData.INVADERS_PLAYER_COLOR;
+}
+
+uint32_t theme::getInvadersBossColor()
+{
+	return mThemeData.INVADERS_BOSS_COLOR;
+}
+
+uint32_t theme::getInvadersAlienColor()
+{
+	return mThemeData.INVADERS_ALIEN_COLOR;
+}
+
 uint32_t theme::getJoyButtonAColor()
 {
 	return mThemeData.JOY_BUTTON_A_COLOR;
@@ -496,6 +516,11 @@ void theme::loadSkin(char* skinName)
 	mThemeData.SNAKE_HEAD_COLOR = THEME_SNAKE_HEAD_COLOR;
 	mThemeData.SNAKE_TAIL_COLOR = THEME_SNAKE_TAIL_COLOR;
 
+	mThemeData.INVADERS_WALL_COLOR = THEME_INVADERS_WALL_COLOR;
+	mThemeData.INVADERS_PLAYER_COLOR = THEME_INVADERS_PLAYER_COLOR;
+	mThemeData.INVADERS_BOSS_COLOR = THEME_INVADERS_BOSS_COLOR;
+	mThemeData.INVADERS_ALIEN_COLOR = THEME_INVADERS_ALIEN_COLOR;
+
 	mThemeData.JOY_BUTTON_A_COLOR = THEME_JOY_BUTTON_A_COLOR;
 	mThemeData.JOY_BUTTON_B_COLOR = THEME_JOY_BUTTON_B_COLOR;
 	mThemeData.JOY_BUTTON_X_COLOR = THEME_JOY_BUTTON_X_COLOR;
@@ -602,7 +627,7 @@ void theme::loadSkin(char* skinName)
 		return;
 	}
 
-	char* skinPath = stringUtility::formatString("E:\\PrometheOS\\Skins\\%s", skinName);
+	char* skinPath = stringUtility::formatString("HDD0-E:\\PrometheOS\\Skins\\%s", skinName);
 
 	uint32_t fileHandle;
 
@@ -627,7 +652,7 @@ void theme::loadSkin(char* skinName)
 	uint64_t totalMemUsed = 0;
 
 	char* backgroundSkinPath = fileSystem::combinePath(skinPath, "backgrounds");
-	pointerVector* result = fileSystem::fileGetFileInfoDetails(backgroundSkinPath);
+	pointerVector<fileSystem::FileInfoDetail*>* result = fileSystem::fileGetFileInfoDetails(backgroundSkinPath);
 	if (result != NULL)
 	{
 		for (uint32_t i = 0; i < result->count(); i++)
@@ -637,7 +662,7 @@ void theme::loadSkin(char* skinName)
 				utils::debugPrint("Skipping loading any remaining textures, due to mem use.");
 				break;
 			}
-			fileSystem::FileInfoDetail* fileInfoDetail = (fileSystem::FileInfoDetail*)result->get(i);
+			fileSystem::FileInfoDetail* fileInfoDetail = result->get(i);
 			char* backgroundName = stringUtility::formatString("background:%i", mBackgroundFrameCount);
 			if (loadImage(fileInfoDetail->path, backgroundName))
 			{
@@ -743,6 +768,14 @@ void theme::parseConfigLine(char* param1, char* param2, char* buffer, unsigned l
         parseUnsignedNumber(params[1], mThemeData.SNAKE_HEAD_COLOR);
     } else if (strcmp(params[0], "SNAKE_TAIL_COLOR") == 0) {
         parseUnsignedNumber(params[1], mThemeData.SNAKE_TAIL_COLOR);
+    } else if (strcmp(params[0], "INVADERS_WALL_COLOR") == 0) {
+        parseUnsignedNumber(params[1], mThemeData.INVADERS_WALL_COLOR);
+    } else if (strcmp(params[0], "INVADERS_PLAYER_COLOR") == 0) {
+        parseUnsignedNumber(params[1], mThemeData.INVADERS_PLAYER_COLOR);
+    } else if (strcmp(params[0], "INVADERS_BOSS_COLOR") == 0) {
+        parseUnsignedNumber(params[1], mThemeData.INVADERS_BOSS_COLOR);
+    } else if (strcmp(params[0], "INVADERS_ALIEN_COLOR") == 0) {
+        parseUnsignedNumber(params[1], mThemeData.INVADERS_ALIEN_COLOR);
 	} else if (strcmp(params[0], "JOY_BUTTON_A_COLOR") == 0) {
         parseUnsignedNumber(params[1], mThemeData.JOY_BUTTON_A_COLOR);
 	} else if (strcmp(params[0], "JOY_BUTTON_B_COLOR") == 0) {
@@ -987,16 +1020,16 @@ void theme::loadConfig(char* buffer, uint32_t bufferSize)
     free(lineBuffer);
 }
 
-pointerVector* theme::getSkins()
+pointerVector<char*>* theme::getSkins()
 {
-	pointerVector* result = new pointerVector(false);
+	pointerVector<char*>* result = new pointerVector<char*>(false);
 	
-	pointerVector* skins = fileSystem::fileGetFileInfoDetails("E:\\PrometheOS\\Skins");
+	pointerVector<fileSystem::FileInfoDetail*>* skins = fileSystem::fileGetFileInfoDetails("HDD0-E:\\PrometheOS\\Skins");
 	if (skins != NULL)
 	{
 		for (uint32_t i = 0; i < skins->count(); i++)
 		{
-			fileSystem::FileInfoDetail* fileInfoDetail = (fileSystem::FileInfoDetail*)skins->get(i);
+			fileSystem::FileInfoDetail* fileInfoDetail = skins->get(i);
 			if (fileInfoDetail->isDirectory)
 			{
 				char* skinName = fileSystem::getFileName(fileInfoDetail->path);
@@ -1011,7 +1044,7 @@ pointerVector* theme::getSkins()
 
 void theme::loadRandomSkin()
 {
-	pointerVector* skins = getSkins();
+	pointerVector<char*>* skins = getSkins();
 
 	srand((uint32_t)timeUtility::getMillisecondsNow());
 	int index = rand() % (skins->count() + 1);
@@ -1022,7 +1055,7 @@ void theme::loadRandomSkin()
 	}
 	else
 	{
-		loadSkin((char*)skins->get(index - 1));
+		loadSkin(skins->get(index - 1));
 	}
 
 	delete(skins);
@@ -1067,7 +1100,7 @@ void theme::loadSoundPack(char* soundPackName)
 		return;
 	}
 
-	char* soundPackPath = stringUtility::formatString("E:\\PrometheOS\\SoundPacks\\%s", soundPackName);
+	char* soundPackPath = stringUtility::formatString("HDD0-E:\\PrometheOS\\SoundPacks\\%s", soundPackName);
 	
 	context::setSoundPackPath(soundPackPath);
 	context::setMusicId(audioPlayer::play("background-music.ogg", true));
@@ -1076,16 +1109,16 @@ void theme::loadSoundPack(char* soundPackName)
 }
 
 
-pointerVector* theme::getSoundPacks()
+pointerVector<char*>* theme::getSoundPacks()
 {
-	pointerVector* result = new pointerVector(false);
+	pointerVector<char*>* result = new pointerVector<char*>(false);
 	
-	pointerVector* soundPacks = fileSystem::fileGetFileInfoDetails("E:\\PrometheOS\\SoundPacks");
+	pointerVector<fileSystem::FileInfoDetail*>* soundPacks = fileSystem::fileGetFileInfoDetails("HDD0-E:\\PrometheOS\\SoundPacks");
 	if (soundPacks != NULL)
 	{
 		for (uint32_t i = 0; i < soundPacks->count(); i++)
 		{
-			fileSystem::FileInfoDetail* fileInfoDetail = (fileSystem::FileInfoDetail*)soundPacks->get(i);
+			fileSystem::FileInfoDetail* fileInfoDetail = soundPacks->get(i);
 			if (fileInfoDetail->isDirectory)
 			{
 				char* soundPackName = fileSystem::getFileName(fileInfoDetail->path);
@@ -1100,7 +1133,7 @@ pointerVector* theme::getSoundPacks()
 
 void theme::loadRandomSoundPack()
 {
-	pointerVector* soundPacks = getSoundPacks();
+	pointerVector<char*>* soundPacks = getSoundPacks();
 
 	srand((uint32_t)timeUtility::getMillisecondsNow());
 	int index = rand() % (soundPacks->count() + 1);
@@ -1111,7 +1144,7 @@ void theme::loadRandomSoundPack()
 	}
 	else
 	{
-		loadSoundPack((char*)soundPacks->get(index - 1));
+		loadSoundPack(soundPacks->get(index - 1));
 	}
 
 	delete(soundPacks);

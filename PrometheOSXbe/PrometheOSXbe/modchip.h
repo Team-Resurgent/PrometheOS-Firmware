@@ -2,10 +2,13 @@
 
 #include "utils.h"
 #include "xboxInternals.h"
+#include "globalTypes.h"
 
 #ifndef TOOLS
 #include "settingsManager.h"
 #endif
+
+#define LPC_MEMORY_BASE 0xFF000000u
 
 #define LED_COLOR_OFF 0
 #define LED_COLOR_RED 1
@@ -20,8 +23,9 @@ class modchip
 {
 public:
 
-	uint8_t inputByte(uint16_t port);
-	void outputByte(uint16_t port, uint8_t value); 
+	static uint8_t inputByte(uint16_t port);
+	static void outputByte(uint16_t port, uint8_t value); 
+	static modchipType detectModchip();
 
 	virtual void setLedColor(uint8_t ledColor) = 0;
 
@@ -34,8 +38,10 @@ public:
 	virtual bool supportsRecovery() = 0;
 	virtual void disableRecovery() = 0;
 	virtual bool isValidBankSize(uint32_t size) = 0;
+	virtual bool isValidFlashSize(bool recovery, uint32_t size) = 0;
 	virtual uint32_t getBankSize(uint8_t bank) = 0;
 	virtual uint32_t getBankMemOffset(uint8_t bank) = 0;
+	virtual uint32_t getBankStartOffset(uint8_t bank) = 0;
 	virtual uint8_t getBankFromIdAndSlots(uint8_t id, uint8_t slots) = 0;
 	virtual utils::dataContainer* readBank(uint8_t bank) = 0;
 	virtual void eraseBank(uint8_t bank) = 0;
@@ -44,6 +50,7 @@ public:
 
 	virtual uint8_t getFlashBankCount(bool recovery) = 0;
 	virtual uint8_t getFlashBank(bool recovery, uint8_t bank) = 0;
+	virtual bankType getFlashBankType(bool recovery, uint8_t bank) = 0;
 	virtual utils::dataContainer* readFlash(bool recovery) = 0;
 
 	virtual void launchBank(uint8_t bank, uint8_t ledColor) = 0;
@@ -59,6 +66,8 @@ public:
 
 	virtual void lcdSendCharacter(uint8_t value, uint8_t command) = 0;
 	virtual void lcdSetCursorPosition(uint8_t row, uint8_t col) = 0;
+	virtual uint8_t getLcdTypeCount() = 0;
+	virtual char* getLcdTypeString(uint8_t lcdEnableType) = 0;
 	virtual void lcdInit(uint8_t backlight, uint8_t contrast) = 0;
 	virtual void lcdPrintMessage(const char* message) = 0;
 	virtual void lcdSetBacklight(uint8_t value) = 0;

@@ -138,7 +138,7 @@ void drawing::addImage(const char* key, uint8_t* imageData, D3DFORMAT format, in
 
 uint64_t drawing::getImageMemUse(const char* key)
 {
-	image* imageInfo = (image*)context::getImageMap()->get(key);
+	image* imageInfo = context::getImageMap()->get(key);
 	if (imageInfo == NULL)
 	{
 		return 0;
@@ -148,10 +148,9 @@ uint64_t drawing::getImageMemUse(const char* key)
 
 void drawing::removeImage(const char* key)
 {
-	image* imageToRemove = (image*)context::getImageMap()->get(key);
+	image* imageToRemove = context::getImageMap()->get(key);
 	if (imageToRemove != NULL)
 	{
-		imageToRemove->texture->Release();
 		context::getImageMap()->removeKey(key);
 	}
 }
@@ -207,13 +206,13 @@ void drawing::clearBackground(uint32_t index)
 
 bool drawing::imageExists(const char* key)
 {
-	image* result = (image*)context::getImageMap()->get(key);
+	image* result = context::getImageMap()->get(key);
     return result != NULL;
 }
 
 image* drawing::getImage(const char* key)
 {
-	image* result = (image*)context::getImageMap()->get(key);
+	image* result = context::getImageMap()->get(key);
     return result;
 }
 
@@ -232,7 +231,7 @@ void drawing::drawImage(image* image, uint32_t tint, int x, int y, int width, in
 	context::getD3dDevice()->SetRenderState(D3DRS_TEXTUREFACTOR, tint);
 	float newY = (float)context::getBufferHeight() - (y + height);
 	context::getD3dDevice()->SetTexture(0, image->texture);
-	utils::dataContainer* vertices = meshUtility::createQuadXY(math::vec3F((float)x + 0.5f, newY + 0.5f, 0), math::sizeF((float)width, (float)height), image->uvRect);
+	utils::dataContainer* vertices = meshUtility::createQuadXY(math::vec3F((float)x - 0.5f, newY - 0.5f, 0), math::sizeF((float)width, (float)height), image->uvRect);
 	context::getD3dDevice()->DrawPrimitiveUP(D3DPT_TRIANGLELIST, (vertices->size / sizeof(meshUtility::vertex)) / 3, vertices->data, sizeof(meshUtility::vertex));
 	delete(vertices);
 }
@@ -277,7 +276,7 @@ void drawing::drawNinePatch(const char* imageKey, uint32_t tint, int x, int y, i
 	context::getD3dDevice()->SetRenderState(D3DRS_TEXTUREFACTOR, tint);
 	float newY = (float)context::getBufferHeight() - (y + height);
 	context::getD3dDevice()->SetTexture(0, imageToDraw->texture);
-	utils::dataContainer* vertices = meshUtility::createNinePatchXY(math::vec3F((float)x + 0.5f, newY + 0.5f, 0), math::sizeF((float)width, (float)height), imageToDraw->uvRect);
+	utils::dataContainer* vertices = meshUtility::createNinePatchXY(math::vec3F((float)x - 0.5f, newY - 0.5f, 0), math::sizeF((float)width, (float)height), imageToDraw->uvRect);
 	context::getD3dDevice()->DrawPrimitiveUP(D3DPT_TRIANGLELIST, (vertices->size / sizeof(meshUtility::vertex)) / 3, vertices->data, sizeof(meshUtility::vertex));
 	delete(vertices);
 }
@@ -462,7 +461,7 @@ void drawing::drawHorizontalLine(uint32_t color, int x, int y, int width, int he
 bitmapFont* drawing::generateBitmapFont(const char* fontName, int fontStyle, int fontSize, int lineHeight, int spacing, int textureDimension)
 {
 	bitmapFont* font = new bitmapFont();
-	font->charMap = new pointerMap(true);
+	font->charMap = new pointerMap<math::rectI*>(true);
 
 	ssfn_select(mFontContext, SSFN_FAMILY_ANY, fontName, fontStyle, fontSize);
 
@@ -475,7 +474,7 @@ bitmapFont* drawing::generateBitmapFont(const char* fontName, int fontStyle, int
 	int x = 2;
 	int y = 2;
 
-	char* charsToEncode = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\xC2\xA1\xC2\xA2\xC2\xA3\xC2\xA4\xC2\xA5\xC2\xA6\xC2\xA7\xC2\xA8\xC2\xA9\xC2\xAA\xC2\xAB\xC2\xAC\xC2\xAD\xC2\xAE\xC2\xAF\xC2\xB0\xC2\xB1\xC2\xB2\xC2\xB3";
+	char* charsToEncode = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\xC2\xA1\xC2\xA2\xC2\xA3\xC2\xA4\xC2\xA5\xC2\xA6\xC2\xA7\xC2\xA8\xC2\xA9\xC2\xAA\xC2\xAB\xC2\xAC\xC2\xAD\xC2\xAE\xC2\xAF\xC2\xB0\xC2\xB1\xC2\xB2\xC2\xB3\xC2\xB4";
 	char* currentCharPos = charsToEncode;
 	while(*currentCharPos)
 	{	
@@ -567,7 +566,7 @@ void drawing::measureBitmapString(bitmapFont* font, const char* message, int* wi
 		}
 
 		char* unicodeString = stringUtility::formatString("%i", unicode);
-		math::rectI* rect = (math::rectI*)font->charMap->get(unicodeString);
+		math::rectI* rect = font->charMap->get(unicodeString);
 		free(unicodeString);
 		if (rect == NULL)
 		{
@@ -618,7 +617,7 @@ void drawing::drawBitmapString(bitmapFont* font, const char* message, uint32_t c
 		}
 
 		char* unicodeString = stringUtility::formatString("%i", unicode);
-		math::rectI* rect = (math::rectI*)font->charMap->get(unicodeString);
+		math::rectI* rect = font->charMap->get(unicodeString);
 		free(unicodeString);
 		if (rect == NULL)
 		{
@@ -652,7 +651,7 @@ void drawing::drawBitmapString(bitmapFont* font, const char* message, uint32_t c
 		context::getD3dDevice()->SetRenderState(D3DRS_TEXTUREFACTOR, charColor);
 		float newY = (float)context::getBufferHeight() - (yPos + rect->height);
 		context::getD3dDevice()->SetTexture(0, image->texture);
-		utils::dataContainer* vertices = meshUtility::createQuadXY(math::vec3F((float)xPos + 0.5f, newY + 0.5f, 0), math::sizeF((float)rect->width, (float)rect->height), uvRect);
+		utils::dataContainer* vertices = meshUtility::createQuadXY(math::vec3F((float)xPos - 0.5f, newY - 0.5f, 0), math::sizeF((float)rect->width, (float)rect->height), uvRect);
 		context::getD3dDevice()->DrawPrimitiveUP(D3DPT_TRIANGLELIST, (vertices->size / sizeof(meshUtility::vertex)) / 3, vertices->data, sizeof(meshUtility::vertex));
 		delete(vertices);
 

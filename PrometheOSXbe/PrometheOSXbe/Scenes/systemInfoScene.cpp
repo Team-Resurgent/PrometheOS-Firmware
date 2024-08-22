@@ -20,12 +20,12 @@
 systemInfoScene::systemInfoScene(systemInfoCategoryEnum systemInfoCategory)
 {
 	mSelectedControl = 0;
-	mInfoItems = new pointerVector(false);
+	mInfoItems = new pointerVector<char*>(false);
 	mSystemInfoCategory = systemInfoCategory;
 	
 	if (mSystemInfoCategory == systemInfoCategoryConsole)
 	{
-		char* cpuSpeed = stringUtility::formatString("CPU: %uMHz", xboxConfig::getCPUFreq());
+		char* cpuSpeed = stringUtility::formatString("CPU: %4.2fMHz", xboxConfig::getCPUFreq());
 		mInfoItems->add(cpuSpeed);
 
 		char* xboxVersionString = xboxConfig::getXboxVersionString();
@@ -45,6 +45,23 @@ systemInfoScene::systemInfoScene(systemInfoCategoryEnum systemInfoCategory)
  		char* mac = stringUtility::formatString("Mac: %s", macString);
 		mInfoItems->add(mac);
 		free(macString);
+
+		char* rtcExpansion = stringUtility::formatString("RTC Expansion: %s", xboxConfig::getHasRtcExpansion() ? "Detected" : "Not Detected");
+		mInfoItems->add(rtcExpansion);
+	}
+	else if (mSystemInfoCategory == systemInfoCategoryStorage)
+	{
+		char* diskModelNumberString = stringUtility::trim(HalDiskModelNumber->Buffer, ' ');
+		char* diskModelNumber = stringUtility::formatString("HDD Model: %s", diskModelNumberString);
+		mInfoItems->add(diskModelNumber);
+		free(diskModelNumberString);
+
+		char* diskSerialNumberString = stringUtility::trim(HalDiskSerialNumber->Buffer, ' ');
+		char* diskSerialNumber = stringUtility::formatString("HDD Serial: %s", diskSerialNumberString);
+		mInfoItems->add(diskSerialNumber);
+		free(diskSerialNumberString);
+
+				// hdd model dvd model
 	}
 	else if (mSystemInfoCategory == systemInfoCategoryAudio)
 	{
@@ -166,6 +183,10 @@ void systemInfoScene::render()
 	{
 		drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "System Info: Console", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 	}
+	else if (mSystemInfoCategory == systemInfoCategoryStorage)
+	{
+		drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "System Info: Storage", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	}
 	else if (mSystemInfoCategory == systemInfoCategoryAudio)
 	{
 		drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "System Info: Audio", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
@@ -208,8 +229,8 @@ void systemInfoScene::render()
 			{
 				continue;
 			}
-			char* infoItem = (char*)mInfoItems->get(index);
-			component::textBox(infoItem, mSelectedControl == index, false, horizAlignmentCenter, 193, yPos, 322, 30);
+			char* infoItem = mInfoItems->get(index);
+			component::textBox(infoItem, mSelectedControl == index, false, horizAlignmentCenter, 40, yPos, 640, 30);
 			yPos += 40;
 		}
 	}

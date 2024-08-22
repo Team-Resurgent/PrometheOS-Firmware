@@ -15,19 +15,19 @@
 
 soundPackSelectionScene::soundPackSelectionScene()
 {
-	mMenuItems = new pointerVector(false);
+	mMenuItems = new pointerVector<char*>(false);
 	mMenuItems->add(strdup("Random"));
 	mMenuItems->add(strdup("None"));
 
 	char* currentSoundPackName = settingsManager::getSoundPackName();
 	mSelectedControl = stringUtility::equals(currentSoundPackName, "*", false) == true ? 0 : 1;
 
-	pointerVector* soundPacks = theme::getSoundPacks();
+	pointerVector<char*>* soundPacks = theme::getSoundPacks();
 	if (soundPacks != NULL)
 	{
 		for (uint32_t i = 0; i < soundPacks->count(); i++)
 		{
-			char* soundPackName = strdup((char*)soundPacks->get(i));
+			char* soundPackName = strdup(soundPacks->get(i));
 			mMenuItems->add(soundPackName);
 			if (stringUtility::equals(soundPackName, currentSoundPackName, true) == true)
 			{
@@ -71,7 +71,7 @@ void soundPackSelectionScene::update()
 		}
 		else
 		{
-			char* soundPackName = (char*)mMenuItems->get(mSelectedControl);
+			char* soundPackName = mMenuItems->get(mSelectedControl);
 			theme::loadSoundPack(soundPackName);
 			settingsManager::setSoundPackName(soundPackName);
 		}
@@ -114,7 +114,7 @@ void soundPackSelectionScene::render()
 	for (int32_t i = 0; i < itemCount; i++)
 	{
 		uint32_t index = start + i;
-		char* soundPackName = (char*)mMenuItems->get(index);
+		char* soundPackName = mMenuItems->get(index);
 		component::button(mSelectedControl == index, false, soundPackName, 193, yPos, 322, 30);
 		yPos += 40;
 	}

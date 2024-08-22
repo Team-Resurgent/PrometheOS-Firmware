@@ -12,14 +12,13 @@ class editFlowScene : public scene
 {
 public:
 	editFlowScene();
-	~editFlowScene();
 	void update();
 	void render();
 private:
-	editScene*	mEditScene;
-	keyboardScene* mKeyboardScene;
-	ledColorSelectorScene* mLedColorSelectorScene;
 	uint32_t mCurrentSceneId;
 	uint8_t mBankId;
 	char* mBankName;
+	static void onEditClosingCallback(sceneResult result, void* context, scene* scene);
+	static void onKeyboardClosingCallback(sceneResult result, void* context, scene* scene);
+	static void onLedColorClosingCallback(sceneResult result, void* context, scene* scene);
 };

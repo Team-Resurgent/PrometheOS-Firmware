@@ -45,7 +45,7 @@ void removeScene::update()
 			{
 				continue;
 			}
-			bankDetails* bank = (bankDetails*)mBanks->get(i);
+			bankDetails* bank = mBanks->get(i);
 			settingsManager::deleteBank(bank->id);
 			mBanks->remove(i);
 			mSelectedControl = max(min(mSelectedControl, (int)mBanks->count() - 1), 0);
@@ -72,15 +72,25 @@ void removeScene::render()
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
 	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please select a bank to remove...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
-	if (mBanks->count() > 0)
+	int32_t maxItems = 7;
+
+	int32_t start = 0;
+	if ((int32_t)mBanks->count() >= maxItems)
 	{
-		int32_t yPos = (context::getBufferHeight() - ((mBanks->count() * 40) - 10)) / 2;
+		start = min(max(mSelectedControl - (maxItems / 2), 0), (int32_t)mBanks->count() - maxItems);
+	}
+
+	int32_t itemCount = min(start + maxItems, (int32_t)mBanks->count()) - start; 
+	if (itemCount > 0)
+	{
+		uint32_t yPos = (context::getBufferHeight() - ((itemCount * 40) - 10)) / 2;
 		yPos += theme::getCenterOffset();
 
-		for (uint32_t i = 0; i < mBanks->count(); i++)
+		for (int32_t i = 0; i < itemCount; i++)
 		{
-			bankDetails* bank = (bankDetails*)mBanks->get(i);
-			component::button(mSelectedControl == i, false, bank->name, 40, yPos, 640, 30);
+			uint32_t index = start + i;
+			bankDetails* bank = mBanks->get(index);
+			component::button(mSelectedControl == index, false, bank->name, 40, yPos, 640, 30);
 			yPos += 40;
 		}
 	}

@@ -9,6 +9,7 @@
 #include "Threads\lcdRender.h"
 
 #include <stdio.h>
+#include <algorithm>
 
 #define SETTINGS_OFFSET (0x1f8000 - 0x1c0000)
 #define INSTALLER_LOGO_OFFSET (0x1f0000 - 0x1c0000)
@@ -23,7 +24,7 @@ semver settingsManager::getVersion()
 	semver version;
 	memset(&version, 0, sizeof(version));
 	version.major = 1;
-	version.minor = 3;
+	version.minor = 4;
 	version.patch = 0;
 	return version;
 }
@@ -48,7 +49,10 @@ void settingsManager::initSettings()
 	mSettings.ledColor = 2;
 	mSettings.lcdBacklight = 100;
 	mSettings.lcdContrast = 60;
-
+	mSettings.driveSetup = 1;
+	mSettings.udmaModeMaster = 2;
+	mSettings.udmaModeSlave = 2;
+	mSettings.splashDelay = 6;
 //#ifdef TEST
 //	mSettings.banks[0].slots = 1;
 //	stringUtility::copyString(&mSettings.banks[0].name[0], "Bank 1 Rom", 41);
@@ -67,12 +71,18 @@ void settingsManager::initSettings()
 
 void settingsManager::loadSettings()
 {
+#ifndef TOOLS
 	context::getModchip()->loadSettings(mSettings);
+#else
+	initSettings();
+#endif
 }
 
 void settingsManager::saveSettings()
 {
+#ifndef TOOLS
 	context::getModchip()->saveSettings(mSettings);
+#endif
 }
 
 utils::dataContainer* settingsManager::getInstallerLogoData()
@@ -107,11 +117,12 @@ bankInfo settingsManager::getBankInfo(uint8_t id)
 	return mSettings.banks[id];
 }
 
-pointerVector* settingsManager::getBankInfos()
+pointerVector<bankDetails*>* settingsManager::getBankInfos()
 {
-	pointerVector* bankInfos = new pointerVector(true);
+	pointerVector<bankDetails*>* bankInfos = new pointerVector<bankDetails*>(true);
 
-	for (uint32_t i = 0; i < 4; i++)
+	uint32_t totalSlots = context::getModchip()->getSlotCount();
+	for (uint32_t i = 0; i < totalSlots; i++)
 	{
 		if (mSettings.banks[i].slots == 0)
 		{
@@ -123,7 +134,7 @@ pointerVector* settingsManager::getBankInfos()
 		bank->ledColor = mSettings.banks[i].ledColor;
 		bank->slots = mSettings.banks[i].slots;
 		bank->name = strdup(&mSettings.banks[i].name[0]);
-		bank->autoBoot = mSettings.banks[i].autoBoot;
+		bank->autoBoot = mSettings.banks[i].autoBoot == 1;
 		bankInfos->add(bank);
 	}
 
@@ -132,12 +143,12 @@ pointerVector* settingsManager::getBankInfos()
 
 char* settingsManager::getBankInfosJson()
 {
-	pointerVector* bankInfos = getBankInfos();
+	pointerVector<bankDetails*>* bankInfos = getBankInfos();
 
 	char* bankInfoJson = strdup("[");
 	for (uint32_t i = 0; i < bankInfos->count(); i++)
 	{
-		bankDetails* bank = (bankDetails*)bankInfos->get(i);
+		bankDetails* bank = bankInfos->get(i);
 		if (bank->slots > 0)
 		{
 			char* temp = stringUtility::formatString("%s%s{\"id\":%i,\"name\":\"%s\",\"slots\":%i}", bankInfoJson, i == 0 ? "" : ",", bank->id, bank->name, bank->slots);
@@ -155,7 +166,7 @@ char* settingsManager::getBankInfosJson()
 
 void settingsManager::toggleAutoBootBank(uint8_t id)
 {
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < MAX_SLOTS; i++)
 	{
 		if (i == id)
 		{
@@ -171,7 +182,7 @@ void settingsManager::toggleAutoBootBank(uint8_t id)
 
 bool settingsManager::hasAutoBootBank()
 {
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < MAX_SLOTS; i++)
 	{
 		if (mSettings.banks[i].slots > 0 && mSettings.banks[i].autoBoot)
 		{
@@ -189,10 +200,9 @@ void settingsManager::deleteBank(uint8_t id)
 
 void settingsManager::optimizeBanks(uint8_t slotsNeeded)
 {
-	uint32_t slotCount = context::getModchip()->getSlotCount();
-	if (slotCount < 2)
+	if (slotsNeeded == 1)
 	{
-		utils::debugPrint("Not enough slots to be worth optimizing");
+		utils::debugPrint("No need to optimize for only 1 slot");
 		return;
 	}
 
@@ -202,49 +212,73 @@ void settingsManager::optimizeBanks(uint8_t slotsNeeded)
 		return;
 	}
 
-	bool needsOptimize = false;
-	if (slotCount == 4 && slotsNeeded == 2)
+	for (uint8_t i = 0; i < 3; i++)
 	{
-		needsOptimize = !((mSettings.banks[0].slots == 0 && mSettings.banks[1].slots == 0) || (mSettings.banks[2].slots == 0 && mSettings.banks[3].slots == 0));
-	}
-
-	if (needsOptimize == false)
-	{
-		return;
-	}
-
-	int8_t destBankId = 0;
-	while (destBankId < (int8_t)(slotCount - 1))
-	{
-		if (mSettings.banks[destBankId].slots != 0)
+		uint8_t slotCheck = 1 << i;
+		while (true)
 		{
-			destBankId += mSettings.banks[destBankId].slots;
-			continue;
-		}
-		int8_t sourceBankId = destBankId + 1;
-		while (sourceBankId < (int8_t)slotCount)
-		{
-			if (mSettings.banks[sourceBankId].slots != 1)
+			// Exit if we now have space for what we need
+			uint8_t bankId = 0;
+			bool needsOptimize = tryGetFreeBank(slotsNeeded, bankId) == false;
+			if (needsOptimize == false)
 			{
-				sourceBankId = sourceBankId + max(mSettings.banks[sourceBankId].slots, 1);
-				continue;
+				return;
 			}
-			uint8_t destBank = context::getModchip()->getBankFromIdAndSlots(destBankId, 1);
-			uint8_t sourceBank = context::getModchip()->getBankFromIdAndSlots(sourceBankId, 1);
+
+			// Work out first free bank and last used bank for current itteration of slots
+			uint8_t freeBank = 0;
+			if (tryGetFreeBank(slotCheck, freeBank) == false)
+			{
+				break;
+			}
+			uint8_t lastUsedBank = 0;
+			if (tryGetLastUsedBank(slotCheck, lastUsedBank) == false)
+			{
+				break;
+			}
+
+			// Exit if no free slots before last used
+			if (freeBank > lastUsedBank)
+			{
+				break;
+			}
+
+			// Move banks
+			uint8_t destBank = context::getModchip()->getBankFromIdAndSlots(freeBank, slotCheck);
+			uint8_t sourceBank = context::getModchip()->getBankFromIdAndSlots(lastUsedBank, slotCheck);
 			utils::dataContainer* bankData = context::getModchip()->readBank(sourceBank);
 			context::getModchip()->eraseBank(destBank);
 			context::getModchip()->writeBank(destBank, bankData);
 			delete(bankData);
 
-			memcpy(&mSettings.banks[destBankId], &mSettings.banks[sourceBankId], sizeof(bankInfo));
-			memset(&mSettings.banks[sourceBankId], 0, sizeof(bankInfo));
+			memcpy(&mSettings.banks[freeBank], &mSettings.banks[lastUsedBank], sizeof(bankInfo));
+			memset(&mSettings.banks[lastUsedBank], 0, sizeof(bankInfo));
 			saveSettings();
 
-			utils::debugPrint("Moved bank %i to %i\n", sourceBankId, destBankId);
-			break;
+			utils::debugPrint("Moved bank %i to %i\n", lastUsedBank, freeBank);
 		}
-		destBankId++;
 	}
+}
+
+bool settingsManager::tryGetLastUsedBank(uint8_t slotsNeeded, uint8_t& bankId)
+{
+	bool found = false;
+	uint8_t lastBank = 0;
+
+	uint8_t bank = 0;
+	while (bank < context::getModchip()->getSlotCount())
+	{
+		uint8_t slotsUsed = mSettings.banks[bank].slots;
+        if (slotsUsed == slotsNeeded)
+        {
+            found = true;
+            lastBank = bank;
+        }
+        bank += slotsNeeded;
+	}
+
+	bankId = lastBank;
+	return found;
 }
 
 bool settingsManager::tryGetFreeBank(uint8_t slotsNeeded, uint8_t& bankId)
@@ -258,23 +292,27 @@ bool settingsManager::tryGetFreeBank(uint8_t slotsNeeded, uint8_t& bankId)
 	}
 
 	uint8_t bank = 0;
-	while (bank < 4)
+	while (bank < context::getModchip()->getSlotCount())
 	{
+		uint8_t slotsToSkip = slotsNeeded;
 		bool spaceFound = true;
 		for (uint32_t i = 0; i < slotsNeeded; i++)
 		{
-			if (mSettings.banks[i + bank].slots == 0)
+			uint8_t slotsUsed = mSettings.banks[bank + i].slots;
+			if (slotsUsed == 0)
 			{
 				continue;
 			}
+			slotsToSkip = max(slotsUsed, slotsNeeded);
 			spaceFound = false;
+			break;
 		}
 		if (spaceFound == true)
 		{
 			bankId = bank;
 			return true;
 		}
-		bank += slotsNeeded;
+		bank += slotsToSkip;
 	}
 
 	return false;
@@ -351,7 +389,7 @@ void settingsManager::editBank(uint8_t bankId, const char *name, uint8_t ledColo
 
 networkModeEnum settingsManager::getNetworkMode()
 {
-	return mSettings.network.networkMode;
+	return (networkModeEnum)mSettings.network.networkMode;
 }
 
 uint32_t settingsManager::getNetworkAddress()
@@ -381,7 +419,7 @@ uint32_t settingsManager::getNetworkSecondaryDns()
 
 void settingsManager::setNetwork(networkModeEnum networkMode, uint32_t address, uint32_t subnet, uint32_t gateway, uint32_t primaryDns, uint32_t secondaryDns)
 {
-	mSettings.network.networkMode = networkMode;
+	mSettings.network.networkMode = (uint32_t)networkMode;
 	mSettings.network.address = address;
 	mSettings.network.address = address;
 	mSettings.network.subnet = subnet;
@@ -415,14 +453,25 @@ void settingsManager::setSoundPackName(const char* soundPackName)
 	saveSettings();
 }
 
-uint32_t settingsManager::getPlayerHiScore()
+uint32_t settingsManager::getSnakeHiScore()
 {
-	return mSettings.playerHiScore;
+	return mSettings.snakeHiScore;
 }
 
-void settingsManager::setPlayerHiScore(uint32_t playerScore)
+void settingsManager::setSnakeHiScore(uint32_t playerScore)
 {
-	mSettings.playerHiScore = playerScore;
+	mSettings.snakeHiScore = playerScore;
+	saveSettings();
+}
+
+uint32_t settingsManager::getInvadersHiScore()
+{
+	return mSettings.invadersHiScore;
+}
+
+void settingsManager::setInvadersHiScore(uint32_t playerScore)
+{
+	mSettings.invadersHiScore = playerScore;
 	saveSettings();
 }
 
@@ -481,14 +530,14 @@ void settingsManager::setLedColor(uint8_t ledColor)
 	saveSettings();
 }
 
-bool settingsManager::getLcdEnabled()
+uint8_t settingsManager::getLcdEnableType()
 {
-	return mSettings.lcdEnabled;
+	return mSettings.lcdEnableType;
 }
 
-void settingsManager::setLcdEnabled(bool enabled)
+void settingsManager::setLcdEnableType(uint8_t lcdEnableType)
 {
-	mSettings.lcdEnabled = enabled;
+	mSettings.lcdEnableType = lcdEnableType;
 	saveSettings();
 }
 
@@ -511,5 +560,64 @@ uint8_t settingsManager::getLcdContrast()
 void settingsManager::setLcdContrast(uint8_t contrast)
 {
 	mSettings.lcdContrast = contrast;
+	saveSettings();
+}
+
+bool settingsManager::getRtcEnable()
+{
+	return mSettings.rtcEnable == 1;
+}
+
+void settingsManager::setRtcEnable(bool enable)
+{
+	mSettings.rtcEnable = enable ? 1 : 0;
+	saveSettings();
+}
+
+uint8_t settingsManager::getDriveSetup()
+{
+	return mSettings.driveSetup;
+}
+
+void settingsManager::setDriveSetup(uint8_t driveSetup)
+{
+	mSettings.driveSetup = driveSetup;
+	saveSettings();
+}
+
+uint8_t settingsManager::getUdmaMode(bool master)
+{
+	return master ? mSettings.udmaModeMaster : mSettings.udmaModeSlave;
+}
+
+void settingsManager::setUdmaMode(uint8_t udmaMode, bool master)
+{
+	if(master) {
+		mSettings.udmaModeMaster = udmaMode;
+	} else {
+		mSettings.udmaModeSlave = udmaMode;
+	}
+	saveSettings();
+}
+
+uint8_t settingsManager::getSplashDelay()
+{
+	return mSettings.splashDelay;
+}
+
+void settingsManager::setSplashDelay(uint8_t splashDelay)
+{
+	mSettings.splashDelay = splashDelay;
+	saveSettings();
+}
+
+bool settingsManager::getVgaEnable()
+{
+	return mSettings.vgaEnable == 1;
+}
+
+void settingsManager::setVgaEnable(bool enable)
+{
+	mSettings.vgaEnable = enable ? 1 : 0;
 	saveSettings();
 }

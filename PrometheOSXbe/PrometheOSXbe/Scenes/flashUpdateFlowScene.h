@@ -1,8 +1,6 @@
 #pragma once
 
 #include "scene.h"
-#include "filePickerScene.h"
-#include "flashUpdateScene.h"
 
 #include "..\xboxInternals.h"
 
@@ -14,9 +12,9 @@ public:
 	void update();
 	void render();
 private:
-	filePickerScene* mFilePickerScene;
-	flashUpdateScene* mFlashUpdateScene;
 	uint32_t mCurrentSceneId;
 	bool mRecovery;
 	char* mFilePath;
+	static void onFilePickerClosingCallback(sceneResult result, void* context, scene* scene);
+	static void onRFlashUpdateClosingCallback(sceneResult result, void* context, scene* scene);
 };

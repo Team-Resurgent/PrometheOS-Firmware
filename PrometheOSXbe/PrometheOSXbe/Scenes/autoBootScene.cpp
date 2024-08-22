@@ -52,7 +52,7 @@ void autoBootScene::update()
 
 void autoBootScene::render()
 {
-	pointerVector* banks = settingsManager::getBankInfos();
+	pointerVector<bankDetails*>* banks = settingsManager::getBankInfos();
 
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
 	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Auto booting...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
@@ -62,7 +62,7 @@ void autoBootScene::render()
 
 	for (uint32_t i = 0; i < banks->count(); i++)
 	{
-		bankDetails* bank = (bankDetails*)banks->get(i);
+		bankDetails* bank = banks->get(i);
 		if (bank->autoBoot == false)
 		{
 			continue;
@@ -90,11 +90,11 @@ void autoBootScene::render()
 void autoBootScene::continueBoot() {
 	countdown::closeThread();
 
-	pointerVector* banks = settingsManager::getBankInfos();
+	pointerVector<bankDetails*>* banks = settingsManager::getBankInfos();
 
 	for (uint32_t i = 0; i < banks->count(); i++)
 	{
-		bankDetails* bank = (bankDetails*)banks->get(i);
+		bankDetails* bank = banks->get(i);
 		if (bank->slots > 0 && bank->autoBoot == true)
 		{
 			utils::setLedStates(SMC_LED_STATES_GREEN_STATE0 | SMC_LED_STATES_GREEN_STATE1 | SMC_LED_STATES_GREEN_STATE2 | SMC_LED_STATES_GREEN_STATE3);
@@ -102,4 +102,6 @@ void autoBootScene::continueBoot() {
 			break;
 		}
 	}
+
+	delete(banks);
 }

@@ -1,8 +1,6 @@
 #include "modchipXchanger.h"
 #include "crc32.h"
 
-#define XCHANGER_LPC_MEMORY_BASE 0xFF000000u
-
 #define XCHANGER_REGISTER_BANKING 0x1912
 //#define XCHANGER_REGISTER_LED 0x00EE
 #define XCHANGER_SPI_CLK_BIT 0x40
@@ -80,6 +78,11 @@ bool modchipXchanger::isValidBankSize(uint32_t size)
 	return size == (256 * 1024);
 }
 
+bool modchipXchanger::isValidFlashSize(bool recovery, uint32_t size)
+{
+	return size == getFlashSize(recovery);
+}
+
 uint32_t modchipXchanger::getBankSize(uint8_t bank)
 {
 	if (bank == XCHANGER_BANK_PROMETHEOS) 
@@ -114,6 +117,11 @@ uint32_t modchipXchanger::getBankMemOffset(uint8_t bank)
 	return 0;
 }
 
+uint32_t modchipXchanger::getBankStartOffset(uint8_t bank)
+{
+	return 0;
+}
+
 uint8_t modchipXchanger::getBankFromIdAndSlots(uint8_t id, uint8_t slots)
 {
 	if (id == 0 && slots == 1)
@@ -128,7 +136,7 @@ utils::dataContainer* modchipXchanger::readBank(uint8_t bank)
 	setBank(bank); 
 	uint32_t bankSize = getBankSize(bank);
 	utils::dataContainer* dataContainer = new utils::dataContainer(bankSize);
-    volatile uint8_t* lpcMemMap = (volatile uint8_t *)XCHANGER_LPC_MEMORY_BASE;
+    volatile uint8_t* lpcMemMap = (volatile uint8_t *)(LPC_MEMORY_BASE + getBankStartOffset(bank));
     memcpy(dataContainer->data, (void*)&lpcMemMap[0], bankSize);
 	setBank(XCHANGER_BANK_BOOTLOADER);
 	return dataContainer;
@@ -140,15 +148,16 @@ void modchipXchanger::eraseBank(uint8_t bank)
 
 	setLedColor(LED_COLOR_AMBER);
 
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)XCHANGER_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
 
 	uint32_t memOffset = getBankMemOffset(bank);
+	uint32_t startOffset = getBankStartOffset(bank);
 	uint32_t bankSize = getBankSize(bank);
 
 	uint32_t offset = 0;
     while (offset < bankSize)
 	{
-		if (isEraseMemOffset(memOffset + offset))
+		if (isEraseMemOffset(memOffset + startOffset + offset))
 		{
 			sectorErase(offset);
 		}
@@ -166,7 +175,7 @@ void modchipXchanger::writeBank(uint8_t bank, utils::dataContainer* dataContaine
 
 	setLedColor(LED_COLOR_BLUE);
 
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)XCHANGER_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)(LPC_MEMORY_BASE + getBankStartOffset(bank));
 
     for (uint32_t i = 0; i < dataContainer->size; i++)
 	{
@@ -192,7 +201,7 @@ bool modchipXchanger::verifyBank(uint8_t bank, utils::dataContainer* dataContain
 
 	setLedColor(LED_COLOR_PURPLE);
 
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)XCHANGER_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
 
 	bool ok = true;
     for (uint32_t i = 0; i < dataContainer->size; i++)
@@ -226,6 +235,16 @@ uint8_t modchipXchanger::getFlashBank(bool recovery, uint8_t bank)
 		XCHANGER_BANK_PROMETHEOS
 	};
 	return recovery ? 0 : banks[bank];
+}
+
+bankType modchipXchanger::getFlashBankType(bool recovery, uint8_t bank)
+{
+	const bankType banks[] = { 
+		bankTypeUser, 
+		bankTypeSystem,
+		bankTypeSystem,
+	};
+	return recovery ? bankTypeUser : banks[bank];
 }
 
 utils::dataContainer* modchipXchanger::readFlash(bool recovery)
@@ -274,10 +293,10 @@ void modchipXchanger::loadSettings(settingsState& settings)
 
 	setLedColor(LED_COLOR_WHITE);
 
-    volatile uint8_t* lpcMemMap = (volatile uint8_t *)XCHANGER_LPC_MEMORY_BASE;
+    volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
 
     memcpy(&settings, (void*)&lpcMemMap[XCHANGER_SETTINGS_OFFSET], sizeof(settings));
-	uint32_t checksum = crc32::calculate(((char*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
+	uint32_t checksum = crc32::calculate(((uint8_t*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
 
 	setBank(XCHANGER_BANK_BOOTLOADER);
 
@@ -294,10 +313,10 @@ void modchipXchanger::saveSettings(settingsState settings)
 {
 	setBank(XCHANGER_SETTINGS_BANK); 
 
-	settings.checksum = crc32::calculate(((const char*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
+	settings.checksum = crc32::calculate(((uint8_t*)&settings) + sizeof(uint32_t), sizeof(settings) - sizeof(uint32_t));
 	utils::dataContainer* settingsData = new utils::dataContainer((char*)&settings, sizeof(settings), sizeof(settings));
 
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)XCHANGER_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
 
 	setLedColor(LED_COLOR_AMBER);
 	sectorErase(XCHANGER_SETTINGS_OFFSET);
@@ -333,6 +352,21 @@ void modchipXchanger::lcdSendCharacter(uint8_t value, uint8_t command)
 
 void modchipXchanger::lcdSetCursorPosition(uint8_t row, uint8_t col)
 {
+}
+
+uint8_t modchipXchanger::getLcdTypeCount()
+{
+	return 1;
+}
+
+char* modchipXchanger::getLcdTypeString(uint8_t lcdEnableType)
+{
+	if (lcdEnableType == 1)
+	{
+		return strdup("Parallel");
+	}
+	
+	return strdup("Disabled");
 }
 
 void modchipXchanger::lcdInit(uint8_t backlight, uint8_t contrast)
@@ -381,7 +415,7 @@ bool modchipXchanger::isProtectedMemOffset(uint32_t memOffset)
 
 void modchipXchanger::sectorErase(uint32_t offset)
 {
-	volatile uint8_t* lpcMemMap = (volatile uint8_t *)XCHANGER_LPC_MEMORY_BASE;
+	volatile uint8_t* lpcMemMap = (volatile uint8_t *)LPC_MEMORY_BASE;
 	lpcMemMap[0x5555] = 0xAA;
 	lpcMemMap[0x2AAA] = 0x55;
 	lpcMemMap[0x5555] = 0x80;

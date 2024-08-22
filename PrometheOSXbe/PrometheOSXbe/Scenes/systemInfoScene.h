@@ -6,9 +6,10 @@
 enum systemInfoCategoryEnum
 { 
 	systemInfoCategoryConsole = 0,
-	systemInfoCategoryAudio = 1,
-	systemInfoCategoryVideo = 2,
-	systemInfoCategoryAbout = 3
+	systemInfoCategoryStorage = 1,
+	systemInfoCategoryAudio = 2,
+	systemInfoCategoryVideo = 3,
+	systemInfoCategoryAbout = 4
 }; 
 
 class systemInfoScene : public scene
@@ -21,5 +22,5 @@ public:
 private:
 	int mSelectedControl;
 	systemInfoCategoryEnum mSystemInfoCategory;
-	pointerVector* mInfoItems;
+	pointerVector<char*>* mInfoItems;
 };

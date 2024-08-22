@@ -17,14 +17,14 @@
 #include "..\theme.h"
 #include "..\Threads\driveMounter.h"
 
-pointerVector* filePickerScene::getFileInfoDetails()
+pointerVector<fileSystem::FileInfoDetail*>* filePickerScene::getFileInfoDetails()
 {
 	if (strlen(mCurrentPath) == 0)
 	{
-		pointerVector* fileInfoDetails = new pointerVector(false);
+		pointerVector<fileSystem::FileInfoDetail*>* fileInfoDetails = new pointerVector<fileSystem::FileInfoDetail*>(true);
 		for (uint32_t i = 0; i < mMountedDrives->count(); i++)
 		{
-			char* mountPoint = (char*)mMountedDrives->get(i);
+			char* mountPoint = mMountedDrives->get(i);
 			fileSystem::FileInfoDetail* fileInfoDetail = new fileSystem::FileInfoDetail();
 			fileInfoDetail->path = stringUtility::formatString("%s:", mountPoint);
 			fileInfoDetail->isDirectory = true;
@@ -34,12 +34,12 @@ pointerVector* filePickerScene::getFileInfoDetails()
 		return fileInfoDetails;
 	}
 
-	pointerVector* result = fileSystem::fileGetFileInfoDetails(mCurrentPath);
+	pointerVector<fileSystem::FileInfoDetail*>* result = fileSystem::fileGetFileInfoDetails(mCurrentPath);
 	if (result != NULL)
 	{
 		for (int32_t i = (int32_t)result->count() - 1; i >= 0; i--)
 		{
-			fileSystem::FileInfoDetail* fileInfoDetail = (fileSystem::FileInfoDetail*)result->get(i);
+			fileSystem::FileInfoDetail* fileInfoDetail = result->get(i);
 
 			bool valid = fileInfoDetail->isDirectory;
 			if (fileInfoDetail->isFile)
@@ -54,11 +54,11 @@ pointerVector* filePickerScene::getFileInfoDetails()
 				}
 				else if (mFilePickerType == filePickerTypeUpdate)
 				{
-					valid = fileInfoDetail->size == context::getModchip()->getFlashSize(false);
+					valid = context::getModchip()->isValidFlashSize(false, fileInfoDetail->size);
 				}
 				else if (mFilePickerType == filePickerTypeUpdateRecovery)
 				{
-					valid = fileInfoDetail->size == context::getModchip()->getFlashSize(true);
+					valid = context::getModchip()->isValidFlashSize(true, fileInfoDetail->size);
 				}
 			}
 
@@ -83,7 +83,6 @@ filePickerScene::filePickerScene(filePickerType filePickerType)
 	mMountedDrives = NULL;
 	mCurrentPath = NULL;
 	mFileInfoDetails = NULL;
-	mSceneResult = sceneResultNone;
 	mFilePath = NULL;
 }
 
@@ -118,7 +117,8 @@ void filePickerScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
-		mSceneResult = sceneResultCancelled;
+		sceneManager::popScene(sceneResultCancelled);
+		return;
 	}
 
 	// Parent Path
@@ -148,7 +148,7 @@ void filePickerScene::update()
 					continue;
 				}
 				
-				fileSystem::FileInfoDetail* fileInfoDetail = (fileSystem::FileInfoDetail*)mFileInfoDetails->get(i);
+				fileSystem::FileInfoDetail* fileInfoDetail = mFileInfoDetails->get(i);
 				if (fileInfoDetail->isDirectory)
 				{
 					char* newPath = strdup(fileInfoDetail->path);
@@ -164,8 +164,8 @@ void filePickerScene::update()
 				else if (fileInfoDetail->isFile)
 				{
 					mFilePath = strdup(fileInfoDetail->path);
-					mSceneResult = sceneResultDone;
-					break;
+					sceneManager::popScene(sceneResultDone);
+					return;
 				}
 			}
 		}
@@ -236,10 +236,23 @@ void filePickerScene::render()
 			for (int32_t i = 0; i < itemCount; i++)
 			{
 				uint32_t index = start + i;
-				fileSystem::FileInfoDetail* fileInfoDetail = (fileSystem::FileInfoDetail*)mFileInfoDetails->get(index);
-				char* fileName = fileSystem::getFileName(fileInfoDetail->path);
-				component::fileButton(mSelectedControl == index, false, fileInfoDetail->isFile, fileName, 40, yPos, 640, 30);
-				free(fileName);
+				fileSystem::FileInfoDetail* fileInfoDetail = mFileInfoDetails->get(index);
+
+				if (strlen(mCurrentPath) == 0)
+				{
+					char* tempFileName = fileSystem::getFileName(fileInfoDetail->path);
+					char* fileName = driveManager::convertMountPointToMountPointAlias(tempFileName);
+					component::fileButton(mSelectedControl == index, false, fileInfoDetail->isFile, fileName, 40, yPos, 640, 30);
+					free(fileName);
+					free(tempFileName);	
+				}
+				else
+				{
+					char* fileName = fileSystem::getFileName(fileInfoDetail->path);
+					component::fileButton(mSelectedControl == index, false, fileInfoDetail->isFile, fileName, 40, yPos, 640, 30);
+					free(fileName);
+				}
+
 				yPos += 40;
 			}
 		}
@@ -266,9 +279,4 @@ void filePickerScene::render()
 char* filePickerScene::getFilePath()
 {
 	return strdup(mFilePath);
-}
-
-sceneResult filePickerScene::getSceneResult()
-{
-	return mSceneResult;
 }

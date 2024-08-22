@@ -12,12 +12,14 @@ namespace
 {
 	HANDLE mThread;
 	bool mRecovery;
+	bool mUpdate;
 	flashUpdate::flashUpdateData mData;
 }
 
-bool flashUpdate::startThread(bool recovery, const char* filePath)
+bool flashUpdate::startThread(bool recovery, bool update, const char* filePath)
 {
 	mRecovery = recovery;
+	mUpdate = update;
 	memset(&mData, 0, sizeof(flashUpdateData));
 	mData.filePath = strdup(filePath);
 	mData.currentStep = 0;
@@ -112,21 +114,27 @@ uint64_t WINAPI flashUpdate::process(void* param)
 		uint32_t bankSize = context::getModchip()->getBankSize(bank);
 		uint32_t memOffset = context::getModchip()->getBankMemOffset(bank);
 
-		setResponse(data, flashUpdateErasing);
-		context::getModchip()->eraseBank(bank);
-		
-		utils::dataContainer* bankData = new utils::dataContainer(flashData->data, bankSize, bankSize);
-		memcpy(bankData->data, flashData->data + memOffset, bankSize);
-
-		setResponse(data, flashUpdateWriting);
-		context::getModchip()->writeBank(bank, bankData);
-
-		setResponse(data, flashUpdateVerifying);
-		if (context::getModchip()->verifyBank(bank, bankData) == false)
+		if (context::getModchip()->getFlashBankType(mRecovery, i) == bankTypeSystem || mUpdate == false)
 		{
-			setResponse(data, flashUpdateVerificationFailed);
-			delete(flashData);
-			return 0;
+			setResponse(data, flashUpdateErasing);
+			context::getModchip()->eraseBank(bank);
+
+			if (memOffset < flashData->size)
+			{
+				utils::dataContainer* bankData = new utils::dataContainer(flashData->data, bankSize, bankSize);
+				memcpy(bankData->data, flashData->data + memOffset, bankSize);
+
+				setResponse(data, flashUpdateWriting);
+				context::getModchip()->writeBank(bank, bankData);
+
+				setResponse(data, flashUpdateVerifying);
+				if (context::getModchip()->verifyBank(bank, bankData) == false)
+				{
+					setResponse(data, flashUpdateVerificationFailed);
+					delete(flashData);
+					return 0;
+				}
+			}
 		}
 
 		if (mRecovery == true)

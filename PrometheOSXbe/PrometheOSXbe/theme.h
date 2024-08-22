@@ -29,6 +29,11 @@
 #define THEME_SNAKE_HEAD_COLOR 0xff00ff00
 #define THEME_SNAKE_TAIL_COLOR 0xff008000
 
+#define THEME_INVADERS_WALL_COLOR 0xff808080
+#define THEME_INVADERS_PLAYER_COLOR 0xff00ff00
+#define THEME_INVADERS_BOSS_COLOR 0xffff0000
+#define THEME_INVADERS_ALIEN_COLOR 0xffffd060
+
 #define THEME_JOY_BUTTON_A_COLOR 0xff00ff00
 #define THEME_JOY_BUTTON_B_COLOR 0xffff0000
 #define THEME_JOY_BUTTON_X_COLOR 0xff0000ff
@@ -149,6 +154,11 @@ public:
 		uint32_t SNAKE_HEAD_COLOR;
 		uint32_t SNAKE_TAIL_COLOR;
 
+		uint32_t INVADERS_WALL_COLOR;
+		uint32_t INVADERS_PLAYER_COLOR;
+		uint32_t INVADERS_BOSS_COLOR;
+		uint32_t INVADERS_ALIEN_COLOR;
+
 		uint32_t JOY_BUTTON_A_COLOR;
 		uint32_t JOY_BUTTON_B_COLOR;
 		uint32_t JOY_BUTTON_X_COLOR;
@@ -266,6 +276,11 @@ public:
 	static uint32_t getSnakeHeadColor();
 	static uint32_t getSnakeTailColor();
 
+	static uint32_t getInvadersWallColor();
+	static uint32_t getInvadersPlayerColor();
+	static uint32_t getInvadersBossColor();
+	static uint32_t getInvadersAlienColor();
+
 	static uint32_t getJoyButtonAColor();
 	static uint32_t getJoyButtonBColor();
 	static uint32_t getJoyButtonXColor();
@@ -355,11 +370,11 @@ public:
 	static uint32_t getButtonLedWhiteHoverTextColor();
 
 	static void loadSkin(char* skinName);
-	static pointerVector* getSkins();
+	static pointerVector<char*>* getSkins();
 	static void loadRandomSkin();
 
 	static void loadSoundPack(char* soundPackName);
-	static pointerVector* getSoundPacks();
+	static pointerVector<char*>* getSoundPacks();
 	static void loadRandomSoundPack();
 
 private:

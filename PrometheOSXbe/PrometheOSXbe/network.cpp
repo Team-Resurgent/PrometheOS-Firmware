@@ -36,7 +36,10 @@ void network::init()
 		}
 
 		ftpServer::init();
+
+#ifndef TOOLS
 		httpServer::init();
+#endif
 
 		context::setNetworkInitialized(true);
 	}

@@ -3,17 +3,25 @@
 *.ncb
 
 [Dd]ebug/
+[Dd]ebug-Tools/
 [Dd]ebug-Xenium/
+[Dd]ebug-Xtremium/
 [Dd]ebug-Xecuter/
 [Dd]ebug-Xchanger/
+[Dd]ebug-Smartxx/
+[Dd]ebug-Modxo/
 [Dd]ebug-Aladdin1mb/
 [Dd]ebug-Aladdin2mb/
 [Dd]ebug-Dummy/
 [Dd]ebugPublic/
 [Rr]elease/
+[Rr]elease-Tools/
 [Rr]elease-Xenium/
+[Rr]elease-Xtremium/
 [Rr]elease-Xecuter/
 [Rr]elease-Xchanger/
+[Rr]elease-Smartxx/
+[Rr]elease-Modxo/
 [Rr]elease-Aladdin1mb/
 [Rr]elease-Aladdin2mb/
 [Rr]elease-Dummy/
