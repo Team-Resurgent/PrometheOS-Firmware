@@ -1,5 +1,5 @@
 ﻿async function screenshot() {
-    await fetch("http://192.168.1.151/api/screenshot").catch(error => {
+    await fetch("http://192.168.1.66/api/screenshot").catch(error => {
         content.innerHTML = "Failed to connect."
     }).then(response => response.blob()).then(blob => {
         var url = window.URL.createObjectURL(blob);
@@ -12,8 +12,8 @@
     });
 }
 async function reboot() {
-    await fetch("http://192.168.1.151/api/reboot");
+    await fetch("http://192.168.1.66/api/reboot");
 }
 async function shutdown() {
-    await fetch("http://192.168.1.151/api/shutdown");
+    await fetch("http://192.168.1.66/api/shutdown");
 }

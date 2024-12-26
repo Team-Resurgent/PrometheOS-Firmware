@@ -1429,6 +1429,9 @@
 				RelativePath=".\audioPlayer.cpp">
 			</File>
 			<File
+				RelativePath=".\cerbiosIniHelper.cpp">
+			</File>
+			<File
 				RelativePath=".\component.cpp">
 			</File>
 			<File
@@ -1578,6 +1581,12 @@
 				</File>
 				<File
 					RelativePath=".\Scenes\bootOptionsScene.cpp">
+				</File>
+				<File
+					RelativePath=".\Scenes\cerbiosIniEditorScene.cpp">
+				</File>
+				<File
+					RelativePath=".\Scenes\dlcSignerScene.cpp">
 				</File>
 				<File
 					RelativePath=".\Scenes\editFlowScene.cpp">
@@ -1742,6 +1751,12 @@
 					RelativePath=".\Scenes\flashUpdateScene.cpp">
 				</File>
 				<File
+					RelativePath=".\Scenes\formatDriveScene.cpp">
+				</File>
+				<File
+					RelativePath=".\Scenes\frontLedSelectorScene.cpp">
+				</File>
+				<File
 					RelativePath=".\Scenes\hddLockUnlockScene.cpp">
 				</File>
 				<File
@@ -1766,6 +1781,9 @@
 					RelativePath=".\Scenes\keypadScene.cpp">
 				</File>
 				<File
+					RelativePath=".\Scenes\launcherFlowScene.cpp">
+				</File>
+				<File
 					RelativePath=".\Scenes\launchScene.cpp">
 				</File>
 				<File
@@ -1773,6 +1791,9 @@
 				</File>
 				<File
 					RelativePath=".\Scenes\ledColorSelectorScene.cpp">
+				</File>
+				<File
+					RelativePath=".\Scenes\ledOptionsScene.cpp">
 				</File>
 				<File
 					RelativePath=".\Scenes\mainScene.cpp">
@@ -1977,6 +1998,9 @@
 					RelativePath=".\Threads\flashUpdate.cpp">
 				</File>
 				<File
+					RelativePath=".\Threads\hddFormat.cpp">
+				</File>
+				<File
 					RelativePath=".\Threads\hddInfo.cpp">
 				</File>
 				<File
@@ -1996,6 +2020,49 @@
 					RelativePath=".\Plugins\PESymbol.cpp">
 				</File>
 			</Filter>
+			<Filter
+				Name="DisplayDrivers"
+				Filter="">
+				<File
+					RelativePath=".\DisplayDrivers\displayDriver.cpp">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displayFactory.cpp">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displayHD44780Aladdin.cpp">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displayHD44780LPC.cpp">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displayHD44780Modxo.cpp">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displayHD44780Xecuter.cpp">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displayLCDXXXXLPC.cpp">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displayLCDXXXXModxo.cpp">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displaySPI2PARAladdin.cpp">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displaySPI2PARModxo.cpp">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displaySPI2PARSmartxx.cpp">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displaySPI2PARXenium.cpp">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displaySPI2PARXtremium.cpp">
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Media"
@@ -2010,6 +2077,9 @@
 			</File>
 			<File
 				RelativePath=".\audioPlayer.h">
+			</File>
+			<File
+				RelativePath=".\cerbiosIniHelper.h">
 			</File>
 			<File
 				RelativePath=".\component.h">
@@ -2037,6 +2107,9 @@
 			</File>
 			<File
 				RelativePath=".\ftpServer.h">
+			</File>
+			<File
+				RelativePath=".\globalDefines.h">
 			</File>
 			<File
 				RelativePath=".\globalTypes.h">
@@ -2168,6 +2241,12 @@
 						RelativePath=".\Assets\Web\bootstrap_css.h">
 					</File>
 					<File
+						RelativePath=".\Assets\Web\cerbiosini_html.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\cerbiosini_js.h">
+					</File>
+					<File
 						RelativePath=".\Assets\Web\download_html.h">
 					</File>
 					<File
@@ -2202,6 +2281,12 @@
 					</File>
 					<File
 						RelativePath=".\Assets\Web\main_css.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\remoteview_html.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\remoteview_js.h">
 					</File>
 					<File
 						RelativePath=".\Assets\Web\remove_html.h">
@@ -2262,6 +2347,12 @@
 					RelativePath=".\Scenes\bootOptionsScene.h">
 				</File>
 				<File
+					RelativePath=".\Scenes\cerbiosIniEditorScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\dlcSignerScene.h">
+				</File>
+				<File
 					RelativePath=".\Scenes\editFlowScene.h">
 				</File>
 				<File
@@ -2284,6 +2375,12 @@
 				</File>
 				<File
 					RelativePath=".\Scenes\flashUpdateScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\formatDriveScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\frontLedSelectorScene.h">
 				</File>
 				<File
 					RelativePath=".\Scenes\hddLockUnlockScene.h">
@@ -2310,6 +2407,9 @@
 					RelativePath=".\Scenes\keypadScene.h">
 				</File>
 				<File
+					RelativePath=".\Scenes\launcherFlowScene.h">
+				</File>
+				<File
 					RelativePath=".\Scenes\launchScene.h">
 				</File>
 				<File
@@ -2317,6 +2417,9 @@
 				</File>
 				<File
 					RelativePath=".\Scenes\ledColorSelectorScene.h">
+				</File>
+				<File
+					RelativePath=".\Scenes\ledOptionsScene.h">
 				</File>
 				<File
 					RelativePath=".\Scenes\mainScene.h">
@@ -2386,6 +2489,9 @@
 					RelativePath=".\Threads\flashUpdate.h">
 				</File>
 				<File
+					RelativePath=".\Threads\hddFormat.h">
+				</File>
+				<File
 					RelativePath=".\Threads\hddInfo.h">
 				</File>
 				<File
@@ -2403,6 +2509,49 @@
 				</File>
 				<File
 					RelativePath=".\Plugins\PESymbol.h">
+				</File>
+			</Filter>
+			<Filter
+				Name="DisplayDrivers"
+				Filter="">
+				<File
+					RelativePath=".\DisplayDrivers\displayDriver.h">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displayFactory.h">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displayHD44780Aladdin.h">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displayHD44780LPC.h">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displayHD44780Modxo.h">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displayHD44780Xecuter.h">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displayLCDXXXXLPC.h">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displayLCDXXXXModxo.h">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displaySPI2PARAladdin.h">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displaySPI2PARModxo.h">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displaySPI2PARSmartxx.h">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displaySPI2PARXenium.h">
+				</File>
+				<File
+					RelativePath=".\DisplayDrivers\displaySPI2PARXtremium.h">
 				</File>
 			</Filter>
 		</Filter>

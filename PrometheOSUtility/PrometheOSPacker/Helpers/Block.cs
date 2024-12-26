@@ -25,12 +25,11 @@ public class Block
         Array.Copy(bytes, mBlockBytes, bytes.Length);
     }
 
-    public byte[] Encode(int blockno, int numblocks)
+    public byte[] Encode(int blockno, int numblocks, uint familyId)
     {
         const uint UF2_MAGIC_START0 = 0x0A324655;
         const uint UF2_MAGIC_START1 = 0x9E5D5157;
         const uint UF2_MAGIC_END = 0x0AB16F30;
-        const uint familyId = 0xE48BFF56;
         const uint flags = 0x2000; // withFamilyId flag
 
         using var memoryStream = new MemoryStream();

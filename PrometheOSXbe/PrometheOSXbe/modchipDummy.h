@@ -17,11 +17,6 @@ public:
 
 	uint32_t getSlotCount();
 	uint32_t getFlashSize(bool recovery);
-	bool supportsLed();
-	bool supportsLcd();
-	bool supportsLcdInfo();
-	bool supportsLcdContrast();
-	bool supportsRecovery();
 	void disableRecovery();
 	bool isValidBankSize(uint32_t size);
 	bool isValidFlashSize(bool recovery, uint32_t size);
@@ -45,16 +40,22 @@ public:
 
 #ifndef TOOLS
 	void loadSettings(settingsState& settings);
-	void saveSettings(settingsState settings);
+	void saveSettings(settingsState& settings);
 #endif
 
 	utils::dataContainer* getInstallerLogo();
 
-	void lcdSendCharacter(uint8_t value, uint8_t command);
+	displayDriver* getDisplayDriver(bool current);
+	supportInfo getSupportInfo(bool current);
+	uint8_t getLcdModeCount();
+	char* getLcdModeString(uint8_t lcdMode);
+	uint8_t getLcdModelCount(bool current);
+	char* getLcdModelString(bool current, uint8_t lcdModel);
+	uint8_t getLcdAddressCount(bool current);
+	char* getLcdAddressString(bool current, uint8_t lcdAddress);
+
 	void lcdSetCursorPosition(uint8_t row, uint8_t col);
-	uint8_t getLcdTypeCount();
-	char* getLcdTypeString(uint8_t lcdEnableType);
-	void lcdInit(uint8_t backlight, uint8_t contrast);
+	void lcdInit();
 	void lcdPrintMessage(const char* message);
 	void lcdSetBacklight(uint8_t value);
 	void lcdSetContrast(uint8_t value);

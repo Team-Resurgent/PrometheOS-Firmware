@@ -3,6 +3,8 @@
 #include "utils.h"
 #include "xboxInternals.h"
 #include "globalTypes.h"
+#include "DisplayDrivers\displayDriver.h"
+#include "DisplayDrivers\displayFactory.h"
 
 #ifndef TOOLS
 #include "settingsManager.h"
@@ -19,6 +21,16 @@
 #define LED_COLOR_TEAL 6
 #define LED_COLOR_WHITE 7
 
+typedef struct supportInfo 
+{
+	bool supportsLed;
+	bool supportsLcd;
+	bool supportsLcdInfo;
+	bool supportsLcdBacklight;
+	bool supportsLcdContrast;
+	bool supportsRecovery;
+} supportInfo;
+
 class modchip
 {
 public:
@@ -31,11 +43,6 @@ public:
 
 	virtual uint32_t getSlotCount() = 0;
 	virtual uint32_t getFlashSize(bool recovery) = 0;
-	virtual bool supportsLed() = 0;
-	virtual bool supportsLcd() = 0;
-	virtual bool supportsLcdInfo() = 0;
-	virtual bool supportsLcdContrast() = 0;
-	virtual bool supportsRecovery() = 0;
 	virtual void disableRecovery() = 0;
 	virtual bool isValidBankSize(uint32_t size) = 0;
 	virtual bool isValidFlashSize(bool recovery, uint32_t size) = 0;
@@ -59,16 +66,22 @@ public:
 
 #ifndef TOOLS
 	virtual void loadSettings(settingsState& settings) = 0;
-	virtual void saveSettings(settingsState settings) = 0;
+	virtual void saveSettings(settingsState& settings) = 0;
 #endif
 
 	virtual utils::dataContainer* getInstallerLogo() = 0;
 
-	virtual void lcdSendCharacter(uint8_t value, uint8_t command) = 0;
+	virtual displayDriver* getDisplayDriver(bool current) = 0;
+	virtual supportInfo getSupportInfo(bool current) = 0;
+	virtual uint8_t getLcdModeCount() = 0;
+	virtual char* getLcdModeString(uint8_t lcdMode) = 0;
+	virtual uint8_t getLcdModelCount(bool current) = 0;
+	virtual char* getLcdModelString(bool current, uint8_t lcdModel) = 0;
+	virtual uint8_t getLcdAddressCount(bool current) = 0;
+	virtual char* getLcdAddressString(bool current, uint8_t lcdAddress) = 0;
+
 	virtual void lcdSetCursorPosition(uint8_t row, uint8_t col) = 0;
-	virtual uint8_t getLcdTypeCount() = 0;
-	virtual char* getLcdTypeString(uint8_t lcdEnableType) = 0;
-	virtual void lcdInit(uint8_t backlight, uint8_t contrast) = 0;
+	virtual void lcdInit() = 0;
 	virtual void lcdPrintMessage(const char* message) = 0;
 	virtual void lcdSetBacklight(uint8_t value) = 0;
 	virtual void lcdSetContrast(uint8_t value) = 0;

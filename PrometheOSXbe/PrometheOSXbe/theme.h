@@ -38,6 +38,8 @@
 #define THEME_JOY_BUTTON_B_COLOR 0xffff0000
 #define THEME_JOY_BUTTON_X_COLOR 0xff0000ff
 #define THEME_JOY_BUTTON_Y_COLOR 0xffffff00
+#define THEME_JOY_BUTTON_BLACK_COLOR 0xff666666
+#define THEME_JOY_BUTTON_WHITE_COLOR 0xffffffff
 
 #define THEME_BUTTON_ACTIVE_FILL_COLOR 0xff175782
 #define THEME_BUTTON_ACTIVE_STROKE_COLOR 0xffffffff
@@ -163,6 +165,8 @@ public:
 		uint32_t JOY_BUTTON_B_COLOR;
 		uint32_t JOY_BUTTON_X_COLOR;
 		uint32_t JOY_BUTTON_Y_COLOR;
+		uint32_t JOY_BUTTON_BLACK_COLOR;
+		uint32_t JOY_BUTTON_WHITE_COLOR;
 
 		uint32_t BUTTON_ACTIVE_FILL_COLOR;
 		uint32_t BUTTON_ACTIVE_STROKE_COLOR;
@@ -285,6 +289,8 @@ public:
 	static uint32_t getJoyButtonBColor();
 	static uint32_t getJoyButtonXColor();
 	static uint32_t getJoyButtonYColor();
+	static uint32_t getJoyButtonBlackColor();
+	static uint32_t getJoyButtonWhiteColor();
 
 	static uint32_t getButtonToggleFillColor();
 	static uint32_t getButtonToggleStrokeColor();

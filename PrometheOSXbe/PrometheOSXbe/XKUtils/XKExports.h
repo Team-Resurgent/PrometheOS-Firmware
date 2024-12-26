@@ -226,9 +226,9 @@ extern "C" XBOXAPI LPVOID XepDashboardRedirectionPath;
 extern "C" XBOXAPI LPVOID XepDashboardImagePath;
 extern "C" XBOXAPI LPVOID ObpIoDevicesDirectoryObject;
 extern "C" XBOXAPI LPVOID ExpCdRomBootROMStringBuffer; // IdexCdRomDeviceNameBuffer;
-extern "C" XBOXAPI LPVOID LaunchDataPage;
+//extern "C" XBOXAPI LPVOID LaunchDataPage;
 // extern "C" XBOXAPI LPVOID XboxBootFlags;
 extern "C" XBOXAPI LPVOID XboxKrnlVersion;
 extern "C" XBOXAPI LPVOID XboxEEPROMKey;
-extern "C" XBOXAPI LPVOID XboxHDKey;
+//extern "C" XBOXAPI LPVOID XboxHDKey;
 

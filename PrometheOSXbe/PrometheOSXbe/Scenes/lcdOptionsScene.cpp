@@ -24,12 +24,30 @@ void lcdOptionsScene::update()
 
 	if (inputManager::buttonPressed(ButtonB))
 	{
+		settingsManager::loadSettings();
 		sceneManager::popScene();
 		return;
 	}
 
-	int32_t itemCount = 3;
-	if (context::getModchip()->supportsLcdContrast() == false)
+	if (settingsManager::shouldSave() && inputManager::buttonPressed(ButtonA))
+	{
+		settingsManager::saveSettings();
+	}
+
+	int32_t itemCount = 5;
+	if (context::getModchip()->getLcdModelCount(false) == 0)
+	{
+		itemCount = itemCount - 1;
+	}
+	if (context::getModchip()->getLcdAddressCount(false) == 0)
+	{
+		itemCount = itemCount - 1;
+	}
+	if (context::getModchip()->getSupportInfo(false).supportsLcdBacklight == false)
+	{
+		itemCount = itemCount - 1;
+	}
+	if (context::getModchip()->getSupportInfo(false).supportsLcdContrast == false)
 	{
 		itemCount = itemCount - 1;
 	}
@@ -54,31 +72,63 @@ void lcdOptionsScene::update()
 	{
 		int index = 0;
 
-		if (mSelectedControl == index)
+		if (context::getModchip()->getLcdModeCount() > 0 && mSelectedControl == index)
 		{
-			uint8_t lcdEnableType = settingsManager::getLcdEnableType();
-			lcdEnableType = lcdEnableType >= 1 ? (context::getModchip()->getLcdTypeCount() - 1) : (lcdEnableType - 1);
-			settingsManager::setLcdEnableType(lcdEnableType + 1);
+			uint8_t lcdMode = settingsManager::getLcdMode(false);
+			lcdMode = lcdMode > 0 ? (lcdMode - 1) : (context::getModchip()->getLcdModeCount() - 1);
+			settingsManager::setLcdMode(lcdMode);
+			settingsManager::setLcdModel(0);
+			settingsManager::setLcdAddress(0);
 			return;
 		}
 
-		index++;
-
-		if (mSelectedControl == index)
-		{
-			uint8_t lcdBacklight = settingsManager::getLcdBacklight();
-			lcdBacklight = (lcdBacklight >= 4) ? (lcdBacklight - 4) : 100;
-			settingsManager::setLcdBacklight(lcdBacklight);
-			return;
-		}
-
-		if (context::getModchip()->supportsLcdContrast() == true)
+		if (context::getModchip()->getLcdModelCount(false) > 0)
 		{
 			index++;
 
 			if (mSelectedControl == index)
 			{
-				uint8_t lcdContrast = settingsManager::getLcdContrast();
+				uint8_t lcdModel = settingsManager::getLcdModel(false);
+				lcdModel = lcdModel > 0 ? (lcdModel - 1) : (context::getModchip()->getLcdModelCount(false) - 1);
+				settingsManager::setLcdModel(lcdModel);
+				settingsManager::setLcdAddress(0);
+				return;
+			}
+		}
+
+		if (context::getModchip()->getLcdAddressCount(false) > 0)
+		{
+			index++;
+
+			if (mSelectedControl == index)
+			{
+				uint8_t lcdAddress = settingsManager::getLcdAddress(false);
+				lcdAddress = lcdAddress > 0 ? (lcdAddress - 1) : (context::getModchip()->getLcdAddressCount(false) - 1);
+				settingsManager::setLcdAddress(lcdAddress);
+				return;
+			}
+		}
+		
+		if (context::getModchip()->getSupportInfo(false).supportsLcdBacklight == true)
+		{
+			index++;
+
+			if (mSelectedControl == index)
+			{
+				uint8_t lcdBacklight = settingsManager::getLcdBacklight(false);
+				lcdBacklight = (lcdBacklight >= 4) ? (lcdBacklight - 4) : 100;
+				settingsManager::setLcdBacklight(lcdBacklight);
+				return;
+			}
+		}
+
+		if (context::getModchip()->getSupportInfo(false).supportsLcdContrast == true)
+		{
+			index++;
+
+			if (mSelectedControl == index)
+			{
+				uint8_t lcdContrast = settingsManager::getLcdContrast(false);
 				lcdContrast = (lcdContrast >= 4) ? (lcdContrast - 4) : 100;
 				settingsManager::setLcdContrast(lcdContrast);
 				return;
@@ -92,31 +142,63 @@ void lcdOptionsScene::update()
 	{
 		int index = 0;
 
-		if (mSelectedControl == index)
+		if (context::getModchip()->getLcdModeCount() > 0 && mSelectedControl == index)
 		{
-			uint8_t lcdEnableType = settingsManager::getLcdEnableType();
-			lcdEnableType = (lcdEnableType >= (context::getModchip()->getLcdTypeCount() - 1)) ? 0 : (lcdEnableType + 1);
-			settingsManager::setLcdEnableType(lcdEnableType);
+			uint8_t lcdMode = settingsManager::getLcdMode(false);
+			lcdMode = (lcdMode < (context::getModchip()->getLcdModeCount()) - 1) ? lcdMode + 1 : 0;
+			settingsManager::setLcdMode(lcdMode);
+			settingsManager::setLcdModel(0);
+			settingsManager::setLcdAddress(0);
 			return;
 		}
 
-		index++;
-
-		if (mSelectedControl == index)
-		{
-			uint8_t lcdBacklight = settingsManager::getLcdBacklight();
-			lcdBacklight = (lcdBacklight >= 100) ? 0 : (lcdBacklight + 4);
-			settingsManager::setLcdBacklight(lcdBacklight);
-			return;
-		}
-
-		if (context::getModchip()->supportsLcdContrast() == true)
+		if (context::getModchip()->getLcdModelCount(false) > 0)
 		{
 			index++;
 
 			if (mSelectedControl == index)
 			{
-				uint8_t lcdContrast = settingsManager::getLcdContrast();
+				uint8_t lcdModel = settingsManager::getLcdModel(false);
+				lcdModel = (lcdModel < (context::getModchip()->getLcdModelCount(false) - 1)) ? lcdModel + 1 : 0;
+				settingsManager::setLcdModel(lcdModel);
+				settingsManager::setLcdAddress(0);
+				return;
+			}
+		}
+
+		if (context::getModchip()->getLcdAddressCount(false) > 0)
+		{
+			index++;
+
+			if (mSelectedControl == index)
+			{
+				uint8_t lcdAddress = settingsManager::getLcdAddress(false);
+				lcdAddress = (lcdAddress < (context::getModchip()->getLcdAddressCount(false) - 1)) ? lcdAddress + 1 : 0;
+				settingsManager::setLcdAddress(lcdAddress);
+				return;
+			}
+		}
+
+		if (context::getModchip()->getSupportInfo(false).supportsLcdBacklight == true)
+		{
+			index++;
+
+			if (mSelectedControl == index)
+			{
+				uint8_t lcdBacklight = settingsManager::getLcdBacklight(false);
+				lcdBacklight = (lcdBacklight >= 100) ? 0 : (lcdBacklight + 4);
+				settingsManager::setLcdBacklight(lcdBacklight);
+				return;
+			}
+		}
+
+		if (context::getModchip()->getSupportInfo(false).supportsLcdContrast == true)
+		{
+			index++;
+
+			if (mSelectedControl == index)
+			{
+				uint8_t lcdContrast = settingsManager::getLcdContrast(false);
 				lcdContrast = (lcdContrast >= 100) ? 0 : (lcdContrast + 4);
 				settingsManager::setLcdContrast(lcdContrast);
 				return;
@@ -130,17 +212,49 @@ void lcdOptionsScene::render()
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
 	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "LCD Options...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 
-	char* lcdEnableType = stringUtility::formatString("LCD Enabled: %s", settingsManager::getLcdEnableType() > 0 ? "Yes" : "No");
-	char* lcdBacklight = stringUtility::formatString("LCD Backlight: %i%%", settingsManager::getLcdBacklight());
-	char* lcdContrast = stringUtility::formatString("LCD Contrast: %i%%", settingsManager::getLcdContrast());
+	uint8_t lcdMode = settingsManager::getLcdMode(false);
+	lcdMode = min(context::getModchip()->getLcdModeCount() - 1, lcdMode);
+	char* lcdModeTempString = context::getModchip()->getLcdModeString(lcdMode);
+	char* lcdModeString = stringUtility::formatString("LCD Mode: %s", lcdModeTempString);
+	free(lcdModeTempString);
+
+	uint8_t lcdModel = settingsManager::getLcdModel(false);
+	lcdModel = min(context::getModchip()->getLcdModelCount(false) - 1, lcdModel);
+	char* lcdModelTempString = context::getModchip()->getLcdModelString(false, lcdModel);
+	char* lcdModelString = stringUtility::formatString("LCD Model: %s", lcdModelTempString);
+	free(lcdModelTempString);
+
+	uint8_t lcdAddress = settingsManager::getLcdAddress(false);
+	lcdAddress = min(context::getModchip()->getLcdAddressCount(false) - 1, lcdAddress);
+	char* lcdAddressTempString = context::getModchip()->getLcdAddressString(false, lcdAddress);
+	char* lcdAddressString = stringUtility::formatString("LCD Address: %s", lcdAddressTempString);
+	free(lcdAddressTempString);
+
+	char* lcdBacklight = stringUtility::formatString("LCD Backlight: %i%%", settingsManager::getLcdBacklight(false));
+	char* lcdContrast = stringUtility::formatString("LCD Contrast: %i%%", settingsManager::getLcdContrast(false));
 
 	pointerVector<char*>* menuItems = new pointerVector<char*>(false);
 
-	menuItems->add(strdup(lcdEnableType));
-	menuItems->add(strdup(lcdBacklight));
-	if (context::getModchip()->supportsLcdContrast() == true)
+	menuItems->add(strdup(lcdModeString));
+	
+	if (settingsManager::getLcdMode(false) > 0)
 	{
-		menuItems->add(strdup(lcdContrast));
+		if (context::getModchip()->getLcdModelCount(false) > 0)
+		{
+			menuItems->add(strdup(lcdModelString));
+		}
+		if (context::getModchip()->getLcdAddressCount(false) > 0)
+		{
+			menuItems->add(strdup(lcdAddressString));
+		}
+		if (context::getModchip()->getSupportInfo(false).supportsLcdBacklight == true)
+		{
+			menuItems->add(strdup(lcdBacklight));
+		}
+		if (context::getModchip()->getSupportInfo(false).supportsLcdContrast == true)
+		{
+			menuItems->add(strdup(lcdContrast));
+		}
 	}
 
 	int32_t maxItems = 7;
@@ -168,10 +282,14 @@ void lcdOptionsScene::render()
 
 	free(lcdContrast);
 	free(lcdBacklight);
-	free(lcdEnableType);
+	free(lcdAddressString);
+	free(lcdModelString);
+	free(lcdModeString);
 
 	delete(menuItems);
 
-	drawing::drawBitmapString(context::getBitmapFontSmall(), "\xC2\xA3\xC2\xA4 or \xC2\xB2\xC2\xB3 Change Value", theme::getFooterTextColor(), 40, theme::getFooterY());
+	char* options = stringUtility::formatString("\xC2\xA3\xC2\xA4 or \xC2\xB2\xC2\xB3 Change Value%s", settingsManager::shouldSave() ? " or \xC2\xA1 Apply" : "");
+	drawing::drawBitmapString(context::getBitmapFontSmall(), options, theme::getFooterTextColor(), 40, theme::getFooterY());
+	free(options);
 	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Back", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
 }

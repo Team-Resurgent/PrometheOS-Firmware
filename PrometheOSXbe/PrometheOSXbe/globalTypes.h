@@ -3,7 +3,9 @@
 enum modchipType
 {
 	modchipTypeXenium,
+	modchipTypeXtremium,
 	modchipTypeXecuter,
+	modchipTypeSmartxx,
 	modchipTypeModxo,
 	modchipTypeAladdin1mb,
 	modchipTypeAladdin2mb,

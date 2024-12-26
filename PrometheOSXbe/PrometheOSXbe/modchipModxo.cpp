@@ -1,53 +1,8 @@
 #include "modchipModxo.h"
 #include "crc32.h"
 #include "settingsManager.h"
-
-#define MODXO_LCD_DELAY 2
-
-#define MODXO_REGISTER_LCD_DATA 0xDEA8
-#define MODXO_REGISTER_LCD_COMMAND 0xDEA9
-#define MODXO_REGISTER_BANKING 0xDEAA
-#define MODXO_REGISTER_SIZE 0xDEAB
-#define MODXO_REGISTER_MEM_ERASE 0xDEAC
-#define MODXO_REGISTER_CHIP_ID 0xDEAD
-#define MODXO_REGISTER_MEM_FLUSH 0xDEAE
-#define MODXO_REGISTER_LED_COMMAND 0xA2
-#define MODXO_REGISTER_LED_DATA 0xA3
-
-#define MODXO_BANK_TSOP 0xc0
-#define MODXO_BANK_MODXO 0x00 
-#define MODXO_BANK_BOOTLOADER 0x01
-#define MODXO_BANK_PROMETHEOS1 0x02
-#define MODXO_BANK_PROMETHEOS2 0x03
-
-#define MODXO_TD_INIT                   0x00
-#define MODXO_TD_CLEAR_DISPLAY          0x10
-#define MODXO_TD_RETURN_HOME            0x20
-#define MODXO_TD_ENTRY_MODE_SET         0x30
-#define MODXO_TD_DISPLAY_CONTROL        0x40
-#define MODXO_TD_CURSOR_DISPLAY_SHIFT   0x50
-#define MODXO_TD_SET_CURSOR_POSITION    0x60
-#define MODXO_TD_SET_CONTRAST           0x70
-#define MODXO_TD_SET_BACKLIGHT          0x71
-#define MODXO_TD_SELECT_CUSTOM_CHAR     0xe0
-#define MODXO_TD_SEND_CUSTOM_CHAR_DATA  0xf0
-
-#define MODXO_LED_CMD_SET_LED_COUNT_STRIP 0x00
-#define MODXO_LED_CMD_FILL_STRIP_COL 0x01
-#define MODXO_LED_CMD_UPDATE_STRIPS 0x02
-#define MODXO_LED_CMD_SET_PIX_IDX 0x03
-#define MODXO_LED_CMD_WRITE_PIX_COL 0x04
-#define MODXO_LED_CMD_SET_PIX_COUNT 0x05
-#define MODXO_LED_CMD_WRITE_EFFECT 0x06
-#define MODXO_LED_CMD_SELECT_COLOR 0xF0
-#define MODXO_LED_CMD_SELECT_STRIP 0xFC
-
-#define EFFECT_PIXELS_SHIFT_UP 0x01
-#define EFFECT_PIXELS_SHIFT_DOWN 0x02
-#define EFFECT_PIXELS_FADE 0x03
-#define EFFECT_PIXELS_RANDOM 0x04
-#define EFFECT_PIXELS_RAINBOW 0x05
-#define EFFECT_PIXELS_BRIGHTNESS 0x06
+#include "globalDefines.h"
+#include "stringUtility.h"
 
 //
 //#define MODXO_BANK_SLOT1_256K 0x04
@@ -142,6 +97,18 @@
 //Bank14_1024k   0010 1110         0xe00000  0x100000 (16mb only)
 //Bank15_1024k   0010 1111         0xf00000  0x100000 (16mb only)
 
+static uint8_t getI2cAddress(bool current)
+{
+	int lcdAddressArray[] = { 0x27, 0x3C, 0x3D, 0x3F };
+	return lcdAddressArray[settingsManager::getLcdAddress(current)];
+}
+
+static char* getI2cAddressString(bool current)
+{
+	char* lcdAddressArray[] = { "0x27", "0x3C", "0x3D", "0x3F" };
+	return strdup(lcdAddressArray[settingsManager::getLcdAddress(current)]);
+}
+
 modchipModxo::modchipModxo()
 {
 	mBank = MODXO_BANK_BOOTLOADER;
@@ -204,31 +171,6 @@ uint32_t modchipModxo::getFlashSize(bool recovery)
 {
 	uint32_t size = inputByte(MODXO_REGISTER_SIZE);
 	return recovery ? 0 : (size << 20);
-}
-
-bool modchipModxo::supportsLed()
-{
-	return true;
-}
-
-bool modchipModxo::supportsLcd()
-{
-	return true;
-}
-
-bool modchipModxo::supportsLcdInfo()
-{
-	return false;
-}
-
-bool modchipModxo::supportsLcdContrast()
-{
-	return true;
-}
-
-bool modchipModxo::supportsRecovery()
-{
-	return false;
 }
 
 void modchipModxo::disableRecovery()
@@ -522,7 +464,7 @@ void modchipModxo::loadSettings(settingsState& settings)
 	setLedColor(settingsManager::getLedColor());
 }
 
-void modchipModxo::saveSettings(settingsState settings) 
+void modchipModxo::saveSettings(settingsState& settings) 
 {
 	setBank(MODXO_SETTINGS_BANK); 
 
@@ -579,16 +521,136 @@ utils::dataContainer* modchipModxo::getInstallerLogo()
 	return installerLogo;
 }
 
-void modchipModxo::lcdSendCharacter(uint8_t value, uint8_t command)
+displayDriver* modchipModxo::getDisplayDriver(bool current)
 {
-	if (command == 0)
+	uint8_t lcdMode = settingsManager::getLcdMode(current);
+	uint8_t lcdModel = settingsManager::getLcdModel(current);
+	if (lcdMode == 1)
 	{
-		outputByte(MODXO_REGISTER_LCD_DATA, value);
+		if (lcdModel == 0)
+		{
+			return displayFactory::getDisplay(displayVariantHD44780Modxo);
+		}
+		if (lcdModel == 1)
+		{
+			return displayFactory::getDisplay(displayVariantLCDXXXXModxo);
+		}
 	}
-	else
+	if (lcdMode == 2)
 	{
-		outputByte(MODXO_REGISTER_LCD_COMMAND, value);
+		if (lcdModel == 0)
+		{
+			return displayFactory::getDisplay(displayVariantSPI2PARModxo);
+		}
 	}
+	if (lcdMode == 3)
+	{
+		if (lcdModel == 0)
+		{
+			return displayFactory::getDisplay(displayVariantHD44780LPC);
+		}
+		if (lcdModel == 1)
+		{
+			return displayFactory::getDisplay(displayVariantLCDXXXXLPC);
+		}
+	}
+	return NULL;
+}
+
+supportInfo modchipModxo::getSupportInfo(bool current)
+{
+	uint8_t lcdMode = settingsManager::getLcdMode(current);
+	uint8_t lcdModel = settingsManager::getLcdModel(current);
+	supportInfo info;
+	info.supportsLed = true;
+	info.supportsLcd = true;
+
+	bool lcdInfo = false;
+	bool backlight = false;
+	bool contrast = false;
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver != NULL)
+	{
+		driver->getSupport(lcdInfo, backlight, contrast);
+	}
+	info.supportsLcdInfo = lcdInfo;
+	info.supportsLcdBacklight = backlight;
+	info.supportsLcdContrast = contrast;
+
+	info.supportsRecovery = false;
+	return info;
+}
+
+uint8_t modchipModxo::getLcdModeCount()
+{
+	return 4;
+}
+
+char* modchipModxo::getLcdModeString(uint8_t lcdMode)
+{
+	if (lcdMode == 1)
+	{
+		return strdup("Legacy I2C");
+	}
+	else if (lcdMode == 2)
+	{
+		return strdup("Legacy SPI2PAR");
+	}
+	else if (lcdMode == 3)
+	{
+		return strdup("SMBUS");
+	}
+	return strdup("Disabled");
+}
+
+uint8_t modchipModxo::getLcdModelCount(bool current)
+{
+	uint8_t lcdMode = settingsManager::getLcdMode(current);
+	if (lcdMode == 1)
+	{
+		return 2;
+	}
+	else if (lcdMode == 2)
+	{
+		return 1;
+	}
+	else if (lcdMode == 3)
+	{
+		return 2;
+	}
+	return 0;
+}
+
+char* modchipModxo::getLcdModelString(bool current, uint8_t lcdModel)
+{
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver == NULL)
+	{
+		return strdup("");
+	}
+	return driver->getModel();
+}
+
+uint8_t modchipModxo::getLcdAddressCount(bool current)
+{
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver == NULL)
+	{
+		return 0;
+	}
+	return driver->getI2cAddressCount();
+}
+
+char* modchipModxo::getLcdAddressString(bool current, uint8_t lcdAddress)
+{
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver == NULL)
+	{
+		return strdup("");
+	}
+	uint8_t address = driver->getI2cAddress(lcdAddress);
+	char* result = stringUtility::formatString("0x%2X", address);
+	return result;
 }
 
 void modchipModxo::lcdSetCursorPosition(uint8_t row, uint8_t col)
@@ -601,47 +663,35 @@ void modchipModxo::lcdSetCursorPosition(uint8_t row, uint8_t col)
 	{
 		col = 19; 
 	}
-	utils::debugPrint("PromSetCursor row=%i col=%i\n", row, col);
-	lcdSendCharacter(MODXO_TD_SET_CURSOR_POSITION, 1);
-	lcdSendCharacter(row, 1);
-	lcdSendCharacter(col, 1);
-	Sleep(MODXO_LCD_DELAY);
-}
-
-uint8_t modchipModxo::getLcdTypeCount()
-{
-	return 2;
-}
-
-char* modchipModxo::getLcdTypeString(uint8_t lcdEnableType)
-{
-	if (lcdEnableType == 1)
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
 	{
-		return strdup("I2C");
+		return;
 	}
-	
-	return strdup("Disabled");
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->setCursorPosition(row, col);
 }
 
-void modchipModxo::lcdInit(uint8_t backlight, uint8_t contrast)
+void modchipModxo::lcdInit()
 {
-	// init display
-	lcdSendCharacter(MODXO_TD_INIT, 1); 
-	Sleep(MODXO_LCD_DELAY);
-
-	lcdSetBacklight(backlight);
-	lcdSetContrast(contrast);
-	Sleep(MODXO_LCD_DELAY);
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
+	{
+		return;
+	}
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->init();
 }
 
 void modchipModxo::lcdPrintMessage(const char* message)
 {
-	for (int i = 0; i < (int)strlen(message); ++i)
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
 	{
-		uint8_t cLCD = message[i];
-		lcdSendCharacter(cLCD, 0);
-		Sleep(MODXO_LCD_DELAY);
+		return;
 	}
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->printMessage(message);
 }
 
 void modchipModxo::lcdSetBacklight(uint8_t value)
@@ -650,9 +700,13 @@ void modchipModxo::lcdSetBacklight(uint8_t value)
 	{
 		value = 100;
 	}
-	lcdSendCharacter(MODXO_TD_SET_BACKLIGHT, 1);
-	lcdSendCharacter(value, 1);
-	Sleep(MODXO_LCD_DELAY);
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
+	{
+		return;
+	}
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->setBacklight(value);
 }
 
 void modchipModxo::lcdSetContrast(uint8_t value)
@@ -661,9 +715,13 @@ void modchipModxo::lcdSetContrast(uint8_t value)
 	{
 		value = 100;
 	}
-	lcdSendCharacter(MODXO_TD_SET_CONTRAST, 1);
-	lcdSendCharacter(value, 1);
-	Sleep(MODXO_LCD_DELAY);
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
+	{
+		return;
+	}
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->setContrast(value);
 }
 
 // Private

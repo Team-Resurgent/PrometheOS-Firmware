@@ -66,4 +66,7 @@ public:
 	static void setLedStates(uint32_t ledStates);
 	static uint32_t roundUpToNextPowerOf2(uint32_t value);
 	static void sleepMicroSecs(LARGE_INTEGER clockFreq, uint16_t microSecs);
+	static void swapString(char** oldValue, const char* newValue);
+	static void freeString(char** value);
+	static USHORT WINAPI FindFirstSetRightMember(ULONG Set);
 };

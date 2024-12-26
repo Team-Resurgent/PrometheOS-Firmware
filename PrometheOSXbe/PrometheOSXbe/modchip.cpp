@@ -24,10 +24,23 @@ void modchip::outputByte(uint16_t port, uint8_t value)
 
 modchipType modchip::detectModchip()
 {
+	//int x = inputByte(0xf701);
+	//if (inputByte(0xEE) == 0x55)
+	//{
+	//	uint8_t currentBank = inputByte(0xef);
+	//	outputByte(0xef, 0x0B);
+	//	bool isXtremium = (inputByte(0xef) & 0x0c) == 0x0c;
+	//	outputByte(0xef, currentBank);
+	//	return isXtremium ? modchipTypeXtremium : modchipTypeXenium;
+	//}
 	if (inputByte(0xf500) == 0xE1)
 	{
 		return modchipTypeXecuter;
 	}
+	//if (inputByte(0xf701) == 0xf1 || inputByte(0xf701) == 0xf2 || inputByte(0xf701) == 0xf8) 
+	//{
+	//	return modchipTypeSmartxx;
+	//}
 	if (inputByte(0xdead) == 0xaf) 
 	{
 		return modchipTypeModxo;

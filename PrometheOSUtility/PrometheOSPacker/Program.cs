@@ -25,24 +25,44 @@ namespace PrometheOSPacker
 
         static void Main()
         {
+            var version = "V1.0.7";
+            //version = "latest";
+
+            var baseUrl = $"https://github.com/Team-Resurgent/Modxo/releases/download/{version}";
+
             Console.WriteLine("Downloading 'modxo-official-pico.bin'.");
-            if (DownloadFileAsync("https://github.com/Team-Resurgent/Modxo/releases/download/V1.0.0/modxo_official_pico.bin", "modxo-official-pico.bin").GetAwaiter().GetResult() == false)
+            if (DownloadFileAsync($"{baseUrl}/modxo_official_pico.bin", "modxo-official-pico.bin").GetAwaiter().GetResult() == false)
+            {
+                return;
+            }
+            Console.WriteLine("Downloading 'modxo-official-pico2.bin'.");
+            if (DownloadFileAsync($"{baseUrl}/modxo_official_pico2.bin", "modxo-official-pico2.bin").GetAwaiter().GetResult() == false)
             {
                 return;
             }
             Console.WriteLine("Downloading 'modxo-yd-rp2040.bin'.");
-            if (DownloadFileAsync("https://github.com/Team-Resurgent/Modxo/releases/download/V1.0.0/modxo_yd_rp2040.bin", "modxo-yd-rp2040.bin").GetAwaiter().GetResult() == false)
+            if (DownloadFileAsync($"{baseUrl}/modxo_yd_rp2040.bin", "modxo-yd-rp2040.bin").GetAwaiter().GetResult() == false)
             {
                 return;
             }
-            Console.WriteLine("Downloading 'modxo-rp2040-zero.bin'.");
-            if (DownloadFileAsync("https://github.com/Team-Resurgent/Modxo/releases/download/V1.0.0/modxo_rp2040_zero.bin", "modxo-rp2040-zero.bin").GetAwaiter().GetResult() == false)
+            Console.WriteLine("Downloading 'modxo-rp2040-zero-tiny.bin'.");
+            if (DownloadFileAsync($"{baseUrl}/modxo_rp2040_zero_tiny.bin", "modxo-rp2040-zero-tiny.bin").GetAwaiter().GetResult() == false)
+            {
+                return;
+            }
+            Console.WriteLine("Downloading 'modxo-xiao-rp2040.bin'.");
+            if (DownloadFileAsync($"{baseUrl}/modxo_xiao_rp2040.bin", "modxo-xiao-rp2040.bin").GetAwaiter().GetResult() == false)
+            {
+                return;
+            }
+            Console.WriteLine("Downloading 'modxo-ultra.bin'.");
+            if (DownloadFileAsync($"{baseUrl}/modxo_ultra.bin", "modxo-ultra.bin").GetAwaiter().GetResult() == false)
             {
                 return;
             }
             Console.WriteLine();
 
-            var prometheosWebTestIp = "192.168.1.151"; // If you change ip in PrometheOSWeb update here
+            var prometheosWebTestIp = "192.168.1.66"; // If you change ip in PrometheOSWeb update here
 
             Console.WriteLine("1) Updating embeded web files in XBE...");
             Minify.Process(prometheosWebTestIp);

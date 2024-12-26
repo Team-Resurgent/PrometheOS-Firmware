@@ -1,5 +1,5 @@
 ﻿async function downloadEeprom() {
-    await fetch("http://192.168.1.151/api/downloadeeprom").catch(error => {
+    await fetch("http://192.168.1.66/api/downloadeeprom").catch(error => {
         content.innerHTML = "Failed to connect."
     }).then(response => response.blob()).then(blob => {
         var url = window.URL.createObjectURL(blob);
@@ -13,7 +13,7 @@
 }
 
 async function downloadPrometheOS(id, name) {
-    await fetch("http://192.168.1.151/api/downloadprom").catch(error => {
+    await fetch("http://192.168.1.66/api/downloadprom").catch(error => {
         content.innerHTML = "Failed to connect."
     }).then(response => response.blob()).then(blob => {
         var url = window.URL.createObjectURL(blob);

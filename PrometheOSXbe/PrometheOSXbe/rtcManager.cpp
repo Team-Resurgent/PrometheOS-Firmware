@@ -65,7 +65,7 @@ rtcDateTime rtcManager::getDateTime()
 	value = readByte(4);
 	utcSystemTime.wDay = max(min(EXTRACT_DATE_VALUE(value), 31), 1);
 	value = readByte(5);
-	utcSystemTime.wMonth = max(min(EXTRACT_DATE_VALUE(value), 11), 1);
+	utcSystemTime.wMonth = max(min(EXTRACT_DATE_VALUE(value), 12), 1);
 	value = readByte(6);
 	utcSystemTime.wYear = 2000 + EXTRACT_DATE_VALUE(value);
 

@@ -1,31 +1,8 @@
 #include "modchipXenium.h"
 #include "crc32.h"
 #include "settingsManager.h"
-
-#define XENIUM_LCD_DELAY 2
-
-#define XENIUM_REGISTER_BANKING 0x00EF
-#define XENIUM_REGISTER_LED 0x00EE
-#define XENIUM_SPI_MOSI_BIT 0x10
-#define XENIUM_SPI_CS_BIT 0x20
-#define XENIUM_SPI_CLK_BIT 0x40
-
-#define XENIUM_BANK_TSOP 0
-#define XENIUM_BANK_BOOTLOADER 1
-#define XENIUM_BANK_PROMETHEOS1 2
-#define XENIUM_BANK_PROMETHEOS2 10
-#define XENIUM_BANK_SLOT1_256K 3
-#define XENIUM_BANK_SLOT2_256K 4
-#define XENIUM_BANK_SLOT3_256K 5
-#define XENIUM_BANK_SLOT4_256K 6
-#define XENIUM_BANK_SLOT1_512K 7
-#define XENIUM_BANK_SLOT2_512K 8
-#define XENIUM_BANK_SLOT1_1024K 9
-
-#define XENIUM_SETTINGS_BANK XENIUM_BANK_PROMETHEOS2
-#define XENIUM_SETTINGS_OFFSET (0x1f8000 - 0x1c0000)
-#define XENIUM_INSTALLER_LOGO_BANK XENIUM_BANK_PROMETHEOS2
-#define XENIUM_INSTALLER_LOGO_OFFSET (0x1fa000 - 0x1c0000)
+#include "globalDefines.h"
+#include "stringUtility.h"
 
 //Bank1_256k      =  3  0x000000 - 0x03ffff  Sector Size 65536  Total  262144
 //Bank2_256k      =  4  0x040000 - 0x07ffff  Sector Size 65536  Total  262144
@@ -52,8 +29,10 @@
 modchipXenium::modchipXenium()
 {
 	InitializeCriticalSection(&mMutex);
-	mBank = XENIUM_BANK_BOOTLOADER;
-	mSpi = inputByte(XENIUM_REGISTER_BANKING) & 0x70;
+	uint8_t bank = XENIUM_BANK_BOOTLOADER;
+	displaySPI2PARXenium::getInstance()->setBankValue(bank);
+	uint8_t spi = inputByte(XENIUM_REGISTER_BANKING) & 0x70;
+	displaySPI2PARXenium::getInstance()->setSpiValue(spi);
 }
 
 void modchipXenium::setLedColor(uint8_t ledColor)
@@ -69,31 +48,6 @@ uint32_t modchipXenium::getSlotCount()
 uint32_t modchipXenium::getFlashSize(bool recovery)
 {
 	return recovery ? 0 : (2 * 1024 * 1024);
-}
-
-bool modchipXenium::supportsLed()
-{
-	return true;
-}
-
-bool modchipXenium::supportsLcd()
-{
-	return true;
-}
-
-bool modchipXenium::supportsLcdInfo()
-{
-	return false;
-}
-
-bool modchipXenium::supportsLcdContrast()
-{
-	return true;
-}
-
-bool modchipXenium::supportsRecovery()
-{
-	return false;
 }
 
 void modchipXenium::disableRecovery()
@@ -449,7 +403,7 @@ void modchipXenium::loadSettings(settingsState& settings)
 	setLedColor(settingsManager::getLedColor());
 }
 
-void modchipXenium::saveSettings(settingsState settings) 
+void modchipXenium::saveSettings(settingsState& settings) 
 {
 	setBank(XENIUM_SETTINGS_BANK); 
 
@@ -501,45 +455,112 @@ utils::dataContainer* modchipXenium::getInstallerLogo()
 	return installerLogo;
 }
 
-void modchipXenium::lcdSendCharacter(uint8_t value, uint8_t command)
+displayDriver* modchipXenium::getDisplayDriver(bool current)
 {
-	EnterCriticalSection(&mMutex);
-
-	if ((mSpi & XENIUM_SPI_CLK_BIT) == 0 )
+	uint8_t lcdMode = settingsManager::getLcdMode(current);
+	uint8_t lcdModel = settingsManager::getLcdModel(current);
+	if (lcdMode == 1)
 	{
-		mSpi |= XENIUM_SPI_CLK_BIT;
-		outputByte(XENIUM_REGISTER_BANKING, (mSpi | mBank));
-		utils::uSleep(0x1c);
-	}
-	
-	uint8_t i = 8;
-	do
-	{
-		utils::uSleep(0x1c);
-
-		if ((value & 0x80) > 0)
+		if (lcdModel == 0)
 		{
-			mSpi |= XENIUM_SPI_MOSI_BIT;
-		} 
-		else
-		{
-			mSpi &= ~XENIUM_SPI_MOSI_BIT;
+			return displayFactory::getDisplay(displayVariantSPI2PARXenium);
 		}
-		outputByte(XENIUM_REGISTER_BANKING, (mSpi | mBank));
-
-		mSpi &= ~XENIUM_SPI_CLK_BIT;
-		outputByte(XENIUM_REGISTER_BANKING, (mSpi | mBank));
-		utils::uSleep(0x1c);
-
-		mSpi |= XENIUM_SPI_CLK_BIT;
-		outputByte(XENIUM_REGISTER_BANKING, (mSpi | mBank));
-
-		value = value << 1;
-		i--;
 	}
-	while (i > 0);
+	if (lcdMode == 2)
+	{
+		if (lcdModel == 0)
+		{
+			return displayFactory::getDisplay(displayVariantHD44780LPC);
+		}
+		if (lcdModel == 1)
+		{
+			return displayFactory::getDisplay(displayVariantLCDXXXXLPC);
+		}
+	}
+	return NULL;
+}
 
-	LeaveCriticalSection(&mMutex);
+supportInfo modchipXenium::getSupportInfo(bool current)
+{
+	uint8_t lcdMode = settingsManager::getLcdMode(current);
+	supportInfo info;
+	info.supportsLed = true;
+	info.supportsLcd = true;
+
+	bool lcdInfo = false;
+	bool backlight = false;
+	bool contrast = false;
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver != NULL)
+	{
+		driver->getSupport(lcdInfo, backlight, contrast);
+	}
+	info.supportsLcdInfo = lcdInfo;
+	info.supportsLcdBacklight = backlight;
+	info.supportsLcdContrast = contrast;
+
+	info.supportsRecovery = false;
+	return info;
+}
+
+uint8_t modchipXenium::getLcdModeCount()
+{
+	return 2;
+}
+
+char* modchipXenium::getLcdModeString(uint8_t lcdMode)
+{
+	if (lcdMode == 1)
+	{
+		return strdup("SPI2PAR");
+	}
+	return strdup("Disabled");
+}
+
+uint8_t modchipXenium::getLcdModelCount(bool current)
+{
+	uint8_t lcdMode = settingsManager::getLcdMode(current);
+	if (lcdMode == 1)
+	{
+		return 1;
+	}
+	if (lcdMode == 2)
+	{
+		return 2;
+	}
+	return 0;
+}
+
+char* modchipXenium::getLcdModelString(bool current, uint8_t lcdModel)
+{
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver == NULL)
+	{
+		return strdup("");
+	}
+	return driver->getModel();
+}
+
+uint8_t modchipXenium::getLcdAddressCount(bool current)
+{
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver == NULL)
+	{
+		return 0;
+	}
+	return driver->getI2cAddressCount();
+}
+
+char* modchipXenium::getLcdAddressString(bool current, uint8_t lcdAddress)
+{
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver == NULL)
+	{
+		return strdup("");
+	}
+	uint8_t address = driver->getI2cAddress(lcdAddress);
+	char* result = stringUtility::formatString("0x%2X", address);
+	return result;
 }
 
 void modchipXenium::lcdSetCursorPosition(uint8_t row, uint8_t col)
@@ -552,58 +573,41 @@ void modchipXenium::lcdSetCursorPosition(uint8_t row, uint8_t col)
 	{
 		col = 19; 
 	}
-	lcdSendCharacter(17, 0);
-	lcdSendCharacter(col, 0);
-	lcdSendCharacter(row, 0);
-	Sleep(XENIUM_LCD_DELAY);
-}
-
-uint8_t modchipXenium::getLcdTypeCount()
-{
-	return 2;
-}
-
-char* modchipXenium::getLcdTypeString(uint8_t lcdEnableType)
-{
-	if (lcdEnableType == 1)
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
 	{
-		return strdup("SPI");
+		return;
 	}
-	
-	return strdup("Disabled");
+	EnterCriticalSection(&mMutex);
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->setCursorPosition(row, col);
+	LeaveCriticalSection(&mMutex);
 }
 
-void modchipXenium::lcdInit(uint8_t backlight, uint8_t contrast)
+void modchipXenium::lcdInit()
 {
-	// show display
-	lcdSendCharacter(3, 0); 
-	Sleep(XENIUM_LCD_DELAY);
-
-	// hide cursor
-	lcdSendCharacter(4, 0);
-	Sleep(XENIUM_LCD_DELAY);
-
-	// scroll off
-	lcdSendCharacter(20, 0); 
-	Sleep(XENIUM_LCD_DELAY);
-
-	// wrap off
-	lcdSendCharacter(24, 0);
-	Sleep(XENIUM_LCD_DELAY);
-
-	lcdSetBacklight(backlight);
-	lcdSetContrast(contrast);
-	Sleep(XENIUM_LCD_DELAY);
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
+	{
+		return;
+	}
+	EnterCriticalSection(&mMutex);
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->init();
+	LeaveCriticalSection(&mMutex);
 }
 
 void modchipXenium::lcdPrintMessage(const char* message)
 {
-	for (int i = 0; i < (int)strlen(message); ++i)
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
 	{
-		uint8_t cLCD = message[i];
-		lcdSendCharacter(cLCD, 0);
-		Sleep(XENIUM_LCD_DELAY);
+		return;
 	}
+	EnterCriticalSection(&mMutex);
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->printMessage(message);
+	LeaveCriticalSection(&mMutex);
 }
 
 void modchipXenium::lcdSetBacklight(uint8_t value)
@@ -612,9 +616,15 @@ void modchipXenium::lcdSetBacklight(uint8_t value)
 	{
 		value = 100;
 	}
-	lcdSendCharacter(14, 0);
-	lcdSendCharacter(value, 0);
-	Sleep(XENIUM_LCD_DELAY);
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
+	{
+		return;
+	}
+	EnterCriticalSection(&mMutex);
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->setBacklight(value);
+	LeaveCriticalSection(&mMutex);
 }
 
 void modchipXenium::lcdSetContrast(uint8_t value)
@@ -623,32 +633,35 @@ void modchipXenium::lcdSetContrast(uint8_t value)
 	{
 		value = 100;
 	}
-	lcdSendCharacter(15, 0);
-	lcdSendCharacter(value, 0);
-	Sleep(XENIUM_LCD_DELAY);
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
+	{
+		return;
+	}
+	EnterCriticalSection(&mMutex);
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->setContrast(value);
+	LeaveCriticalSection(&mMutex);
 }
-
-//reboot lcd
-//context::getModchip()->sendLcdCharacter(26); 
-//context::getModchip()->sendLcdCharacter(26);
-//Sleep(SPI_DELAY);
 
 // Private
 
 void modchipXenium::setBank(uint8_t bank)
 {
 	EnterCriticalSection(&mMutex);
-	mBank = bank;
-    outputByte(XENIUM_REGISTER_BANKING, (mSpi | mBank));
+	displaySPI2PARXenium::getInstance()->setBankValue(bank);
+	uint8_t spi = displaySPI2PARXenium::getInstance()->getSpiValue();
+    outputByte(XENIUM_REGISTER_BANKING, (spi | bank));
 	LeaveCriticalSection(&mMutex);
 }
 
 uint8_t modchipXenium::getBank()
 {
 	EnterCriticalSection(&mMutex);
-	mBank = (inputByte(XENIUM_REGISTER_BANKING) & 0x0f);
+	uint8_t bank = (inputByte(XENIUM_REGISTER_BANKING) & 0x0f);
+	displaySPI2PARXenium::getInstance()->setBankValue(bank);
 	LeaveCriticalSection(&mMutex);
-	return mBank;
+	return bank;
 }
 
 bool modchipXenium::isEraseMemOffset(uint32_t memOffset)

@@ -6,6 +6,7 @@
 #include "modchipDummy.h"
 #include "modchipXenium.h"
 #include "modchipXecuter.h"
+#include "modchipSmartxx.h"
 #include "modchipModxo.h"
 #include "modchipAladdin1mb.h"
 #include "modchipAladdin2mb.h"
@@ -39,6 +40,7 @@ namespace
 	char* mDriveSerial = NULL;
 	bool mTakeScreenshot = false;
 	utils::dataContainer* mScreenshot = NULL;
+	CRITICAL_SECTION mMutex;
 }
 
 modchip* context::getModchip()
@@ -60,6 +62,10 @@ void context::setModchipType(modchipType modchipType)
 	else if (modchipType == modchipTypeXecuter)
 	{
 		mModchip = new modchipXecuter();
+	}
+	else if (modchipType == modchipTypeSmartxx)
+	{
+		mModchip = new modchipSmartxx();
 	}
 	else if (modchipType == modchipTypeModxo)
 	{
@@ -305,7 +311,7 @@ char* context::getDriveModel()
 	return mDriveModel == NULL ? strdup("") : strdup(mDriveModel);
 }
 
-void context::setDriveSeriall(const char* serial)
+void context::setDriveSerial(const char* serial)
 {
 	free(mDriveSerial);
 	mDriveSerial = strdup(serial);
@@ -328,11 +334,19 @@ bool context::getTakeScreenshot()
 
 void context::setScreenshot(utils::dataContainer* screenshot)
 {
-	delete(mScreenshot);
+	if (mScreenshot != NULL)
+	{
+		delete(mScreenshot);
+	}
 	mScreenshot = screenshot;
 }
 
 utils::dataContainer* context::getScreenshot()
 {
-	return mScreenshot;
+	if (mScreenshot == NULL)
+	{
+		return NULL;
+	}
+	utils::dataContainer* screenshotCopy = new utils::dataContainer(mScreenshot->data, mScreenshot->size, mScreenshot->size);
+	return screenshotCopy;
 }

@@ -51,12 +51,14 @@ systemInfoScene::systemInfoScene(systemInfoCategoryEnum systemInfoCategory)
 	}
 	else if (mSystemInfoCategory == systemInfoCategoryStorage)
 	{
-		char* diskModelNumberString = stringUtility::trim(HalDiskModelNumber->Buffer, ' ');
+		const char* model = HalDiskModelNumber->Buffer ? HalDiskModelNumber->Buffer : "";
+		char* diskModelNumberString = stringUtility::trim(model, ' ');
 		char* diskModelNumber = stringUtility::formatString("HDD Model: %s", diskModelNumberString);
 		mInfoItems->add(diskModelNumber);
 		free(diskModelNumberString);
 
-		char* diskSerialNumberString = stringUtility::trim(HalDiskSerialNumber->Buffer, ' ');
+		const char* serial = HalDiskSerialNumber->Buffer ? HalDiskSerialNumber->Buffer : "";
+		char* diskSerialNumberString = stringUtility::trim(serial, ' ');
 		char* diskSerialNumber = stringUtility::formatString("HDD Serial: %s", diskSerialNumberString);
 		mInfoItems->add(diskSerialNumber);
 		free(diskSerialNumberString);

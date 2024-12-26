@@ -40,7 +40,7 @@ void editFlowScene::onKeyboardClosingCallback(sceneResult result, void* context,
 	}
 	keyboardScene* closingScene = (keyboardScene*)scene;
 	self->mBankName = closingScene->getText();
-	self->mCurrentSceneId = context::getModchip()->supportsLed() == true ? 2 : 3;
+	self->mCurrentSceneId = context::getModchip()->getSupportInfo(true).supportsLed == true ? 2 : 3;
 }
 
 void editFlowScene::onLedColorClosingCallback(sceneResult result, void* context, scene* scene)

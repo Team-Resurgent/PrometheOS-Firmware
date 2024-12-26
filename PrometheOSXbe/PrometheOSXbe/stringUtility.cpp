@@ -379,6 +379,23 @@ char* stringUtility::formatSize(uint32_t size)
 }
 
 char* stringUtility::formatIp(uint32_t ip)
- {
-	 return formatString("%i.%i.%i.%i", ip & 0xff, (ip >> 8) & 0xff, (ip >> 16) & 0xff, (ip >> 24) & 0xff);
- }
+{
+	return formatString("%i.%i.%i.%i", ip & 0xff, (ip >> 8) & 0xff, (ip >> 16) & 0xff, (ip >> 24) & 0xff);
+}
+
+char* stringUtility::padString(const char* message, uint32_t len)
+{
+	char* result = (char*)malloc(len + 1);
+	memset(result, 0x20, len);
+	strncpy(result, message, min(len, strlen(message)));
+	result[len] = 0;
+	return result;
+}
+
+char* stringUtility::formatLcdString(const char* message, uint32_t maxlen)
+{
+	char* trimmedMessage = strlen(message) > maxlen ? substr(message, 0, maxlen) : strdup(message);
+	char* result = padString(trimmedMessage, maxlen);
+	free(trimmedMessage);
+	return result;
+}

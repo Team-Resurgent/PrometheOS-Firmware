@@ -192,6 +192,16 @@ uint32_t theme::getJoyButtonYColor()
 	return mThemeData.JOY_BUTTON_Y_COLOR;
 }
 
+uint32_t theme::getJoyButtonBlackColor()
+{
+	return mThemeData.JOY_BUTTON_BLACK_COLOR;
+}
+
+uint32_t theme::getJoyButtonWhiteColor()
+{
+	return mThemeData.JOY_BUTTON_WHITE_COLOR;
+}
+
 uint32_t theme::getButtonActiveFillColor() 
 {
 	return mThemeData.BUTTON_ACTIVE_FILL_COLOR;
@@ -525,6 +535,8 @@ void theme::loadSkin(char* skinName)
 	mThemeData.JOY_BUTTON_B_COLOR = THEME_JOY_BUTTON_B_COLOR;
 	mThemeData.JOY_BUTTON_X_COLOR = THEME_JOY_BUTTON_X_COLOR;
 	mThemeData.JOY_BUTTON_Y_COLOR = THEME_JOY_BUTTON_Y_COLOR;
+	mThemeData.JOY_BUTTON_BLACK_COLOR = THEME_JOY_BUTTON_BLACK_COLOR;
+	mThemeData.JOY_BUTTON_WHITE_COLOR = THEME_JOY_BUTTON_WHITE_COLOR;
 
 	mThemeData.BUTTON_ACTIVE_FILL_COLOR = THEME_BUTTON_ACTIVE_FILL_COLOR;
 	mThemeData.BUTTON_ACTIVE_STROKE_COLOR = THEME_BUTTON_ACTIVE_STROKE_COLOR;
@@ -784,6 +796,10 @@ void theme::parseConfigLine(char* param1, char* param2, char* buffer, unsigned l
         parseUnsignedNumber(params[1], mThemeData.JOY_BUTTON_X_COLOR);
 	} else if (strcmp(params[0], "JOY_BUTTON_Y_COLOR") == 0) {
         parseUnsignedNumber(params[1], mThemeData.JOY_BUTTON_Y_COLOR);
+	} else if (strcmp(params[0], "JOY_BUTTON_BLACK_COLOR") == 0) {
+        parseUnsignedNumber(params[1], mThemeData.JOY_BUTTON_BLACK_COLOR);
+	} else if (strcmp(params[0], "JOY_BUTTON_WHITE_COLOR") == 0) {
+        parseUnsignedNumber(params[1], mThemeData.JOY_BUTTON_WHITE_COLOR);
     } else if (strcmp(params[0], "BUTTON_ACTIVE_FILL_COLOR") == 0) {
         parseUnsignedNumber(params[1], mThemeData.BUTTON_ACTIVE_FILL_COLOR);
     } else if (strcmp(params[0], "BUTTON_ACTIVE_STROKE_COLOR") == 0) {

@@ -14,12 +14,13 @@
 #include "..\theme.h"
 #include "..\rtcManager.h"
 
-rtcScene::rtcScene(bool hasRtcExpansion)
+rtcScene::rtcScene()
 {
+	bool doRtc = settingsManager::getRtcEnable() == true && xboxConfig::getHasRtcExpansion() == true;
 	mSelectedControl = 0;
-	mHasRtcExpansion = hasRtcExpansion;
+	mHasRtcExpansion = doRtc;
 	mShouldApply = false;
-	mDateTime = mHasRtcExpansion ? rtcManager::getDateTime() : rtcManager::getXboxDateTime();
+	mDateTime = doRtc ? rtcManager::getDateTime() : rtcManager::getXboxDateTime();
 }
 
 void rtcScene::update()

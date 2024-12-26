@@ -86,6 +86,8 @@ public:
 	static bool fileExists(const char* path, bool& exists);
 	static bool directoryExists(const char* path, bool& exists);
 
+	static char* getDriveLetter(const char* path);
+	static char* getRootPath(const char* path);
 	static char* getFileName(const char* path);
 	static char* getFileNameWithoutExtension(const char* path);
 	static char* getExtension(const char* path);

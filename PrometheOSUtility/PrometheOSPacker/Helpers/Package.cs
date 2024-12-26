@@ -56,47 +56,6 @@ namespace PrometheOSPacker.Helpers
             return bank;
         }
 
-        private static string GetNewestBios(string folderPath)
-        {
-            var directoryInfo = new DirectoryInfo(folderPath);
-            var files = directoryInfo.GetFiles("*.bin");
-            var newestFile = files?.OrderByDescending(f => f.CreationTime).FirstOrDefault();
-            if (newestFile == null)
-            {
-                throw new Exception("There does not seem to be any bios files in folder.");
-            }
-            return newestFile.FullName;
-        }
-
-        public static byte[] GetInstallerLogo()
-        {
-            var imageFileData = File.ReadAllBytes("nemesis.png");
-            var image = SixLabors.ImageSharp.Image.Load<Argb32>(imageFileData);
-            image.Mutate(i => i.Resize(178, 46));
-
-            var result = new byte[32768];
-
-            result[0] = (byte)'I';
-            result[1] = (byte)'M';
-            result[2] = 178;
-            result[3] = 46;
-
-            var offset = 4;
-            for (int y = 0; y < 46; y++)
-            {
-                for (int x = 0; x < 178; x++)
-                {
-                    result[offset + 0] = image[x, y].R;
-                    result[offset + 1] = image[x, y].G;
-                    result[offset + 2] = image[x, y].B;
-                    result[offset + 3] = image[x, y].A;
-                    offset += 4;
-                }
-            }
-
-            return result;
-        }
-
         public static byte[] ExtractPrometheOS(string modchip)
         {
             var slnFolder = Utility.GetSlnFolder();
@@ -152,7 +111,7 @@ namespace PrometheOSPacker.Helpers
         public static void PackageTools()
         {
             var slnFolder = Utility.GetSlnFolder();
-            var promethosToolsXbePath = Path.GetFullPath($"..\\PrometheOSXbe\\PrometheOSXbe\\Release-Tools\\PrometheOSTools.xbe", slnFolder);
+            var promethosToolsXbePath = Path.GetFullPath($"..\\PrometheOSXbe\\PrometheOSXbe\\Release-Tools\\PrometheOS-Tools.xbe", slnFolder);
             var tools = File.ReadAllBytes(promethosToolsXbePath);
 
             var buildPath = Path.Combine(slnFolder, "..\\Build");
@@ -240,10 +199,9 @@ namespace PrometheOSPacker.Helpers
             File.WriteAllBytes(Path.Combine(buildPath, $"prometheos-{modchip.ToLower()}.bin"), firmware);
         }
 
-        private static void PackageModxoVariant(string variant, string modchip)
+        private static void PackageModxoVariant(byte[] prometheos, string variant, string modchip, uint familyId)
         {
             var slnFolder = Utility.GetSlnFolder();
-            var prometheos = ExtractPrometheOS($"{modchip}-{variant}");
 
             var promethosXbePath = Path.GetFullPath($"..\\PrometheOSXbe\\PrometheOSXbe\\Release-{modchip}\\PrometheOS.xbe", slnFolder);
             if (File.Exists(promethosXbePath) == false)
@@ -266,19 +224,26 @@ namespace PrometheOSPacker.Helpers
             Directory.CreateDirectory(buildPath);
             File.WriteAllBytes(Path.Combine(buildPath, $"prometheos-{modchip.ToLower()}-{variant.ToLower()}.bin"), firmware);
 
-            var uf2 = FlashBin.ProcessUf2(firmware, 0x10000000, 0xffffffff);
+            var uf2 = FlashBin.ProcessUf2(firmware, 0x10000000, 0xffffffff, familyId);
             File.WriteAllBytes(Path.Combine(buildPath, $"prometheos-{modchip.ToLower()}-{variant.ToLower()}.uf2"), uf2);
         }
 
         public static void PackageModxo(string modchip)
         {
-            PackageModxoVariant("official-pico", modchip);
-            PackageModxoVariant("rp2040-zero", modchip);
-            PackageModxoVariant("yd-rp2040", modchip);
+            var slnFolder = Utility.GetSlnFolder();
+            var prometheos = ExtractPrometheOS(modchip);
+            uint defaultFamilyId = 0xE48BFF56;
+
+            PackageModxoVariant(prometheos, "official-pico", modchip, defaultFamilyId);
+            PackageModxoVariant(prometheos, "official-pico2", modchip, 0xE48BFF59);
+            PackageModxoVariant(prometheos, "rp2040-zero-tiny", modchip, defaultFamilyId);
+            PackageModxoVariant(prometheos, "yd-rp2040", modchip, defaultFamilyId);
+            PackageModxoVariant(prometheos, "xiao-rp2040", modchip, defaultFamilyId);
+            PackageModxoVariant(prometheos, "ultra", modchip, defaultFamilyId);
 
             if (File.Exists("modxo-custom.bin"))
             {
-                PackageModxoVariant("custom", modchip);
+                PackageModxoVariant(prometheos, "custom", modchip, defaultFamilyId);
             }
         }
 

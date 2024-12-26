@@ -86,7 +86,7 @@ public:
 	static utils::dataContainer* getUserPassword();
 	static void setDriveModel(const char* model);
 	static char* getDriveModel();
-	static void setDriveSeriall(const char* serial);
+	static void setDriveSerial(const char* serial);
 	static char* getDriveSerial();
 	static void setTakeScreenshot(bool takeScreenshot);
 	static bool getTakeScreenshot();

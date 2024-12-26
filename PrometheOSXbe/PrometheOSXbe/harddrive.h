@@ -8,16 +8,19 @@ typedef struct XboxPartitionTableEntry
 {
 	UCHAR Name[16];
 	ULONG Flags;
-	ULONG LBAStart;
-	ULONG LBASize;
-	ULONG Reserved;
+	ULONG LBAStartLo;
+	ULONG LBASizeLo;
+	USHORT LBAStartHi;
+	USHORT LBASizeHi;
 } XboxPartitionTableEntry;
 
 typedef struct XboxPartitionTable
 {
 	UCHAR	Magic[16];
-	char	Res0[32];
+	UCHAR   FatxMode;
+	char	Res0[31];
 	XboxPartitionTableEntry	TableEntries[14];
+	char	Res1[16];
 } XboxPartitionTable;
 
 typedef enum MEDIA_TYPE {
@@ -75,6 +78,7 @@ typedef struct DISK_GEOMETRY {
 
 #define FILE_DEVICE_DISK                0x00000007
 #define FILE_SYNCHRONOUS_IO_ALERT               0x00000010
+#define FILE_NO_INTERMEDIATE_BUFFERING          0x00000008
 
 #define FILE_ANY_ACCESS                 0
 //#define FILE_READ_ACCESS          ( 0x0001 )    // file & pipe
@@ -101,9 +105,50 @@ typedef struct DISK_GEOMETRY {
 //#define IOCTL_DISK_REQUEST_STRUCTURE    CTL_CODE(IOCTL_DISK_BASE, 0x000f, METHOD_BUFFERED, FILE_ANY_ACCESS)
 //#define IOCTL_DISK_REQUEST_DATA         CTL_CODE(IOCTL_DISK_BASE, 0x0010, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
+#define PARTITION_XBOX_CACHE_X_LBA_SIZE  0x177000
+#define PARTITION_XBOX_CACHE_X_LBA_START 0x400
+#define PARTITION_XBOX_CACHE_Y_LBA_SIZE  0x177000
+#define PARTITION_XBOX_CACHE_Y_LBA_START (PARTITION_XBOX_CACHE_X_LBA_START + PARTITION_XBOX_CACHE_X_LBA_SIZE)
+#define PARTITION_XBOX_CACHE_Z_LBA_SIZE  0x177000
+#define PARTITION_XBOX_CACHE_Z_LBA_START (PARTITION_XBOX_CACHE_Y_LBA_START + PARTITION_XBOX_CACHE_Y_LBA_SIZE)
+#define PARTITION_XBOX_SHELL_C_LBA_SIZE  0xfa000
+#define PARTITION_XBOX_SHELL_C_LBA_START  (PARTITION_XBOX_CACHE_Z_LBA_START + PARTITION_XBOX_CACHE_Z_LBA_SIZE)
+#define PARTITION_XBOX_DATA_E_LBA_SIZE  0x9896b0
+#define PARTITION_XBOX_DATA_E_LBA_START (PARTITION_XBOX_SHELL_C_LBA_START + PARTITION_XBOX_SHELL_C_LBA_SIZE)
+#define PARTITION_XBOX_DATA_F_LBA_START  (PARTITION_XBOX_DATA_E_LBA_START + PARTITION_XBOX_DATA_E_LBA_SIZE)
+
+#define PARTITION_XBOX_NAME_DATA_E "XBOX DATA E"
+#define PARTITION_XBOX_NAME_SHELL_C "XBOX SHELL C"
+#define PARTITION_XBOX_NAME_CACHE_X "XBOX CACHE X"
+#define PARTITION_XBOX_NAME_CACHE_Y "XBOX CACHE Y"
+#define PARTITION_XBOX_NAME_CACHE_Z "XBOX CACHE Z"
+#define PARTITION_XBOX_NAME_DRIVE_F "DRIVE F"
+
 class harddrive
 {
 public:
-	static unsigned int readLbaInfo(XboxPartitionTable *p_table, XboxPartitionTable **p_table_add, DWORD *total_sectors, DWORD *version);
-	static NTSTATUS writePartitionTable(XboxPartitionTable *p_table);
+
+	enum partitionTableEntryFlag
+	{ 
+		partitionTableEntryFlagNotInUse = 0x00000000,
+		partitionTableEntryFlagInUse = 0x80000000,
+	}; 
+
+	enum fatxMode
+	{
+		fatxModeCerbiosPrimary = 1,
+		fatxModeCerbiosSecondary = 2,
+		fatxModeStellar = 3,
+	};
+
+	static bool largePartitionFixup(ULONG harddrive, XboxPartitionTableEntry* entry, ULONG clusterSize);
+	static bool formatDrive(int harddrive);
+	static ULONG calculateClusterSize(ULONGLONG lbaSize);
+	static void setPartitionName(const char* name, XboxPartitionTableEntry* entry);
+	static void setPartitionLBAStart(ULONGLONG start, XboxPartitionTableEntry* entry);
+	static void setPartitionLBASize(ULONGLONG size, XboxPartitionTableEntry* entry);
+	static ULONGLONG getPartitionLBASize(XboxPartitionTableEntry* entry);
+	static void initXboxPartitionTable(int harddrive, ULONGLONG totalSectors, XboxPartitionTable* partitionTable);
+	static NTSTATUS readLbaInfo(int harddrive, XboxPartitionTable *p_table, ULONGLONG *total_sectors, DWORD *version);
+	static NTSTATUS writePartitionTable(int harddrive, XboxPartitionTable *p_table);
 };

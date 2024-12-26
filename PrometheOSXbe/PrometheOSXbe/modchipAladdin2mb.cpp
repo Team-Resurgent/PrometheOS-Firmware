@@ -1,75 +1,19 @@
 #include "modchipAladdin2mb.h"
 #include "crc32.h"
 #include "settingsManager.h"
+#include "globalDefines.h"
+#include "stringUtility.h"
 
-#define ALADDIN2MB_LCD_DELAY 2
 
-#define ALADDIN2MB_REGISTER_IO 0xF70Du
-#define ALADDIN2MB_REGISTER_DISP_O 0xF700u
-#define ALADDIN2MB_REGISTER_LCD_BL 0xF701u
-#define ALADDIN2MB_REGISTER_LCD_CT 0xF703u
-#define ALADDIN2MB_REGISTER_BANKING 0xF70F
 
-#define ALADDIN2MB_DISP_EXT_CONTROL 0x08
-#define ALADDIN2MB_DISP_NW_FLAG 0x01
-
-#define ALADDIN2MB_DISP_CON_RS 0x01
-#define ALADDIN2MB_DISP_CON_RW 0x02
-#define ALADDIN2MB_DISP_CON_E 0x04
-#define ALADDIN2MB_DISP_INI 0x01
-#define ALADDIN2MB_DISP_CMD 0x00
-#define ALADDIN2MB_DISP_DAT 0x02
-#define ALADDIN2MB_DISP_CLEAR 0x01
-#define ALADDIN2MB_DISP_HOME 0x02
-#define ALADDIN2MB_DISP_ENTRY_MODE_SET	0x04
-#define ALADDIN2MB_DISP_S_FLAG 0x01
-#define ALADDIN2MB_DISP_ID_FLAG 0x02
-#define ALADDIN2MB_DISP_CONTROL 0x08
-#define ALADDIN2MB_DISP_D_FLAG 0x04
-#define ALADDIN2MB_DISP_C_FLAG 0x02
-#define ALADDIN2MB_DISP_B_FLAG 0x01
-#define ALADDIN2MB_DISP_SHIFT 0x10
-#define ALADDIN2MB_DISP_SC_FLAG 0x08
-#define ALADDIN2MB_DISP_RL_FLAG 0x04
-#define ALADDIN2MB_DISP_FUNCTION_SET 0x20
-#define ALADDIN2MB_DISP_DL_FLAG 0x10
-#define ALADDIN2MB_DISP_N_FLAG 0x08
-#define ALADDIN2MB_DISP_F_FLAG 0x04
-#define ALADDIN2MB_DISP_RE_FLAG 0x04
-#define ALADDIN2MB_DISP_CGRAM_SET 0x40
-#define ALADDIN2MB_DISP_SEGRAM_SET 0x40
-#define ALADDIN2MB_DISP_DDRAM_SET 0x80
-
-#define ALADDIN2MB_BANK_TSOP 0
-#define ALADDIN2MB_BANK_MEM_REGISTER 0x1F
-
-#define ALADDIN2MB_BANK_SLOT1_256K 0x10
-#define ALADDIN2MB_BANK_SLOT2_256K 0x11
-#define ALADDIN2MB_BANK_SLOT3_256K 0x12
-#define ALADDIN2MB_BANK_SLOT4_256K 0x13
-#define ALADDIN2MB_BANK_SLOT1_512K 0x18
-#define ALADDIN2MB_BANK_SLOT2_512K 0x19
-#define ALADDIN2MB_BANK_SLOT1_1024K 0x1a
-#define ALADDIN2MB_BANK_BOOTLOADER 0x14
-#define ALADDIN2MB_BANK_PROMETHEOS1 0x15
-#define ALADDIN2MB_BANK_PROMETHEOS2 0x16 
-#define ALADDIN2MB_BANK_PROMETHEOS3 0x17 
-
-#define ALADDIN2MB_LCD_EN5V 0x01
-
-#define ALADDIN2MB_SETTINGS_BANK ALADDIN2MB_BANK_PROMETHEOS3
-#define ALADDIN2MB_SETTINGS_OFFSET (0x1ff000 - 0x1c0000)
-#define ALADDIN2MB_INSTALLER_LOGO_BANK ALADDIN2MB_BANK_PROMETHEOS3
-#define ALADDIN2MB_INSTALLER_LOGO_OFFSET (0x1f7000 - 0x1c0000)
-
-#define READ_ARRAY_CMD      0xff
-#define RD_STATUS_CMD       0x70
-#define CLR_STATUS_CMD      0x50
-#define ERASE_SET_CMD       0x20
-#define ERASE_CNF_CMD       0xd0
-#define PRG_SETUP_CMD       0x40
-#define SECTOR_ERASE_SET_CMD        0x30
-#define WSM_BUSY                    0x80
+//#define READ_ARRAY_CMD      0xff
+//#define RD_STATUS_CMD       0x70
+//#define CLR_STATUS_CMD      0x50
+//#define ERASE_SET_CMD       0x20
+//#define ERASE_CNF_CMD       0xd0
+//#define PRG_SETUP_CMD       0x40
+//#define SECTOR_ERASE_SET_CMD        0x30
+//#define WSM_BUSY                    0x80
 
 //#define ALADDIN2MB_INSTALLER_LOGO_BANK ALADDIN2MB_BANK_PROMETHEOS2
 //#define ALADDIN2MB_INSTALLER_LOGO_OFFSET (0x1f0000 - 0x1c0000)
@@ -84,7 +28,6 @@
 modchipAladdin2mb::modchipAladdin2mb()
 {
 	mBank = ALADDIN2MB_BANK_BOOTLOADER;
-	mSpi = 0;
 }
 
 void modchipAladdin2mb::setLedColor(uint8_t ledColor)
@@ -100,31 +43,6 @@ uint32_t modchipAladdin2mb::getSlotCount()
 uint32_t modchipAladdin2mb::getFlashSize(bool recovery)
 {
 	return recovery ? 0 : (2 * 1024 * 1024);
-}
-
-bool modchipAladdin2mb::supportsLed()
-{
-	return false;
-}
-
-bool modchipAladdin2mb::supportsLcd()
-{
-	return true;
-}
-
-bool modchipAladdin2mb::supportsLcdInfo()
-{
-	return false;
-}
-
-bool modchipAladdin2mb::supportsLcdContrast()
-{
-	return true;
-}
-
-bool modchipAladdin2mb::supportsRecovery()
-{
-	return false;
 }
 
 void modchipAladdin2mb::disableRecovery()
@@ -478,7 +396,7 @@ void modchipAladdin2mb::loadSettings(settingsState& settings)
 	setLedColor(settingsManager::getLedColor());
 }
 
-void modchipAladdin2mb::saveSettings(settingsState settings) 
+void modchipAladdin2mb::saveSettings(settingsState& settings) 
 {
 	setBank(ALADDIN2MB_SETTINGS_BANK); 
 
@@ -531,21 +449,122 @@ utils::dataContainer* modchipAladdin2mb::getInstallerLogo()
 	return installerLogo;
 }
 
-void modchipAladdin2mb::lcdSendCharacter(uint8_t value, uint8_t command)
+displayDriver* modchipAladdin2mb::getDisplayDriver(bool current)
 {
-	uint8_t oDataHigh  = (value >> 2) & 0x28;
-	oDataHigh |= (value >> 0) & 0x50;
-	outputByte(ALADDIN2MB_REGISTER_DISP_O, command | oDataHigh);	
-	outputByte(ALADDIN2MB_REGISTER_DISP_O, command | ALADDIN2MB_DISP_CON_E | oDataHigh);	
-	outputByte(ALADDIN2MB_REGISTER_DISP_O, command | oDataHigh);	
-	Sleep(ALADDIN2MB_LCD_DELAY);
-	
-	uint8_t oDataLow  = (value << 2) & 0x28;
-	oDataLow |= (value << 4) & 0x50;
-	outputByte(ALADDIN2MB_REGISTER_DISP_O, command | oDataLow);	
-	outputByte(ALADDIN2MB_REGISTER_DISP_O, command | ALADDIN2MB_DISP_CON_E | oDataLow);	
-	outputByte(ALADDIN2MB_REGISTER_DISP_O, command | oDataLow);	
-	Sleep(ALADDIN2MB_LCD_DELAY);
+	uint8_t lcdMode = settingsManager::getLcdMode(current);
+	uint8_t lcdModel = settingsManager::getLcdModel(current);
+	if (lcdMode == 1)
+	{
+		if (lcdModel == 0)
+		{
+			return displayFactory::getDisplay(displayVariantHD44780Aladdin);
+		}
+		if (lcdModel == 1)
+		{
+			return displayFactory::getDisplay(displayVariantSPI2PARAladdin);
+		}
+	}
+	if (lcdMode == 2)
+	{
+		if (lcdModel == 0)
+		{
+			return displayFactory::getDisplay(displayVariantHD44780LPC);
+		}
+		if (lcdModel == 1)
+		{
+			return displayFactory::getDisplay(displayVariantLCDXXXXLPC);
+		}
+	}
+	return NULL;
+}
+
+supportInfo modchipAladdin2mb::getSupportInfo(bool current)
+{
+	uint8_t lcdMode = settingsManager::getLcdMode(current);
+	uint8_t lcdModel = settingsManager::getLcdModel(current);
+
+	supportInfo info;
+	info.supportsLed = false;
+	info.supportsLcd = true;
+
+	bool lcdInfo = false;
+	bool backlight = false;
+	bool contrast = false;
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver != NULL)
+	{
+		driver->getSupport(lcdInfo, backlight, contrast);
+	}
+	info.supportsLcdInfo = lcdInfo;
+	info.supportsLcdBacklight = backlight;
+	info.supportsLcdContrast = contrast;
+
+	info.supportsRecovery = false;
+	return info;
+}
+
+uint8_t modchipAladdin2mb::getLcdModeCount()
+{
+	return 3;
+}
+
+char* modchipAladdin2mb::getLcdModeString(uint8_t lcdMode)
+{
+	if (lcdMode == 1)
+	{
+		return strdup("Aladdin");
+	}
+	if (lcdMode == 2)
+	{
+		return strdup("SMBUS");
+	}
+	return strdup("Disabled");
+}
+
+uint8_t modchipAladdin2mb::getLcdModelCount(bool current)
+{
+	uint8_t lcdMode = settingsManager::getLcdMode(current);
+	if (lcdMode == 1)
+	{
+		return 2;
+	}
+	if (lcdMode == 2)
+	{
+		return 2;
+	}
+	return 0;
+}
+
+char* modchipAladdin2mb::getLcdModelString(bool current, uint8_t lcdModel)
+{
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver == NULL)
+	{
+		return strdup("");
+	}
+	return driver->getModel();
+}
+
+uint8_t modchipAladdin2mb::getLcdAddressCount(bool current)
+{	
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver == NULL)
+	{
+		return 0;
+	}
+	return driver->getI2cAddressCount();
+}
+
+char* modchipAladdin2mb::getLcdAddressString(bool current, uint8_t lcdAddress)
+{
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver == NULL)
+	{
+		return strdup("");
+	}
+	uint8_t address = driver->getI2cAddress(lcdAddress);
+	char* result = stringUtility::formatString("0x%2X", address);
+	return result;
 }
 
 void modchipAladdin2mb::lcdSetCursorPosition(uint8_t row, uint8_t col)
@@ -558,80 +577,35 @@ void modchipAladdin2mb::lcdSetCursorPosition(uint8_t row, uint8_t col)
 	{
 		col = 19; 
 	}
-
-	uint8_t value = 0;
-	if (row == 1)
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
 	{
-		value = 0x40;
+		return;
 	}
-	else if (row == 2)
-	{
-		value = 0x14;
-	}
-	else if (row == 3)
-	{
-		value = 0x54;
-	}
-
-	lcdSendCharacter(ALADDIN2MB_DISP_DDRAM_SET | (value + col), ALADDIN2MB_DISP_CMD);
-	Sleep(10);
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->setCursorPosition(row, col);
 }
 
-uint8_t modchipAladdin2mb::getLcdTypeCount()
+void modchipAladdin2mb::lcdInit()
 {
-	return 2;
-}
-
-char* modchipAladdin2mb::getLcdTypeString(uint8_t lcdEnableType)
-{
-	if (lcdEnableType == 1)
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
 	{
-		return strdup("Parallel");
+		return;
 	}
-	
-	return strdup("Disabled");
-}
-
-void modchipAladdin2mb::lcdInit(uint8_t backlight, uint8_t contrast)
-{
-	outputByte(ALADDIN2MB_REGISTER_IO, ALADDIN2MB_LCD_EN5V);
-
-	lcdSendCharacter(0x33, 0);
-	Sleep(ALADDIN2MB_LCD_DELAY);
-
-	lcdSendCharacter(0x32, 0);  
-	Sleep(ALADDIN2MB_LCD_DELAY);
-
-	lcdSendCharacter(ALADDIN2MB_DISP_FUNCTION_SET | ALADDIN2MB_DISP_N_FLAG | ALADDIN2MB_DISP_RE_FLAG, ALADDIN2MB_DISP_CMD);
-	Sleep(ALADDIN2MB_LCD_DELAY);
-    lcdSendCharacter(ALADDIN2MB_DISP_SEGRAM_SET, ALADDIN2MB_DISP_CMD);
-	Sleep(ALADDIN2MB_LCD_DELAY);
-    lcdSendCharacter(ALADDIN2MB_DISP_EXT_CONTROL | ALADDIN2MB_DISP_NW_FLAG, ALADDIN2MB_DISP_CMD);
-	Sleep(ALADDIN2MB_LCD_DELAY);
-    lcdSendCharacter(ALADDIN2MB_DISP_FUNCTION_SET | ALADDIN2MB_DISP_N_FLAG, ALADDIN2MB_DISP_CMD); 
-	Sleep(ALADDIN2MB_LCD_DELAY);
-    lcdSendCharacter(ALADDIN2MB_DISP_CONTROL | ALADDIN2MB_DISP_D_FLAG, ALADDIN2MB_DISP_CMD);
-	Sleep(ALADDIN2MB_LCD_DELAY);
-    lcdSendCharacter(ALADDIN2MB_DISP_CLEAR, ALADDIN2MB_DISP_CMD);
-	Sleep(ALADDIN2MB_LCD_DELAY);
-    lcdSendCharacter(ALADDIN2MB_DISP_ENTRY_MODE_SET | ALADDIN2MB_DISP_ID_FLAG, ALADDIN2MB_DISP_CMD);
-	Sleep(ALADDIN2MB_LCD_DELAY);
-    lcdSendCharacter(ALADDIN2MB_DISP_HOME, ALADDIN2MB_DISP_CMD);  
-	Sleep(ALADDIN2MB_LCD_DELAY);
-
-	lcdSetBacklight(backlight);
-	lcdSetContrast(contrast);
-	Sleep(ALADDIN2MB_LCD_DELAY);
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->init();
 }
 
 void modchipAladdin2mb::lcdPrintMessage(const char* message)
 {
-	for (int i = 0; i < (int)strlen(message); ++i)
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
 	{
-		uint8_t cLCD = message[i];
-		lcdSendCharacter(cLCD, ALADDIN2MB_DISP_DAT);
-		Sleep(ALADDIN2MB_LCD_DELAY);
+		return;
 	}
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->printMessage(message);
 }
 
 void modchipAladdin2mb::lcdSetBacklight(uint8_t value)
@@ -640,8 +614,13 @@ void modchipAladdin2mb::lcdSetBacklight(uint8_t value)
 	{
 		value = 100;
 	}
-	outputByte(ALADDIN2MB_REGISTER_LCD_BL, (int)(value * 1.27f));
-	Sleep(ALADDIN2MB_LCD_DELAY);
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
+	{
+		return;
+	}
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->setBacklight(value);
 }
 
 void modchipAladdin2mb::lcdSetContrast(uint8_t value)
@@ -650,8 +629,13 @@ void modchipAladdin2mb::lcdSetContrast(uint8_t value)
 	{
 		value = 100;
 	}
-	outputByte(ALADDIN2MB_REGISTER_LCD_CT, (int)(value * 0.64f));
-	Sleep(ALADDIN2MB_LCD_DELAY);
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
+	{
+		return;
+	}
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->setContrast(value);
 }
 
 // Private
@@ -659,7 +643,7 @@ void modchipAladdin2mb::lcdSetContrast(uint8_t value)
 void modchipAladdin2mb::setBank(uint8_t bank)
 {
 	mBank = bank;
-    outputByte(ALADDIN2MB_REGISTER_BANKING, mBank);
+    outputByte(ALADDIN_REGISTER_BANKING, mBank);
 }
 
 uint8_t modchipAladdin2mb::getBank()

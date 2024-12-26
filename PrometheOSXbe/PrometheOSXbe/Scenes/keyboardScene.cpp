@@ -47,6 +47,12 @@ void keyboardScene::update()
 		return;
 	}
 
+	if (inputManager::buttonPressed(ButtonY))
+	{
+		clearText();
+		return;
+	}
+
 	// Delete Action
 
 	if (inputManager::buttonPressed(ButtonX))
@@ -264,7 +270,7 @@ void keyboardScene::update()
 
 	if (inputManager::buttonPressed(ButtonTriggerRight))
 	{
-		mCursorPos = mCursorPos < strlen(mText) ? mCursorPos + 1 : strlen(mText);
+		mCursorPos = mCursorPos < (int)strlen(mText) ? mCursorPos + 1 : strlen(mText);
 		calcShortStringRange(mText, mShortTextStart, mShortTextEnd);
 	}
 }
@@ -279,9 +285,6 @@ void keyboardScene::render()
 	{
 		mCounter--;
 	}
-
-	free(mTitle);
-	mTitle = stringUtility::formatString("pos = %i", mCursorPos);
 
 	component::panel(theme::getPanelFillColor(), theme::getPanelStrokeColor(), 16, 16, 688, 448);
 	drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), mTitle, theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
@@ -375,7 +378,7 @@ void keyboardScene::render()
 		component::button(mSelectedControl == 40, false, "Space", keyboardX + 108 + (54 * 6), keyboardY + (48 * 3), 212, 44);
 	}
 
-	drawing::drawBitmapString(context::getBitmapFontSmall(), "\xC2\xA1 Select, \xC2\xA3 Delete", theme::getFooterTextColor(), 40, theme::getFooterY());
+	drawing::drawBitmapString(context::getBitmapFontSmall(), "\xC2\xA1 Select, \xC2\xA3 Delete, \xC2\xA4 Clear", theme::getFooterTextColor(), 40, theme::getFooterY());
 	drawing::drawBitmapStringAligned(context::getBitmapFontSmall(), "\xC2\xA2 Cancel", theme::getFooterTextColor(), horizAlignmentRight, 40, theme::getFooterY(), 640);
 }
 
@@ -389,6 +392,12 @@ void keyboardScene::keyboardButton(bool selected, bool active, char key, int x, 
 char* keyboardScene::getText()
 {
 	return strdup(mText);
+}
+
+void keyboardScene::clearText() {
+	free(mText);
+	mText = strdup("");
+	mCursorPos = 0;
 }
 
 void keyboardScene::calcShortStringRange(const char* value, int& startPos, int &endPos)
@@ -413,7 +422,7 @@ void keyboardScene::calcShortStringRange(const char* value, int& startPos, int &
 	startPos++;
 
 	endPos = startPos;
-	while (endPos <= strlen(value))
+	while (endPos <= (int)strlen(value))
 	{
 		char* rightString = stringUtility::substr(value, startPos, endPos - startPos);
 		drawing::measureBitmapString(context::getBitmapFontSmall(), rightString, &textWidth, &textHeight);

@@ -7,7 +7,7 @@
 class rtcScene : public scene
 {
 public:
-	rtcScene(bool hasRtcExpansion);
+	rtcScene();
 	void update();
 	void render();
 private:

@@ -13,7 +13,6 @@ enum sceneItemEnum
 	sceneItemUtilitiesScene,
 	sceneItemBankManagementScene,
 	sceneItemEepromToolsScene,
-	sceneItemRtcExpansionScene,
 	sceneItemDateTimeScene,
 	sceneItemFlashFlowScene,
 	sceneItemRemoveScene,
@@ -43,6 +42,7 @@ enum sceneItemEnum
 	sceneItemBootOptionsScene,
 	sceneItemAudioVideoOptionsScene,
 	sceneItemLcdOptionsScene,
+	sceneItemLedOptionsScene,
 	sceneItemMiscellaneousOptionsScene,
 	sceneItemFlashUpdateFlowScene,
 	sceneItemFlashBackupScene,
@@ -56,6 +56,12 @@ enum sceneItemEnum
 	sceneItemHdmiInterpolationScene,
 	sceneItemHddPasswordScene,
 	sceneItemGamesScene,
+	sceneItemCerbiosIniEditorScene,
+	sceneItemFormatDriveOptionsScene,
+	sceneItemFormatDrivePrimaryScene,
+	sceneItemFormatDriveSecondaryScene,
+	sceneItemLauncherFlowScene,
+	sceneItemDlcSignerScene,
 }; 
 
 typedef void (*SceneOnClosingCallback)(sceneResult result, void* context, scene* scene);

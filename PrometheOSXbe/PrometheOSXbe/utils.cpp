@@ -64,7 +64,7 @@ void utils::hexDumpDebug(void* data, uint32_t size) {
 }
 
 void utils::uSleep(uint64_t timeout) {
-	timeout *= 10; // 100ns units
+	timeout *= -10; // 100ns units
 	KeDelayExecutionThread(1, 0, (PLARGE_INTEGER)(&timeout));
 }
 
@@ -201,6 +201,12 @@ void utils::ioOutputInt(uint16_t port, uint32_t value)
 	}
 }
 
+USHORT WINAPI utils::FindFirstSetRightMember(ULONG Set) {
+	__asm {
+		bsf     eax, Set
+	}
+}
+
 void utils::setLedStates(uint32_t ledStates)
 {
 	HalWriteSMBusByte(SMC_SLAVE_ADDRESS, SMC_COMMAND_LED_STATES, ledStates);
@@ -231,4 +237,16 @@ void utils::sleepMicroSecs(LARGE_INTEGER clockFreq, uint16_t microSecs)
 		Sleep(0);
 	}
 	while ( currentCount.QuadPart - performanceCount.QuadPart < waitTime);
+}
+
+void utils::swapString(char** oldValue, const char* newValue)
+{
+	free(*oldValue);
+	*oldValue = strdup(newValue);
+}
+
+void utils::freeString(char** value)
+{
+	free(*value);
+	*value = NULL;
 }

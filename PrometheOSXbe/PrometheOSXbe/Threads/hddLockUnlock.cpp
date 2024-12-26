@@ -231,7 +231,7 @@ void hddLockUnlock::unlockHdd()
 
 					hddVscUnlocker::DRIVE_INFO driveInfo = unlocker->getDriveInfo();
 					context::setDriveModel(strdup(driveInfo.model));
-					context::setDriveSeriall(strdup(driveInfo.serial));
+					context::setDriveSerial(strdup(driveInfo.serial));
 					free(driveInfo.firmware);
 					free(driveInfo.model);
 					free(driveInfo.serial);

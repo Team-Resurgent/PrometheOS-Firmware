@@ -68,11 +68,6 @@ void snakeScene::update()
 		mInputDirection = snakeDirectionUp;
 	}
 
-	if (mIsGameOver == true && mPlayerScore > settingsManager::getSnakeHiScore())
-	{
-		settingsManager::setSnakeHiScore(mPlayerScore);
-	}
-
 	mCounter++;
 	if (mCounter < 5)
 	{
@@ -124,7 +119,12 @@ void snakeScene::update()
             mIsGameOver = true; 
 		}
     } 
-  
+
+	if (mIsGameOver == true && mPlayerScore > settingsManager::getSnakeHiScore())
+	{
+		settingsManager::setSnakeHiScore(mPlayerScore);
+	}
+
     if (mX == mFruitCordX && mY == mFruitCordY) 
 	{ 
         mPlayerScore += 10; 

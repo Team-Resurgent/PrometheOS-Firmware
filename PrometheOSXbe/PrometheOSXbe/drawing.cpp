@@ -474,7 +474,7 @@ bitmapFont* drawing::generateBitmapFont(const char* fontName, int fontStyle, int
 	int x = 2;
 	int y = 2;
 
-	char* charsToEncode = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\xC2\xA1\xC2\xA2\xC2\xA3\xC2\xA4\xC2\xA5\xC2\xA6\xC2\xA7\xC2\xA8\xC2\xA9\xC2\xAA\xC2\xAB\xC2\xAC\xC2\xAD\xC2\xAE\xC2\xAF\xC2\xB0\xC2\xB1\xC2\xB2\xC2\xB3\xC2\xB4";
+	char* charsToEncode = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\xC2\xA1\xC2\xA2\xC2\xA3\xC2\xA4\xC2\xA5\xC2\xA6\xC2\xA7\xC2\xA8\xC2\xA9\xC2\xAA\xC2\xAB\xC2\xAC\xC2\xAD\xC2\xAE\xC2\xAF\xC2\xB0\xC2\xB1\xC2\xB2\xC2\xB3\xC2\xB4\xC2\xB5\xC2\xB6";
 	char* currentCharPos = charsToEncode;
 	while(*currentCharPos)
 	{	
@@ -646,6 +646,14 @@ void drawing::drawBitmapString(bitmapFont* font, const char* message, uint32_t c
 		else if (unicode == 164)
 		{
 			charColor = theme::getJoyButtonYColor();
+		}
+		else if (unicode == 182)
+		{
+			charColor = theme::getJoyButtonBlackColor();
+		}
+			else if (unicode == 181)
+		{
+			charColor = theme::getJoyButtonWhiteColor();
 		}
 
 		context::getD3dDevice()->SetRenderState(D3DRS_TEXTUREFACTOR, charColor);

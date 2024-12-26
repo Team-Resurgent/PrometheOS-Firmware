@@ -484,6 +484,63 @@ char* fileSystem::getFileName(const char* path)
 	return result;
 }
 
+char* fileSystem::getRootPath(const char* path)
+{
+	if(!path) {
+		return strdup("");
+	}
+
+	if(path[0] == '\\') {
+		return strdup(path);
+	}
+
+	uint32_t length = 0;
+	size_t pathLen = strlen(path);
+
+	for (int i = 0; i < pathLen; i++) {
+		if (path[i] == ':') {
+			break;
+		}
+		length++;
+	}
+
+	char* result = (char*)malloc(pathLen + 1);
+	if (result == NULL)
+	{
+		return NULL;
+	}
+
+	strncpy(result, path + length + 1, pathLen - length - 1);
+	result[pathLen - length - 1] = 0;
+	return result;
+}
+
+char* fileSystem::getDriveLetter(const char* path)
+{
+	uint32_t length = 0;
+
+	if(!path || path[0] == '\\') {
+		return strdup("");
+	}
+
+	for (int i = 0; i < strlen(path); i++) {
+		if (path[i] == ':') {
+			break;
+		}
+		length++;
+	}
+
+	char* result = (char*)malloc(length + 1);
+	if (result == NULL)
+	{
+		return NULL;
+	}
+
+	strncpy(result, path, length);
+	result[length] = 0;
+	return result;
+}
+
 char* fileSystem::getFileNameWithoutExtension(const char* path)
 {
 	char* fileName = getFileName(path);

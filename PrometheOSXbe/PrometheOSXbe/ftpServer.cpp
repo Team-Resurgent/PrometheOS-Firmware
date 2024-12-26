@@ -104,10 +104,14 @@ namespace {
 			for (size_t i = 0; i < drives->count(); i++)
 			{
 				fileSystem::FileInfoDetail* fileInfoDetail = new fileSystem::FileInfoDetail();
+				char* mountPoint = stringUtility::formatString("%s:", drives->get(i));
+				char* mountAlias = driveManager::convertMountPointToMountPointAlias(mountPoint);
+				mountAlias[strlen(mountAlias)-1] = '\0';
+
 				fileInfoDetail->isDirectory = true;
 				fileInfoDetail->isFile = false;
 				fileInfoDetail->isVirtual = true;
-				fileInfoDetail->path = driveManager::convertMountPointToMountPointAlias(drives->get(i));
+				fileInfoDetail->path = mountAlias;
 				fileInfoDetail->accessTime.day = 1;
 				fileInfoDetail->accessTime.month = 1;
 				fileInfoDetail->accessTime.year = 2000;
@@ -121,6 +125,8 @@ namespace {
 				fileInfoDetail->writeTime.hour = 0;
 				fileInfoDetail->writeTime.second = 0;
 				fileInfoDetails->add(fileInfoDetail);
+
+				free(mountPoint);
 			}
 
 			delete(drives);
@@ -1148,10 +1154,6 @@ ftpServer::ReceiveStatus ftpServer::socketReceiveLetter(uint64_t s, char* pch, u
 	if (dw == SOCKET_ERROR || dw == 0) return ReceiveStatus_Timeout;
 	dw = recv((SOCKET)s, &buf[0], 1, 0);
 	if (dw == SOCKET_ERROR || dw == 0) return ReceiveStatus_Network_Error;
-
-	if ((buf[0] & 0x80) != 0x00) { // 0xxxxxxx
-		return ReceiveStatus_Invalid_Data;
-	}
 
 	if (dwMaxChars == 0) {
 		return ReceiveStatus_Insufficient_Buffer;

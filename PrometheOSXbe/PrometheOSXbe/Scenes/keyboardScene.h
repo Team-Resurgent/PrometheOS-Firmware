@@ -12,6 +12,7 @@ public:
 	void update();
 	void render();
 	char* getText();
+	void clearText();
 	void calcShortStringRange(const char* value, int& startPos, int &endPos);
 private:
 	void keyboardButton(bool selected, bool active, char key, int x, int y, int width, int height);

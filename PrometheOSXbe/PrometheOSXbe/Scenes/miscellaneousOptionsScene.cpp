@@ -29,7 +29,7 @@ void miscellaneousOptionsScene::update()
 	}
 
 	int32_t itemCount = 4;
-	if (context::getModchip()->supportsLed() == false)
+	if (context::getModchip()->getSupportInfo(true).supportsLed == false)
 	{
 		itemCount = itemCount - 1;
 	}
@@ -77,7 +77,7 @@ void miscellaneousOptionsScene::update()
 			return;
 		}
 		
-		if (context::getModchip()->supportsLed() == true)
+		if (context::getModchip()->getSupportInfo(true).supportsLed == true)
 		{
 			index++;
 
@@ -128,7 +128,7 @@ void miscellaneousOptionsScene::update()
 			return;
 		}
 
-		if (context::getModchip()->supportsLed() == true)
+		if (context::getModchip()->getSupportInfo(true).supportsLed == true)
 		{
 			index++;
 
@@ -173,7 +173,7 @@ void miscellaneousOptionsScene::render()
 	menuItems->add(strdup(minFanSpeed));
 	menuItems->add(strdup(driveSetup));
 
-	if (context::getModchip()->supportsLed() == true)
+	if (context::getModchip()->getSupportInfo(true).supportsLed == true)
 	{
 		menuItems->add(strdup(ledColor));
 	}

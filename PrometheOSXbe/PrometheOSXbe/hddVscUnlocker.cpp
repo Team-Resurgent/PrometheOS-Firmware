@@ -124,7 +124,7 @@ bool hddVscUnlocker::spinWait(bool altPort, uint32_t timeout) {
 	return false;
 }
 
-bool hddVscUnlocker::wdOemUnlock_WDC_WD80EB() {
+bool hddVscUnlocker::wdUnlockMod42() {
 	if(!wdVscEnSvcMode()) {
 		utils::debugPrint("wdVscEnSvcMode err: 0x%08X\n", getLastError());
 		return false;
@@ -135,10 +135,31 @@ bool hddVscUnlocker::wdOemUnlock_WDC_WD80EB() {
 		return false;
 	}
 
-	uint8_t buf[1024];
+	uint8_t buf[8192];
+	uint32_t firstSectSize = 512;
+	uint32_t sectIdx = 11;
 	memset(buf, 0, sizeof(buf));
-	readDriveData(buf, sizeof(buf));
-	utils::hexDumpDebug(buf+512, sizeof(buf)-512);
+
+	readDriveData(buf, firstSectSize);
+	utils::hexDumpDebug(buf, firstSectSize);
+
+	uint8_t numSects = ((uint16_t*)buf)[sectIdx];
+	uint32_t numBytes = numSects * 512;
+
+	utils::debugPrint("wdMod42 numSects: 0x%04X - %d\n", numSects, numBytes);
+
+	if(numBytes > sizeof(buf)) {
+		utils::debugPrint("Unable to allocate Mod42 buffer\n");
+		return false;
+	}
+
+	if(!wdVscReadSecSect(numSects)) {
+		utils::debugPrint("wdVscReadSecSect_2 err: 0x%08X\n", getLastError());
+		return false;
+	}
+
+	readDriveData(buf, numBytes);
+	utils::hexDumpDebug(buf, numBytes);
 
 	if(!resetIdeBus()) {
 		return false;
@@ -147,6 +168,153 @@ bool hddVscUnlocker::wdOemUnlock_WDC_WD80EB() {
 	wdExtractAndSetPwds(buf);
 
 	if(!doAtaSecUnlock()) {
+		return false;
+	}
+
+	mLastError = STATUS_SUCCESS;
+	return true;
+}
+
+bool hddVscUnlocker::wdOemUnlock_WDC_WD80EB() {
+	return wdUnlockMod42();
+}
+
+bool hddVscUnlocker::wdRoylUnlock() {
+	uint8_t statusReg = mIdePort + 7;
+
+	if(!wdRoylVscEnDis()) {
+		utils::debugPrint("wdRoylVscEnDis err: 0x%08X\n", getLastError());
+		return false;
+	}
+
+	if(!wdRoylSeekMod02()) {
+		utils::debugPrint("wdRoylSeekMod02 err: 0x%08X\n", getLastError());
+		return false;
+	}
+
+	if(!wdRoylReadMod02()) {
+		utils::debugPrint("wdRoylReadMod02_1 err: 0x%08X\n", getLastError());
+		return false;
+	}
+
+	uint8_t buf[8192];
+	uint32_t firstSectSize = 512;
+	uint32_t sectIdx = 5;
+	uint32_t passIdx = 0x3d;
+	memset(buf, 0, sizeof(buf));
+
+	readDriveData(buf, firstSectSize);
+	utils::hexDumpDebug(buf, firstSectSize);
+
+	if(memcmp(buf, "ROYL", 4) != 0) {
+		// Check for in-between drives (2005-ish)
+		if(memcmp(buf + 0x8c, "WD-", 3) == 0) {
+			sectIdx = 11;
+			passIdx = 0x31;
+		} else {
+			utils::debugPrint("Not a WD ROYL drive\n");
+			return wdUnlockMod42();
+		}
+	}
+
+	uint8_t numSects = ((uint16_t*)buf)[sectIdx] - 1;
+	uint32_t numBytes = numSects * 512;
+
+	utils::debugPrint("wdRoyl numSects: 0x%04X - %d\n", numSects, numBytes);
+
+	if((numBytes + firstSectSize) > sizeof(buf)) {
+		utils::debugPrint("Unable to allocate ROYL buffer\n");
+		return false;
+	}
+
+	if(!wdRoylReadMod02(numSects)) {
+		utils::debugPrint("wdRoylReadMod02_2 err: 0x%08X\n", getLastError());
+		return false;
+	}
+
+	readDriveData(buf + firstSectSize, numBytes);
+	utils::hexDumpDebug(buf + firstSectSize, numBytes);
+
+	if(!wdRoylVscEnDis(true)) {
+		utils::debugPrint("wdRoylVscEnDis err: 0x%08X\n", getLastError());
+		return false;
+	}
+
+	if(!waitForDrive(false)) {
+		return false;
+	}
+
+	wdRoylExtractAndSetPwds(buf, passIdx);
+
+	if(!doAtaSecUnlock()) {
+		return false;
+	}
+
+	mLastError = STATUS_SUCCESS;
+	return true;
+}
+
+bool hddVscUnlocker::wdRoylVscEnDis(bool disable) {
+	IDE_CMD cmd = { disable ? 0x44 : 0x45, 0x0b, 0x00, 0x44, 0x57, 0xa0, 0x80 };
+	if(!sendDriveCmd(cmd)) {
+		utils::debugPrint("sendDriveCmd err: %08X\n", getLastError());
+		return false;
+	}
+
+	mLastError = STATUS_SUCCESS;
+	return true;
+}
+
+bool hddVscUnlocker::wdRoylReadMod02(uint8_t numSects) {
+	IDE_CMD cmd = { 0xd5, numSects, 0xbf, 0x4f, 0xc2, 0xa0, 0xb0 };
+	if(!sendDriveCmd(cmd)) {
+		utils::debugPrint("sendDriveCmd err: %08X\n", getLastError());
+		return false;
+	}
+
+	mLastError = STATUS_SUCCESS;
+	return true;
+}
+
+bool hddVscUnlocker::wdRoylSeekMod02() {
+	IDE_CMD cmd = { 0xd6, 0x01, 0xbe, 0x4f, 0xc2, 0xa0, 0xb0 };
+	if(!sendDriveCmd(cmd)) {
+		utils::debugPrint("sendDriveCmd err: %08X\n", getLastError());
+		return false;
+	}
+
+	uint8_t buf[512];
+	memset(buf, 0, sizeof(buf));
+	buf[0] = 0x0b;
+	buf[1] = 0x00;
+	buf[2] = 0x04;
+	buf[3] = 0x00;
+	buf[4] = 0x02;
+
+	if(!writeDriveData(buf, sizeof(buf))) {
+		utils::debugPrint("writeDriveData err: %08X\n", getLastError());
+		return false;
+	}
+
+	mLastError = STATUS_SUCCESS;
+	return true;
+}
+
+bool hddVscUnlocker::wdRoylRstDrv() {
+	IDE_CMD cmd = { 0xd6, 0x01, 0xbe, 0x4f, 0xc2, 0xa0, 0xb0 };
+	if(!sendDriveCmd(cmd)) {
+		utils::debugPrint("sendDriveCmd err: %08X\n", getLastError());
+		return false;
+	}
+
+	uint8_t buf[512];
+	memset(buf, 0, sizeof(buf));
+	buf[0] = 0x1c;
+	buf[1] = 0x00;
+	buf[2] = 0x01;
+
+	if(!writeDriveData(buf, sizeof(buf))) {
+		utils::debugPrint("writeDriveData err: %08X\n", getLastError());
 		return false;
 	}
 
@@ -397,9 +565,6 @@ out:
 }
 
 void hddVscUnlocker::wdExtractAndSetPwds(uint8_t* buf) {
-	mHasMasterPwd = true;
-	mHasUserPwd = true;
-
 	memcpy(mMasterPwd, buf + WD_INFO_MASTER_PWD_OFFSET, ATA_SEC_PWD_SIZE);
 	utils::debugPrint("WD Master Pwd:\n");
 	utils::hexDumpDebug(mMasterPwd, ATA_SEC_PWD_SIZE);
@@ -407,6 +572,25 @@ void hddVscUnlocker::wdExtractAndSetPwds(uint8_t* buf) {
 	memcpy(mUserPwd, buf + WD_INFO_USER_PWD_OFFSET, ATA_SEC_PWD_SIZE);
 	utils::debugPrint("WD User Pwd:\n");
 	utils::hexDumpDebug(mUserPwd, ATA_SEC_PWD_SIZE);
+
+	mHasMasterPwd = true;
+	mHasUserPwd = true;
+}
+
+void hddVscUnlocker::wdRoylExtractAndSetPwds(uint8_t* buf, uint32_t idx) {
+	uint16_t passRecOff = ((uint16_t*)buf)[idx];
+	utils::debugPrint("WD ROYL Password Offset: 0x%04x\n", passRecOff);
+
+	memcpy(mMasterPwd, buf + passRecOff + 4 + ATA_SEC_PWD_SIZE, ATA_SEC_PWD_SIZE);
+	utils::debugPrint("WD ROYL Master Pwd:\n");
+	utils::hexDumpDebug(mMasterPwd, ATA_SEC_PWD_SIZE);
+
+	memcpy(mUserPwd, buf + passRecOff + 4, ATA_SEC_PWD_SIZE);
+	utils::debugPrint("WD ROYL User Pwd:\n");
+	utils::hexDumpDebug(mUserPwd, ATA_SEC_PWD_SIZE);
+
+	mHasMasterPwd = true;
+	mHasUserPwd = true;
 }
 
 void hddVscUnlocker::parseIdentifySector() {
@@ -645,6 +829,9 @@ bool hddVscUnlocker::attemptVscUnlock(bool checkOnly) {
 	} else if(memcmp(mDrvInfo.model, "ST310211A", 9) == 0) {
 		if(checkOnly) return true;
 		result = sgOemUnlock_ST310211A();
+	} else if(memcmp(mDrvInfo.model, "WDC ", 4) == 0) {
+		if(checkOnly) return true;
+		result = wdRoylUnlock();
 	} else {
 		mLastError = STATUS_DEVICE_DOES_NOT_EXIST;
 		result = false;
@@ -741,8 +928,8 @@ bool hddVscUnlocker::wdVscEnSvcMode() {
 	return true;
 }
 
-bool hddVscUnlocker::wdVscReadSecSect() {
-	IDE_CMD cmd = { 0, 2, 0, 0, 0x0f, 0xe0, 0x21 };
+bool hddVscUnlocker::wdVscReadSecSect(uint8_t numSects) {
+	IDE_CMD cmd = { 0, numSects, 0, 0, 0x0f, 0xe0, 0x21 };
 	if(!sendDriveCmd(cmd)) {
 		utils::debugPrint("sendDriveCmd err: %08X\n", getLastError());
 		return false;

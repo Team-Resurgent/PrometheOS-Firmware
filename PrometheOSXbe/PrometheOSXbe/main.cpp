@@ -34,8 +34,10 @@
 #include "network.h"
 #include "audioPlayer.h"
 #include "modchipXenium.h"
+#include "modchipXtremium.h"
 #include "modchipXecuter.h"
 #include "modchipXchanger.h"
+#include "modchipSmartxx.h"
 #include "modchipModxo.h"
 #include "modchipAladdin1mb.h"
 #include "modchipAladdin2mb.h"
@@ -43,6 +45,7 @@
 #include "Threads\lcdRender.h"
 #include "Threads\flashBackup.h"
 #include "Plugins\PEProcess.h"
+#include "cerbiosIniHelper.h"
 
 #include "stb_image_write.h"
 
@@ -98,6 +101,14 @@ utils::dataContainer* onGetCallback(const char* path, const char* query)
 	{
 		body = new utils::dataContainer((char*)&remove_js, sizeof(remove_js), sizeof(remove_js));
 	}
+	else if (stringUtility::equals(path, "\\remoteview.html", true))
+	{
+		body = new utils::dataContainer((char*)&remoteview_html, sizeof(remoteview_html), sizeof(remoteview_html));
+	}
+	else if (stringUtility::equals(path, "\\remoteview.js", true))
+	{
+		body = new utils::dataContainer((char*)&remoteview_js, sizeof(remoteview_js), sizeof(remoteview_js));
+	}
 	else if (stringUtility::equals(path, "\\launch.html", true))
 	{
 		body = new utils::dataContainer((char*)&launch_html, sizeof(launch_html), sizeof(launch_html));
@@ -105,6 +116,14 @@ utils::dataContainer* onGetCallback(const char* path, const char* query)
 	else if (stringUtility::equals(path, "\\launch.js", true))
 	{
 		body = new utils::dataContainer((char*)&launch_js, sizeof(launch_js), sizeof(launch_js));
+	}
+	else if (stringUtility::equals(path, "\\cerbiosini.html", true))
+	{
+		body = new utils::dataContainer((char*)&cerbiosini_html, sizeof(cerbiosini_html), sizeof(cerbiosini_html));
+	}
+	else if (stringUtility::equals(path, "\\cerbiosini.js", true))
+	{
+		body = new utils::dataContainer((char*)&cerbiosini_js, sizeof(cerbiosini_js), sizeof(cerbiosini_js));
 	}
 	else if (stringUtility::equals(path, "\\download.html", true))
 	{
@@ -203,6 +222,13 @@ utils::dataContainer* onGetCallback(const char* path, const char* query)
 	else if (stringUtility::equals(path, "\\api\\downloadprom", true))
 	{
 		body = context::getModchip()->readFlash(false);
+	}
+	else if (stringUtility::equals(path, "\\api\\cerbiosini", true))
+	{
+		char* temp = (char*)malloc(65536);
+		cerbiosConfig config = cerbiosIniHelper::loadConfig();
+		cerbiosIniHelper::buildConfig(&config, temp);
+		body = new utils::dataContainer(temp, strlen(temp), strlen(temp));
 	}
 	else if (stringUtility::equals(path, "\\api\\screenshot", true))
 	{
@@ -306,6 +332,24 @@ utils::dataContainer* onPostCallback(const char* path, const char* query, pointe
 		}
 
 		return httpServer::generateResponse(406, "No wnough free slots.");
+	}
+	else if (stringUtility::equals(path, "\\api\\cerbiosini", true))
+	{
+		if (formParts->count() != 1) 
+		{
+			return httpServer::generateResponse(400, "Unexpected form parts.");
+		}
+
+		FormPart* formPart = formParts->get(0);
+
+		if (formPart->body->size > 65535)
+		{
+			return httpServer::generateResponse(406, "Invalid size detected.");
+		}
+
+		FormPart* bodyPart = formParts->get(0);
+		char* body = (char*)bodyPart->body->data;
+		cerbiosIniHelper::saveConfig(body);
 	}
 
 	return httpServer::generateResponse(404, "Mot found");
@@ -623,6 +667,34 @@ void readSetting(uint8_t command, uint8_t* value)
 	*value = (uint8_t)temp;
 }
 
+void checkForSpecialButtons() {
+	// Toggle PrometheOS VGA setting on/off
+	if(
+		inputManager::buttonDown(ButtonTriggerLeft) &&
+		inputManager::buttonDown(ButtonTriggerRight) &&
+		inputManager::buttonDown(ButtonWhite)
+	) {
+		settingsManager::setVgaEnable(!settingsManager::getVgaEnable());
+		Sleep(200);
+		HalReturnToFirmware(1); // BIOS reboot
+	}
+
+	// Toggle between NTSC-M and PAL-50
+	if(
+		inputManager::buttonDown(ButtonTriggerLeft) &&
+		inputManager::buttonDown(ButtonTriggerRight) &&
+		inputManager::buttonDown(ButtonBlack)
+	) {
+		if(xboxConfig::getVideoStandardNTSCM()) {
+			xboxConfig::setVideoStandardPALI50();
+		} else {
+			xboxConfig::setVideoStandardNTSCM();
+		}
+		Sleep(200);
+		HalReturnToFirmware(1); // BIOS reboot
+	}
+}
+
 void __cdecl main()
 {
 #ifndef TOOLS
@@ -645,10 +717,14 @@ void __cdecl main()
 
 #ifdef XENIUM
 	context::setModchipType(modchipTypeXenium);
+#elif XTREMIUM
+	context::setModchipType(modchipTypeXtremium);
 #elif XECUTER
 	context::setModchipType(modchipTypeXecuter);
 #elif XCHANGER
 	context::setModchipType(modchipTypeXchanger);
+#elif SMARTXX
+	context::setModchipType(modchipTypeSmartxx);
 #elif MODXO
 	context::setModchipType(modchipTypeModxo);
 #elif ALADDIN1MB
@@ -737,6 +813,8 @@ void __cdecl main()
 	//\xC2\xB2 = LT
 	//\xC2\xB3 = RT
 	//\xC2\xB4 = L
+	//\xC2\xB5 = White
+	//\xC2\xB6 = Black
 
 	bitmapFont* fontSmall = drawing::generateBitmapFont("FreeSans", SSFN_STYLE_REGULAR, 18, 18, 0, 256);
 	context::setBitmapFontSmall(fontSmall);
@@ -785,6 +863,7 @@ void __cdecl main()
 
 		temperatureManager::refresh();
 		inputManager::processController();
+		checkForSpecialButtons();
 		drawing::clearBackground((uint32_t)frameIndex);
 
 		if (context::getTakeScreenshot() == true)

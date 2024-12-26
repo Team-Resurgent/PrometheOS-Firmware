@@ -21,7 +21,7 @@ bool drive::mount()
 		return mMounted;
 	}
 
-	if (mDriveType == driveTypeCdRom  && mMounted == true) {
+	if (mDriveType == driveTypeCdRom && mMounted == true) {
 		mMounted = false;
 		unmount();
 	}

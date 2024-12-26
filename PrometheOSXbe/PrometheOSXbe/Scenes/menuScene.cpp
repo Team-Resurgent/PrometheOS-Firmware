@@ -116,13 +116,10 @@ void menuScene::render()
 			{
 				menuText = strdup("EEPROM Tools");
 			}
-			else if (sceneItem == sceneItemRtcExpansionScene)
-			{
-				menuText = strdup("RTC Expansion");
-			}
 			else if (sceneItem == sceneItemDateTimeScene)
 			{
-				menuText = strdup("Date Time");
+				bool doRtc = settingsManager::getRtcEnable() == true && xboxConfig::getHasRtcExpansion() == true;
+				menuText = strdup(doRtc ? "RTC Exapansion" : "Date Time");
 			}
 			else if (sceneItem == sceneItemFlashFlowScene)
 			{
@@ -228,9 +225,29 @@ void menuScene::render()
 			{
 				menuText = strdup("LCD Options");
 			}
+			else if (sceneItem == sceneItemLedOptionsScene)
+			{
+				menuText = strdup("LED Options");
+			}
 			else if (sceneItem == sceneItemMiscellaneousOptionsScene)
 			{
 				menuText = strdup("Miscellaneous Options");
+			}
+			else if (sceneItem == sceneItemCerbiosIniEditorScene)
+			{
+				menuText = strdup("Cerbios INI Editor");
+			}
+			else if (sceneItem == sceneItemFormatDriveOptionsScene)
+			{
+				menuText = strdup("Format Drive");
+			}
+			else if (sceneItem == sceneItemFormatDrivePrimaryScene)
+			{
+				menuText = strdup("Format Drive Primary");
+			}
+			else if (sceneItem == sceneItemFormatDriveSecondaryScene)
+			{
+				menuText = strdup("Format Drive Secondary");
 			}
 			else if (sceneItem == sceneItemFlashUpdateFlowScene)
 			{
@@ -271,6 +288,14 @@ void menuScene::render()
 			else if (sceneItem == sceneItemHdmiInterpolationScene)
 			{
 				menuText = strdup("Interpolation");
+			}
+			else if (sceneItem == sceneItemLauncherFlowScene)
+			{
+				menuText = strdup("Launch XBE");
+			}
+			else if (sceneItem == sceneItemDlcSignerScene)
+			{
+				menuText = strdup("DLC / Update Signer");
 			}
 			else
 			{

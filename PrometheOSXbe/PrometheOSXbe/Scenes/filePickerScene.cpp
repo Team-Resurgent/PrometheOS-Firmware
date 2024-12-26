@@ -24,6 +24,18 @@ pointerVector<fileSystem::FileInfoDetail*>* filePickerScene::getFileInfoDetails(
 		pointerVector<fileSystem::FileInfoDetail*>* fileInfoDetails = new pointerVector<fileSystem::FileInfoDetail*>(true);
 		for (uint32_t i = 0; i < mMountedDrives->count(); i++)
 		{
+			if(mHideMMU) {
+				char* mountPoint = stringUtility::formatString("%s:", mMountedDrives->get(i));
+				char* mountAlias = driveManager::convertMountPointToMountPointAlias(mountPoint);
+				free(mountPoint);
+
+				if (stringUtility::startsWith(mountAlias, "MMU", true)) {
+					free(mountAlias);
+					continue;
+				}
+				free(mountAlias);
+			}
+
 			char* mountPoint = mMountedDrives->get(i);
 			fileSystem::FileInfoDetail* fileInfoDetail = new fileSystem::FileInfoDetail();
 			fileInfoDetail->path = stringUtility::formatString("%s:", mountPoint);
@@ -60,6 +72,12 @@ pointerVector<fileSystem::FileInfoDetail*>* filePickerScene::getFileInfoDetails(
 				{
 					valid = context::getModchip()->isValidFlashSize(true, fileInfoDetail->size);
 				}
+				else if (mFilePickerType == filePickerTypeXbe)
+				{
+					char* ext = fileSystem::getExtension(fileInfoDetail->path);
+					valid = stricmp(ext, ".xbe") == 0;
+					free(ext);
+				}
 			}
 
 			if (valid == false)
@@ -72,10 +90,12 @@ pointerVector<fileSystem::FileInfoDetail*>* filePickerScene::getFileInfoDetails(
 	return result;
 }
 
-filePickerScene::filePickerScene(filePickerType filePickerType)
+filePickerScene::filePickerScene(filePickerType filePickerType, bool useDevPath, bool hideMMU)
 {
 	driveMounter::startThread(false);
 
+	mHideMMU = hideMMU;
+	mUseDevPath = useDevPath;
 	mInitialized = false;
 	mFilePickerType = filePickerType;
 	mSelectedControl = 0;
@@ -103,7 +123,7 @@ void filePickerScene::update()
 			bool exists = false;
 			driveMounter::closeThread();
 			mMountedDrives = driveManager::getMountedDrives();
-		
+
 			bool biosFolderExists = false;
 			mCurrentPath = strdup("");
 			//mCurrentPath = fileSystem::directoryExists("C:\\Bios", biosFolderExists) && biosFolderExists == true ? strdup("C:\\Bios") : strdup("");
@@ -163,7 +183,19 @@ void filePickerScene::update()
 				}
 				else if (fileInfoDetail->isFile)
 				{
-					mFilePath = strdup(fileInfoDetail->path);
+					if(mUseDevPath) {
+						char* drvLtr = fileSystem::getDriveLetter(fileInfoDetail->path);
+						char* drvPart = driveManager::getDrivePartition(drvLtr);
+						char* rootPath = fileSystem::getRootPath(fileInfoDetail->path);
+
+						mFilePath = stringUtility::formatString("%s%s", drvPart, rootPath);
+
+						free(rootPath);
+						free(drvPart);
+						free(drvLtr);
+					} else {
+						mFilePath = strdup(fileInfoDetail->path);
+					}
 					sceneManager::popScene(sceneResultDone);
 					return;
 				}
@@ -211,6 +243,10 @@ void filePickerScene::render()
 	else if (mFilePickerType == filePickerTypeUpdateRecovery)
 	{
 		drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please select Recovery to flash...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
+	}
+	else if (mFilePickerType == filePickerTypeXbe)
+	{
+		drawing::drawBitmapStringAligned(context::getBitmapFontMedium(), "Please select XBE...", theme::getHeaderTextColor(), theme::getHeaderAlign(), 40, theme::getHeaderY(), 640);
 	}
 
 	if (mInitialized == false)

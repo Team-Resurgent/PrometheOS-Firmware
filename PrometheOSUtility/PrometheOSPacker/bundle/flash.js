@@ -29,7 +29,7 @@ async function refreshFileInfo()
         name.value = file.files[0].name.substring(0, 40);
     }
 
-    await fetch("http://192.168.1.151/api/freeslots.json").then(async response => {
+    await fetch("http://192.168.1.66/api/freeslots.json").then(async response => {
 
         const json = await response.json();
         const freeSlots = document.getElementById("freeSlots");
@@ -103,7 +103,7 @@ async function upload()
     var data = new FormData();
     data.append('file', file.files[0]);
     data.append('body', "{\"ledColor\":" + ledColorState + ",\"bankName\":\"" + name.value + "\"}");
-    await fetch("http://192.168.1.151/api/upload", {
+    await fetch("http://192.168.1.66/api/upload", {
         method: 'POST',
         body: data
     }).then(response => {

@@ -63,7 +63,7 @@
         return combined;
     }
 
-    public static byte[] ProcessUf2(byte[] data, uint baseAddress, uint maskAddress)
+    public static byte[] ProcessUf2(byte[] data, uint baseAddress, uint maskAddress, uint familyId)
     {
         var uf2Blocks = new List<Block>();
         var byteStream = Array.Empty<byte>();
@@ -81,7 +81,7 @@
 
         foreach (var block in uf2Blocks)
         {
-            byteStream = CombineByteArrays(byteStream, block.Encode(currentBlock, totalBlocks));
+            byteStream = CombineByteArrays(byteStream, block.Encode(currentBlock, totalBlocks, familyId));
             currentBlock++;
         }
 

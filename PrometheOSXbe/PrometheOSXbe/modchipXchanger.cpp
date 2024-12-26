@@ -1,5 +1,7 @@
 #include "modchipXchanger.h"
 #include "crc32.h"
+#include "globalDefines.h"
+#include "stringUtility.h"
 
 #define XCHANGER_REGISTER_BANKING 0x1912
 //#define XCHANGER_REGISTER_LED 0x00EE
@@ -42,31 +44,6 @@ uint32_t modchipXchanger::getSlotCount()
 uint32_t modchipXchanger::getFlashSize(bool recovery)
 {
 	return recovery ? 0 : (1 * 1024 * 1024);
-}
-
-bool modchipXchanger::supportsLed()
-{
-	return false;
-}
-
-bool modchipXchanger::supportsLcd()
-{
-	return false;
-}
-
-bool modchipXchanger::supportsLcdInfo()
-{
-	return false;
-}
-
-bool modchipXchanger::supportsLcdContrast()
-{
-	return false;
-}
-
-bool modchipXchanger::supportsRecovery()
-{
-	return false;
 }
 
 void modchipXchanger::disableRecovery()
@@ -309,7 +286,7 @@ void modchipXchanger::loadSettings(settingsState& settings)
 	setLedColor(settingsManager::getLedColor());
 }
 
-void modchipXchanger::saveSettings(settingsState settings) 
+void modchipXchanger::saveSettings(settingsState& settings) 
 {
 	setBank(XCHANGER_SETTINGS_BANK); 
 
@@ -346,30 +323,58 @@ utils::dataContainer* modchipXchanger::getInstallerLogo()
 	return installerLogo;
 }
 
-void modchipXchanger::lcdSendCharacter(uint8_t value, uint8_t command)
+displayDriver* modchipXchanger::getDisplayDriver(bool current)
 {
+	return NULL;
+}
+
+supportInfo modchipXchanger::getSupportInfo(bool current)
+{
+	supportInfo info;
+	info.supportsLed = false;
+	info.supportsLcd = false;
+	info.supportsLcdInfo = false;
+	info.supportsLcdBacklight = false;
+	info.supportsLcdContrast = false;
+	info.supportsRecovery = false;
+	return info;
+}
+
+uint8_t modchipXchanger::getLcdModeCount()
+{
+	return 0;
+}
+
+char* modchipXchanger::getLcdModeString(uint8_t lcdMode)
+{
+	return strdup("");
+}
+
+uint8_t modchipXchanger::getLcdModelCount(bool current)
+{
+	return 0;
+}
+
+char* modchipXchanger::getLcdModelString(bool current, uint8_t lcdModel)
+{
+	return strdup("");
+}
+
+uint8_t modchipXchanger::getLcdAddressCount(bool current)
+{
+	return 0;
+}
+
+char* modchipXchanger::getLcdAddressString(bool current, uint8_t lcdAddress)
+{
+	return strdup("");
 }
 
 void modchipXchanger::lcdSetCursorPosition(uint8_t row, uint8_t col)
 {
 }
 
-uint8_t modchipXchanger::getLcdTypeCount()
-{
-	return 1;
-}
-
-char* modchipXchanger::getLcdTypeString(uint8_t lcdEnableType)
-{
-	if (lcdEnableType == 1)
-	{
-		return strdup("Parallel");
-	}
-	
-	return strdup("Disabled");
-}
-
-void modchipXchanger::lcdInit(uint8_t backlight, uint8_t contrast)
+void modchipXchanger::lcdInit()
 {
 }
 

@@ -8,14 +8,16 @@
 namespace
 {
 	HANDLE mThread;
+	bool mHarddrive;
 	hddInfo::hddInfoData mData;
 }
 
-bool hddInfo::startThread()
+bool hddInfo::startThread(bool harddrive)
 {
 	memset(&mData, 0, sizeof(hddInfoData));
 	  
 	InitializeCriticalSection(&mData.mutex);
+	mHarddrive = harddrive;
 
 	mThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)process, (void*)&mData, 0, NULL);
 	if (mThread == NULL) {
@@ -89,18 +91,24 @@ uint64_t WINAPI hddInfo::process(void* param)
 		XKHDD::ATA_COMMAND_OBJ hddcommand;
 		ZeroMemory(&hddcommand, sizeof(XKHDD::ATA_COMMAND_OBJ));
 		hddcommand.DATA_BUFFSIZE = 512;
-		hddcommand.IPReg.bDriveHeadReg = IDE_DEVICE_MASTER;
+		hddcommand.IPReg.bDriveHeadReg = mHarddrive == 0 ? IDE_DEVICE_MASTER : IDE_DEVICE_SLAVE;
 		hddcommand.IPReg.bCommandReg = IDE_ATA_IDENTIFY;
-		XKHDD::SendATACommand(IDE_PRIMARY_PORT, &hddcommand, IDE_COMMAND_READ);
+		bool resp = !!XKHDD::SendATACommand(IDE_PRIMARY_PORT, &hddcommand, IDE_COMMAND_READ);
 
-		char* ideModel = XKHDD::GetIDEModel(hddcommand.DATA_BUFFER);
-		model = stringUtility::trim(ideModel, ' ');
-		free(ideModel);
-		char* ideSerial = XKHDD::GetIDESerial(hddcommand.DATA_BUFFER);
-		serial = stringUtility::trim(ideSerial, ' ');
-		free(ideSerial);
-		DWORD SecStatus = XKHDD::GetIDESecurityStatus(hddcommand.DATA_BUFFER);
-		response = (SecStatus & IDE_SECURITY_SUPPORTED) && (SecStatus & IDE_SECURITY_ENABLED) ? hddInfoResponseLocked : hddInfoResponseUnlocked;
+		if(resp) {
+			char* ideModel = XKHDD::GetIDEModel(hddcommand.DATA_BUFFER);
+			model = stringUtility::trim(ideModel, ' ');
+			free(ideModel);
+			char* ideSerial = XKHDD::GetIDESerial(hddcommand.DATA_BUFFER);
+			serial = stringUtility::trim(ideSerial, ' ');
+			free(ideSerial);
+			DWORD SecStatus = XKHDD::GetIDESecurityStatus(hddcommand.DATA_BUFFER);
+			response = (SecStatus & IDE_SECURITY_SUPPORTED) && (SecStatus & IDE_SECURITY_ENABLED) ? hddInfoResponseLocked : hddInfoResponseUnlocked;
+		}
+		else
+		{
+			response = hddInfoResponseTimeout;
+		}
 	}
 	else 
 	{

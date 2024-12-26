@@ -235,7 +235,7 @@ void component::text(const char* label, bool disabled, horizAlignment hAlign, in
 	drawing::drawBitmapString(context::getBitmapFontSmall(), label, disabled ? theme::getTextDisabledColor() : theme::getTextColor(), xPos, y + ((height - textHeight) / 2) - 3);
 }
 
-void component::textBox(const char* label, bool selected, bool disabled, horizAlignment hAlign, int x, int y, int width, int height)
+void component::textBox(const char* label, bool selected, bool disabled, horizAlignment hAlign, int x, int y, int width, int height, bool vAlignTop, bool solidBg)
 {
 	int textWidth;
 	int textHeight;
@@ -251,15 +251,20 @@ void component::textBox(const char* label, bool selected, bool disabled, horizAl
 		xPos = (x + 16) + ((width - 32) - textWidth);
 	}
 
+	int yPos = vAlignTop ? (y + 16 - 3) : (y + ((height - textHeight) / 2) - 3);
 	if (selected == true)
 	{
-		panel(theme::getTextPanelHoverFillColor(), theme::getTextPanelHoverStrokeColor(), x, y, width, height);
-		drawing::drawBitmapString(context::getBitmapFontSmall(), label, disabled ? theme::getTextDisabledColor() : theme::getTextPanelHoverTextColor(), xPos, y + ((height - textHeight) / 2) - 3);
+		uint32_t fillColor = theme::getTextPanelHoverFillColor();
+		if(solidBg) fillColor |= 0xff000000;
+		panel(fillColor, theme::getTextPanelHoverStrokeColor(), x, y, width, height);
+		drawing::drawBitmapString(context::getBitmapFontSmall(), label, disabled ? theme::getTextDisabledColor() : theme::getTextPanelHoverTextColor(), xPos, yPos);
 	}
 	else
 	{
-		panel(theme::getTextPanelFillColor(), theme::getTextPanelStrokeColor(), x, y, width, height);
-		drawing::drawBitmapString(context::getBitmapFontSmall(), label, disabled ? theme::getTextDisabledColor() : theme::getTextPanelTextColor(), xPos, y + ((height - textHeight) / 2) - 3);
+		uint32_t fillColor = theme::getTextPanelHoverFillColor();
+		if(solidBg) fillColor |= 0xff000000;
+		panel(fillColor, theme::getTextPanelStrokeColor(), x, y, width, height);
+		drawing::drawBitmapString(context::getBitmapFontSmall(), label, disabled ? theme::getTextDisabledColor() : theme::getTextPanelTextColor(), xPos, yPos);
 	}
 	
 }

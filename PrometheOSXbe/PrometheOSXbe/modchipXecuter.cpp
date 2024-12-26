@@ -1,71 +1,8 @@
 #include "modchipXecuter.h"
 #include "crc32.h"
 #include "settingsManager.h"
-
-#define XECUTER_LCD_DELAY 2
-
-#define XECUTER_REGISTER_HARDWARE_BANKING 0xF501
-#define XECUTER_REGISTER_SOFTWARE_BANKING 0xF502
-#define XECUTER_REGISTER_LED 0x00EE
-#define XECUTER_SPI_MOSI_BIT 0x10
-#define XECUTER_SPI_CS_BIT 0x20
-#define XECUTER_SPI_CLK_BIT 0x40
-
-#define XECUTER_BANK_TSOP 0x6f
-#define XECUTER_BANK_BACKUP_256K 0x8f 
-#define XECUTER_DISABLE_BACKUP 0xf 
-
-#define XECUTER_BANK_BOOTLOADER 0x00
-#define XECUTER_BANK_PROMETHEOS1 0x01
-#define XECUTER_BANK_PROMETHEOS2 0x02
-#define XECUTER_BANK_PROMETHEOS3 0x03
-#define XECUTER_BANK_SLOT1_256K 0x04
-#define XECUTER_BANK_SLOT2_256K 0x05
-#define XECUTER_BANK_SLOT3_256K 0x06
-#define XECUTER_BANK_SLOT4_256K 0x07
-#define XECUTER_BANK_SLOT1_512K 0x0a
-#define XECUTER_BANK_SLOT2_512K 0x0b
-#define XECUTER_BANK_SLOT1_1024K 0x0d
-
-#define XECUTER_SETTINGS_BANK XECUTER_BANK_PROMETHEOS3
-#define XECUTER_SETTINGS_OFFSET (0x0f0000 - 0x0c0000)
-#define XECUTER_INSTALLER_LOGO_BANK XECUTER_BANK_PROMETHEOS3
-#define XECUTER_INSTALLER_LOGO_OFFSET (0x0e0000 - 0x0c0000)
-
-#define XECUTER_REGISTER_DISP_O_LIGHT 0xf503
-#define XECUTER_REGISTER_DISP_O_DAT 0xf504
-#define XECUTER_REGISTER_DISP_O_CMD 0xf505
-#define XECUTER_REGISTER_DISP_O_DIR_DAT 0xf506
-#define XECUTER_REGISTER_DISP_O_DIR_CMD 0xf507
-
-#define XECUTER_DISP_CON_RS 0x01
-#define XECUTER_DISP_CON_RW 0x02
-#define XECUTER_DISP_CON_E 0x04
-#define XECUTER_DISP_INI 0x01
-#define XECUTER_DISP_CMD 0x00
-#define XECUTER_DISP_DAT 0x02
-#define XECUTER_DISP_CLEAR 0x01
-#define XECUTER_DISP_HOME 0x02
-#define XECUTER_DISP_ENTRY_MODE_SET	0x04
-#define XECUTER_DISP_S_FLAG 0x01
-#define XECUTER_DISP_ID_FLAG 0x02
-#define XECUTER_DISP_CONTROL 0x08
-#define XECUTER_DISP_D_FLAG 0x04
-#define XECUTER_DISP_C_FLAG 0x02
-#define XECUTER_DISP_B_FLAG 0x01
-#define XECUTER_DISP_SHIFT 0x10
-#define XECUTER_DISP_SC_FLAG 0x08
-#define XECUTER_DISP_RL_FLAG 0x04
-#define XECUTER_DISP_FUNCTION_SET 0x20
-#define XECUTER_DISP_DL_FLAG 0x10
-#define XECUTER_DISP_N_FLAG 0x08
-#define XECUTER_DISP_F_FLAG 0x04
-#define XECUTER_DISP_RE_FLAG 0x04
-#define XECUTER_DISP_CGRAM_SET 0x40
-#define XECUTER_DISP_SEGRAM_SET 0x40
-#define XECUTER_DISP_DDRAM_SET 0x80
-
-
+#include "globalDefines.h"
+#include "stringUtility.h"
 
 //#define DISPLAY_E         0x04        //Mapped for LPCMod output format.
 //#define DISPLAY_RS        0x02        //Mapped for LPCMod output format.
@@ -130,31 +67,6 @@ uint32_t modchipXecuter::getSlotCount()
 uint32_t modchipXecuter::getFlashSize(bool recovery)
 {
 	return recovery ? (256 * 1024) : (2 * 1024 * 1024);
-}
-
-bool modchipXecuter::supportsLed()
-{
-	return false;
-}
-
-bool modchipXecuter::supportsLcd()
-{
-	return true;
-}
-
-bool modchipXecuter::supportsLcdInfo()
-{
-	return false;
-}
-
-bool modchipXecuter::supportsLcdContrast()
-{
-	return false;
-}
-
-bool modchipXecuter::supportsRecovery()
-{
-	return true;
 }
 
 void modchipXecuter::disableRecovery()
@@ -537,7 +449,7 @@ void modchipXecuter::loadSettings(settingsState& settings)
 	setLedColor(settingsManager::getLedColor());
 }
 
-void modchipXecuter::saveSettings(settingsState settings) 
+void modchipXecuter::saveSettings(settingsState& settings) 
 {
 	if (checkWriteProtect() == true)
 	{
@@ -594,27 +506,116 @@ utils::dataContainer* modchipXecuter::getInstallerLogo()
 	return installerLogo;
 }
 
-void modchipXecuter::lcdSendCharacter(uint8_t value, uint8_t command)
+displayDriver* modchipXecuter::getDisplayDriver(bool current)
 {
-	uint8_t cmd = 0;
-
-	if (command & XECUTER_DISP_DAT)
+	uint8_t lcdMode = settingsManager::getLcdMode(current);
+	uint8_t lcdModel = settingsManager::getLcdModel(current);
+	if (lcdMode == 1)
 	{
-		cmd |= XECUTER_DISP_CON_RS;
+		if (lcdModel == 0)
+		{
+			return displayFactory::getDisplay(displayVariantHD44780Xecuter);
+		}
 	}
-
-	outputByte(XECUTER_REGISTER_DISP_O_DAT, value & 0xF0);
-	outputByte(XECUTER_REGISTER_DISP_O_CMD, cmd);	
-	outputByte(XECUTER_REGISTER_DISP_O_CMD, XECUTER_DISP_CON_E | cmd);	
-	outputByte(XECUTER_REGISTER_DISP_O_CMD, cmd);	
-
-	if ((command & XECUTER_DISP_INI) == 0) 
-	{							
-		outputByte(XECUTER_REGISTER_DISP_O_DAT, (value << 4) & 0xF0);
-		outputByte(XECUTER_REGISTER_DISP_O_CMD, cmd);
-		outputByte(XECUTER_REGISTER_DISP_O_CMD, XECUTER_DISP_CON_E | cmd);
-		outputByte(XECUTER_REGISTER_DISP_O_CMD, cmd);
+	if (lcdMode == 2)
+	{
+		if (lcdModel == 0)
+		{
+			return displayFactory::getDisplay(displayVariantHD44780LPC);
+		}
+		if (lcdModel == 1)
+		{
+			return displayFactory::getDisplay(displayVariantLCDXXXXLPC);
+		}
 	}
+	return NULL;
+}
+
+supportInfo modchipXecuter::getSupportInfo(bool current)
+{
+	uint8_t lcdMode = settingsManager::getLcdMode(current);
+	supportInfo info;
+	info.supportsLed = false;
+	info.supportsLcd = true;
+
+	bool lcdInfo = false;
+	bool backlight = false;
+	bool contrast = false;
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver != NULL)
+	{
+		driver->getSupport(lcdInfo, backlight, contrast);
+	}
+	info.supportsLcdInfo = lcdInfo;
+	info.supportsLcdBacklight = backlight;
+	info.supportsLcdContrast = contrast;
+
+	info.supportsRecovery = true;
+	return info;
+}
+
+uint8_t modchipXecuter::getLcdModeCount()
+{
+	return 3;
+}
+
+char* modchipXecuter::getLcdModeString(uint8_t lcdMode)
+{
+	if (lcdMode == 1)
+	{
+		return strdup("Xecuter");
+	}
+	if (lcdMode == 2)
+	{
+		return strdup("SMBUS");
+	}
+	return strdup("Disabled");
+}
+
+uint8_t modchipXecuter::getLcdModelCount(bool current)
+{
+	uint8_t lcdMode = settingsManager::getLcdMode(current);
+	if (lcdMode == 1)
+	{
+		return 1;
+	}
+	if (lcdMode == 2)
+	{
+		return 2;
+	}
+	return 0;
+}
+
+char* modchipXecuter::getLcdModelString(bool current, uint8_t lcdModel)
+{
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver == NULL)
+	{
+		return strdup("");
+	}
+	return driver->getModel();
+}
+
+uint8_t modchipXecuter::getLcdAddressCount(bool current)
+{
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver == NULL)
+	{
+		return 0;
+	}
+	return driver->getI2cAddressCount();
+}
+
+char* modchipXecuter::getLcdAddressString(bool current, uint8_t lcdAddress)
+{
+	displayDriver* driver = getDisplayDriver(current);
+	if (driver == NULL)
+	{
+		return strdup("");
+	}
+	uint8_t address = driver->getI2cAddress(lcdAddress);
+	char* result = stringUtility::formatString("0x%2X", address);
+	return result;
 }
 
 void modchipXecuter::lcdSetCursorPosition(uint8_t row, uint8_t col)
@@ -627,97 +628,35 @@ void modchipXecuter::lcdSetCursorPosition(uint8_t row, uint8_t col)
 	{
 		col = 19; 
 	}
-
-	uint8_t value = 0;
-	if (row == 1)
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
 	{
-		value = 0x40;
+		return;
 	}
-	else if (row == 2)
-	{
-		value = 0x14;
-	}
-	else if (row == 3)
-	{
-		value = 0x54;
-	}
-
-	lcdSendCharacter(XECUTER_DISP_DDRAM_SET | (value + col), XECUTER_DISP_CMD);
-	Sleep(10);
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->setCursorPosition(row, col);
 }
 
-uint8_t modchipXecuter::getLcdTypeCount()
+void modchipXecuter::lcdInit()
 {
-	return 2;
-}
-
-char* modchipXecuter::getLcdTypeString(uint8_t lcdEnableType)
-{
-	if (lcdEnableType == 1)
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
 	{
-		return strdup("Parallel");
+		return;
 	}
-	
-	return strdup("Disabled");
-}
-
-void modchipXecuter::lcdInit(uint8_t backlight, uint8_t contrast)
-{
-	outputByte(XECUTER_REGISTER_DISP_O_DAT, 0);
-	outputByte(XECUTER_REGISTER_DISP_O_CMD, 0);
-	outputByte(XECUTER_REGISTER_DISP_O_DIR_DAT, 0xFF);
-	outputByte(XECUTER_REGISTER_DISP_O_DIR_CMD, 0x07);
-
-	lcdSendCharacter(XECUTER_DISP_FUNCTION_SET | XECUTER_DISP_DL_FLAG, XECUTER_DISP_INI);
-	Sleep(XECUTER_LCD_DELAY);
-	lcdSendCharacter(XECUTER_DISP_FUNCTION_SET | XECUTER_DISP_DL_FLAG, XECUTER_DISP_INI);	
-	Sleep(XECUTER_LCD_DELAY);
-	lcdSendCharacter(XECUTER_DISP_FUNCTION_SET | XECUTER_DISP_DL_FLAG, XECUTER_DISP_INI);	
-	Sleep(XECUTER_LCD_DELAY);
-	lcdSendCharacter(XECUTER_DISP_FUNCTION_SET, XECUTER_DISP_INI);								
-	Sleep(XECUTER_LCD_DELAY);
-	lcdSendCharacter(XECUTER_DISP_FUNCTION_SET | XECUTER_DISP_N_FLAG, XECUTER_DISP_CMD);	
-	Sleep(XECUTER_LCD_DELAY);
-	lcdSendCharacter(XECUTER_DISP_CONTROL | XECUTER_DISP_D_FLAG, XECUTER_DISP_CMD);		
-	Sleep(XECUTER_LCD_DELAY);
-	lcdSendCharacter(XECUTER_DISP_CLEAR, XECUTER_DISP_CMD);			
-	Sleep(XECUTER_LCD_DELAY);
-	lcdSendCharacter(XECUTER_DISP_ENTRY_MODE_SET | XECUTER_DISP_ID_FLAG,XECUTER_DISP_CMD);	
-	Sleep(XECUTER_LCD_DELAY);
-
-	lcdSetBacklight(backlight);
-	lcdSetContrast(contrast);
-	Sleep(XECUTER_LCD_DELAY);
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->init();
 }
 
 void modchipXecuter::lcdPrintMessage(const char* message)
 {
-	//const uint8_t LCD[256] = 
- //   { //HD44780 charset ROM code A00
- //       0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
- //       0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
- //       0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
- //       0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f,
- //       0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f,
- //       0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5a, 0x5b, 0xa4, 0x5d, 0x5e, 0x5f,
- //       0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f,
- //       0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x7b, 0x7c, 0x7d, 0xb0, 0x20,
- //       0x20, 0x20, 0x2c, 0x20, 0x22, 0x20, 0x20, 0x20, 0x5e, 0x20, 0x53, 0x3c, 0x20, 0x20, 0x5a, 0x20,
- //       0x20, 0x27, 0x27, 0x22, 0x22, 0xa5, 0xb0, 0xb0, 0xb0, 0x20, 0x73, 0x3e, 0x20, 0x20, 0x7a, 0x59,
- //       0xff, 0x21, 0x20, 0x20, 0x20, 0x5c, 0x7c, 0x20, 0x22, 0x20, 0x20, 0xff, 0x0E, 0x0A, 0x09, 0x08, // Custom characters
- //       0xdf, 0x20, 0x20, 0x20, 0x27, 0xe4, 0x20, 0xa5, 0x20, 0x20, 0xdf, 0x3e, 0x20, 0x20, 0x20, 0x3f,
- //       0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x20, 0x43, 0x45, 0x45, 0x45, 0x45, 0x49, 0x49, 0x49, 0x49,
- //       0x44, 0x4e, 0x4f, 0x4f, 0x4f, 0x4f, 0x4f, 0x78, 0x30, 0x55, 0x55, 0x55, 0x55, 0x59, 0x20, 0xe2,
- //       0x61, 0x61, 0x61, 0x61, 0xe1, 0x61, 0x20, 0x63, 0x65, 0x65, 0x65, 0x65, 0x69, 0x69, 0x69, 0x69,
- //       0x6f, 0x6e, 0x6f, 0x6f, 0x6f, 0x6f, 0x6f, 0xfd, 0x6f, 0x75, 0x75, 0xfb, 0xf5, 0x79, 0x20, 0x79
- //   };
-	for (int i = 0; i < (int)strlen(message); ++i)
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
 	{
-		uint8_t cLCD = message[i];
-		//cLCD = LCD[cLCD];
-		lcdSendCharacter(cLCD, XECUTER_DISP_DAT);
-		Sleep(XECUTER_LCD_DELAY);
+		return;
 	}
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->printMessage(message);
 }
 
 void modchipXecuter::lcdSetBacklight(uint8_t value)
@@ -726,12 +665,28 @@ void modchipXecuter::lcdSetBacklight(uint8_t value)
 	{
 		value = 100;
 	}
-	outputByte(XECUTER_REGISTER_DISP_O_LIGHT, (int)(value * 2.55f));
-	Sleep(XECUTER_LCD_DELAY);
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
+	{
+		return;
+	}
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->setBacklight(value);
 }
 
 void modchipXecuter::lcdSetContrast(uint8_t value)
 {
+	if (value > 100)
+	{
+		value = 100;
+	}
+	displayDriver* driver = getDisplayDriver(true);
+	if (driver == NULL)
+	{
+		return;
+	}
+	driver->setAddress(settingsManager::getLcdAddress(true));
+	driver->setContrast(value);
 }
 
 // Private

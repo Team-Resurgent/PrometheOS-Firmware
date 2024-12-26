@@ -36,7 +36,7 @@ void launchScene::setupBanks() {
 	tsopBank->autoBoot = false;
 	mBanks->add(tsopBank);
 
-	if (context::getModchip()->supportsRecovery() == true)
+	if (context::getModchip()->getSupportInfo(true).supportsRecovery == true)
 	{
 		bankDetails* recoveryBank = new bankDetails();
 		recoveryBank->id = (uint8_t)0;
@@ -52,7 +52,7 @@ void launchScene::update()
 {
 	// Exit Action
 
-	bool supportsRecovery = context::getModchip()->supportsRecovery();
+	bool supportsRecovery = context::getModchip()->getSupportInfo(true).supportsRecovery;
 	uint32_t cnt = mBanks->count() - 1;
 	if (supportsRecovery) cnt -= 1;
 

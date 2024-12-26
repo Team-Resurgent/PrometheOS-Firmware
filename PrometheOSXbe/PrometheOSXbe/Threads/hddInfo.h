@@ -11,7 +11,8 @@ public:
 		hddInfoResponseNone = 0,
 		hddInfoResponseUnlocked = 1,
 		hddInfoResponseLocked = 2,
-		hddInfoResponseFailureEeprom = 3
+		hddInfoResponseFailureEeprom = 3,
+		hddInfoResponseTimeout = 4
 	}; 
 
 	typedef struct hddInfoData {
@@ -21,7 +22,7 @@ public:
 		CRITICAL_SECTION mutex;
 	} hddInfoData;
 
-	static bool startThread();
+	static bool startThread(bool harddrive = 0);
 	static bool completed();
 	static hddInfoResponse getResponse();
 	static char* getModel();

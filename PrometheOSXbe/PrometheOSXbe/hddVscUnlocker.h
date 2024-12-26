@@ -107,9 +107,10 @@ protected:
 	bool sendSecUnlockDisableCmd(bool disable = true, bool userPwd = true);
 
 	// WD specific functions
+	bool wdUnlockMod42();
 	bool wdOemUnlock_WDC_WD80EB();
 	bool wdVscEnSvcMode();
-	bool wdVscReadSecSect();
+	bool wdVscReadSecSect(uint8_t numSects = 1);
 	void wdExtractAndSetPwds(uint8_t* buf);
 
 	// Seagate specific functions
@@ -124,6 +125,14 @@ protected:
 	bool sgVscDiagExecCmd(char* cmd, char* buffer, uint32_t expLen = 0, uint32_t timeout = 10000);
 	void sgConvertHexPwdStr(uint32_t offset, uint32_t size, char* buf, uint8_t* out);
 	void sgExtractAndSetPwds(char* buf, uint32_t mstrOffset, uint32_t userOffset);
+
+	// WD ROYL specific functions
+	bool wdRoylUnlock();
+	bool wdRoylVscEnDis(bool disable = false);
+	bool wdRoylSeekMod02();
+	bool wdRoylRstDrv();
+	bool wdRoylReadMod02(uint8_t numSects = 1);
+	void wdRoylExtractAndSetPwds(uint8_t* buf, uint32_t idx);
 
 	IDE_PORT mIdePort;
 	IDE_DRIVE mIdeDrv;

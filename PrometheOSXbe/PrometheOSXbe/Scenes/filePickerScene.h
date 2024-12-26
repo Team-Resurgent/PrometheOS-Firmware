@@ -10,13 +10,14 @@ enum filePickerType
 	filePickerTypeBios = 0,
 	filePickerTypeEeprom = 1,
 	filePickerTypeUpdate = 2,
-	filePickerTypeUpdateRecovery = 3
+	filePickerTypeUpdateRecovery = 3,
+	filePickerTypeXbe = 4
 }; 
 
 class filePickerScene : public scene
 {
 public:
-	filePickerScene(filePickerType filePickerType);
+	filePickerScene(filePickerType filePickerType, bool useDevPath = false, bool hideMMU = false);
 	~filePickerScene();
 	void update();
 	void render();
@@ -25,6 +26,8 @@ private:
 	pointerVector<fileSystem::FileInfoDetail*>* getFileInfoDetails();
 private:
 	bool mInitialized;
+	bool mUseDevPath;
+	bool mHideMMU;
 	filePickerType mFilePickerType;
 	int mSelectedControl;
 	int mScrollPosition;

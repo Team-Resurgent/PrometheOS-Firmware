@@ -117,6 +117,26 @@ typedef LONG NTSTATUS;
 #define STATUS_INVALID_DEVICE_REQUEST ((NTSTATUS)0xC0000010L)
 #define STATUS_UNSUCCESSFUL ((NTSTATUS)0x80000000L)
 
+typedef struct LAUNCH_DATA_HEADER
+{
+	DWORD   dwLaunchDataType;
+	DWORD   dwTitleId;
+	char    szLaunchPath[520];
+	DWORD   dwFlags;
+}
+LAUNCH_DATA_HEADER;
+
+typedef struct LAUNCH_DATA_PAGE
+{
+	LAUNCH_DATA_HEADER  Header;
+	UCHAR               Pad[492];
+	UCHAR               LaunchData[3072];
+}
+LAUNCH_DATA_PAGE;
+
+#define PAGE_SIZE 0x1000
+#define ROUND_TO_PAGES(Size)  (((ULONG_PTR)(Size) + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1))
+
 typedef struct DRIVER_OBJECT
 {
 	const int16_t Type;
@@ -268,7 +288,38 @@ typedef struct IO_STATUS_BLOCK {
         PVOID Pointer;
     };
     ULONG_PTR Information;
-} IO_STATUS_BLOCK;
+} IO_STATUS_BLOCK, *PIO_STATUS_BLOCK;
+
+#define FAT_VOLUME_NAME_LENGTH          32
+#define FAT_ONLINE_DATA_LENGTH          2048
+typedef struct _FAT_VOLUME_METADATA {
+    ULONG Signature;
+    ULONG SerialNumber;
+    ULONG SectorsPerCluster;
+    ULONG RootDirFirstCluster;
+    WCHAR VolumeName[FAT_VOLUME_NAME_LENGTH];
+    UCHAR OnlineData[FAT_ONLINE_DATA_LENGTH];
+    // Unused space in the block is filled with 0xFF bytes.
+} FAT_VOLUME_METADATA, *PFAT_VOLUME_METADATA;
+
+typedef enum _FSINFOCLASS {
+    FileFsVolumeInformation = 1,
+    FileFsLabelInformation,
+    FileFsSizeInformation,
+    FileFsDeviceInformation,
+    FileFsAttributeInformation,
+    FileFsControlInformation,
+    FileFsFullSizeInformation,
+    FileFsObjectIdInformation,
+    FileFsMaximumInformation
+} FS_INFORMATION_CLASS, *PFS_INFORMATION_CLASS;
+
+typedef struct _FILE_FS_SIZE_INFORMATION {
+    LARGE_INTEGER TotalAllocationUnits;
+    LARGE_INTEGER AvailableAllocationUnits;
+    ULONG SectorsPerAllocationUnit;
+    ULONG BytesPerSector;
+} FILE_FS_SIZE_INFORMATION, *PFILE_FS_SIZE_INFORMATION;
 
 typedef VOID (WINAPI *PIO_APC_ROUTINE) (PVOID ApcContext, IO_STATUS_BLOCK* IoStatusBlock, ULONG Reserved);
 
@@ -301,8 +352,11 @@ extern "C"
 	NTSTATUS WINAPI XNetGetConfigStatus(XNetConfigStatus* status);
 
 	VOID WINAPI KeQuerySystemTime(LPFILETIME CurrentTime);
+
+	NTSTATUS WINAPI NtQueryVolumeInformationFile(HANDLE FileHandle, PIO_STATUS_BLOCK IoStatusBlock, PVOID FsInformation, ULONG Length, FS_INFORMATION_CLASS FsInformationClass);
 	NTSTATUS WINAPI NtSetSystemTime(LPFILETIME SystemTime, LPFILETIME PreviousTime);
 	NTSTATUS WINAPI NtOpenFile(HANDLE* FileHandle, ACCESS_MASK DesiredAccess, OBJECT_ATTRIBUTES* ObjectAttributes, IO_STATUS_BLOCK* IoStatusBlock, ULONG ShareAccess, ULONG OpenOptions);
+	NTSTATUS WINAPI NtReadFile(HANDLE FileHandle, HANDLE Event, PIO_APC_ROUTINE ApcRoutine, VOID* ApcContext, IO_STATUS_BLOCK* IoStatusBlock, VOID* Buffer, ULONG Length, LARGE_INTEGER* ByteOffset);
 	NTSTATUS WINAPI NtWriteFile(HANDLE FileHandle, HANDLE Event, PIO_APC_ROUTINE ApcRoutine, VOID* ApcContext, IO_STATUS_BLOCK* IoStatusBlock, VOID* Buffer, ULONG Length, LARGE_INTEGER* ByteOffset);
 	NTSTATUS WINAPI NtClose(HANDLE Handle);
 	NTSTATUS WINAPI NtDeviceIoControlFile(HANDLE FileHandle, HANDLE Event, PIO_APC_ROUTINE ApcRoutine, PVOID ApcContext, IO_STATUS_BLOCK* IoStatusBlock, ULONG IoControlCode, PVOID InputBuffer, ULONG InputBufferLength, PVOID OutputBuffer, ULONG OutputBufferLength);
@@ -317,6 +371,15 @@ extern "C"
 	NTSTATUS WINAPI MU_CreateDeviceObject(uint32_t port, uint32_t slot, STRING* deviceName);
 	VOID WINAPI MU_CloseDeviceObject(uint32_t port, uint32_t slot);
 	DEVICE_OBJECT* WINAPI MU_GetExistingDeviceObject(uint32_t port, uint32_t slot);
+	BOOL WINAPI XapiFormatFATVolumeEx(STRING* VolumePath, ULONG BytesPerCluster);
+
+	extern LAUNCH_DATA_PAGE* LaunchDataPage;
+
+	VOID WINAPI MmPersistContiguousMemory(PVOID BaseAddress, ULONG NumberOfBytes, BOOLEAN Persist);
+	PVOID WINAPI MmAllocateContiguousMemory(ULONG NumberOfBytes);
+
+	UCHAR NTSYSAPI XboxHDKey[0x10];
+	VOID WINAPI XcHMAC(PBYTE pbKey, DWORD dwKeyLength, PBYTE pbInput, DWORD dwInputLength, PBYTE pbInput2, DWORD dwInputLength2, PBYTE pbDigest);
 }
 
 #define HalReadSMBusByte(SlaveAddress, CommandCode, DataValue) HalReadSMBusValue(SlaveAddress, CommandCode, FALSE, DataValue)
