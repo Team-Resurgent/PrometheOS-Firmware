@@ -25,7 +25,7 @@ namespace PrometheOSPacker
 
         static void Main()
         {
-            var version = "V1.0.7";
+            var version = "V1.0.8";
             //version = "latest";
 
             var baseUrl = $"https://github.com/Team-Resurgent/Modxo/releases/download/{version}";

@@ -63,10 +63,6 @@ void context::setModchipType(modchipType modchipType)
 	{
 		mModchip = new modchipXecuter();
 	}
-	else if (modchipType == modchipTypeSmartxx)
-	{
-		mModchip = new modchipSmartxx();
-	}
 	else if (modchipType == modchipTypeModxo)
 	{
 		mModchip = new modchipModxo();

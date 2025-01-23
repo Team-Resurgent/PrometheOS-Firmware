@@ -1,0 +1,1 @@
+async function downloadEeprom(){await fetch("http://192.168.1.66/api/downloadeeprom").catch(()=>{content.innerHTML="Failed to connect."}).then(n=>n.blob()).then(n=>{var i=window.URL.createObjectURL(n),t=document.createElement("a");t.href=i;t.download="EEPROM.bin";document.body.appendChild(t);t.click();t.remove()})}
