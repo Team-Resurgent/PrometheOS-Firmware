@@ -1,6 +1,4 @@
-Place your source modchip.bin files here, so we can extract the bootloader from it.
-
-Ensure name of files is as follows:
+Place your source modchip bin (named as below) files here, so we can extract the bootloader from it.
 
 prometheos-aladdin1mb.bin
 prometheos-aladdin2mb.bin

@@ -231,7 +231,7 @@ namespace PrometheOSPacker.Helpers
         public static void PackageModxo(string modchip)
         {
             var slnFolder = Utility.GetSlnFolder();
-            var prometheos = ExtractPrometheOS(modchip);
+            var prometheos = ExtractPrometheOS($"{modchip}-official-pico");
             uint defaultFamilyId = 0xE48BFF56;
 
             PackageModxoVariant(prometheos, "official-pico", modchip, defaultFamilyId);
@@ -239,12 +239,6 @@ namespace PrometheOSPacker.Helpers
             PackageModxoVariant(prometheos, "rp2040-zero-tiny", modchip, defaultFamilyId);
             PackageModxoVariant(prometheos, "yd-rp2040", modchip, defaultFamilyId);
             PackageModxoVariant(prometheos, "xiao-rp2040", modchip, defaultFamilyId);
-            PackageModxoVariant(prometheos, "ultra", modchip, defaultFamilyId);
-
-            if (File.Exists("modxo-custom.bin"))
-            {
-                PackageModxoVariant(prometheos, "custom", modchip, defaultFamilyId);
-            }
         }
 
         public static void PackageAladdin1mb(string modchip)
