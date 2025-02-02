@@ -12,7 +12,6 @@ namespace PrometheOSPacker
             {
                 try
                 {
-                    var source = Path.GetFileName(url);
                     byte[] fileBytes = File.ReadAllBytes(Path.Combine("OfflineFiles", Path.GetFileName(url)));
                     await File.WriteAllBytesAsync(filename, fileBytes);
                     return true;
