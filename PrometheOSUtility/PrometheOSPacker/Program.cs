@@ -7,7 +7,23 @@ namespace PrometheOSPacker
     {
         static async Task<bool> DownloadFileAsync(string url, string filename)
         {
-            using (HttpClient client = new HttpClient())
+            const bool offline = false;
+            if (offline)
+            {
+                try
+                {
+                    byte[] fileBytes = File.ReadAllBytes(Path.Combine("OfflineFiles", Path.GetFileName(url)));
+                    await File.WriteAllBytesAsync(filename, fileBytes);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"An error occurre downloading file: {ex.Message}");
+                    return false;
+                }
+            }
+
+            using (var client = new HttpClient())
             {
                 try
                 {
@@ -55,12 +71,6 @@ namespace PrometheOSPacker
             {
                 return;
             }
-            Console.WriteLine("Downloading 'modxo-ultra.bin'.");
-            if (DownloadFileAsync($"{baseUrl}/modxo_ultra.bin", "modxo-ultra.bin").GetAwaiter().GetResult() == false)
-            {
-                return;
-            }
-            Console.WriteLine();
 
             var prometheosWebTestIp = "192.168.1.66"; // If you change ip in PrometheOSWeb update here
 
