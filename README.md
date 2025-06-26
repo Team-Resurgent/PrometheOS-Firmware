@@ -73,10 +73,10 @@ Notes:
 1) You will need to provide mcpx_1.0.bin in the roms folder in order to run
 2) The XEMU is a special build of XEMU which fully simulates a Xenium Modchip and is based upon intial code by Ryzee119 and extended upon to create a full implementation of the flash. (https://github.com/Team-Resurgent/xemu/tree/xenium)
 
-</div>
-
 Attribution:
 
 This project include a small portion of software developed by MakeMHz
 Original project: https://github.com/MakeMHz/xbox-hd-plus-app
 Licensed under the GNU General Public License version 2. See LICENSE-GPLv2.md.
+
+</div>
