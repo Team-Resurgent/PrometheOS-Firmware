@@ -75,8 +75,8 @@ Notes:
 
 Attribution:
 
-This project include a small portion of software developed by MakeMHz
-Original project: https://github.com/MakeMHz/xbox-hd-plus-app
+This project include a small portion of software developed by MakeMHz<br/>
+Original project: https://github.com/MakeMHz/xbox-hd-plus-app<br/>
 Licensed under the GNU General Public License version 2. See LICENSE-GPLv2.md.
 
 </div>
