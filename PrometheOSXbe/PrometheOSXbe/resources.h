@@ -23,3 +23,6 @@
 #include "Assets/Web/remove_js.h"
 #include "Assets/Web/remoteview_html.h"
 #include "Assets/Web/remoteview_js.h"
+#include "Assets/Web/hddlock_html.h"
+#include "Assets/Web/hddlock_js.h"
+#include "Assets/Web/utilities_html.h"

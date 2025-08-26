@@ -44,6 +44,8 @@
 #include "modchipDummy.h"
 #include "Threads\lcdRender.h"
 #include "Threads\flashBackup.h"
+#include "Threads\hddInfo.h"
+#include "Threads\hddLockUnlock.h"
 #include "Plugins\PEProcess.h"
 #include "cerbiosIniHelper.h"
 
@@ -52,6 +54,9 @@
 #include <xgraphics.h>
 
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_TEX1)
+
+// Shouldn't be 0, something random maybe?
+static int ExpectedNonce = 0;
 
 enum apiActionEnum
 { 
@@ -153,6 +158,18 @@ utils::dataContainer* onGetCallback(const char* path, const char* query)
 	{
 		body = new utils::dataContainer((char*)&main_css, sizeof(main_css), sizeof(main_css));
 	}
+	else if (stringUtility::equals(path, "\\hddlock.html", true))
+	{
+		body = new utils::dataContainer((char*)&hddlock_html, sizeof(hddlock_html), sizeof(hddlock_html));
+	}
+	else if (stringUtility::equals(path, "\\hddlock.js", true))
+	{
+		body = new utils::dataContainer((char*)&hddlock_js, sizeof(hddlock_js), sizeof(hddlock_js));
+	}
+	else if (stringUtility::equals(path, "\\utilities.html", true))
+	{
+		body = new utils::dataContainer((char*)&utilities_html, sizeof(utilities_html), sizeof(utilities_html));
+	}
 	else if (stringUtility::equals(path, "\\api\\freeslots.json", true))
 	{
 		char* freeSlotsJson = settingsManager::getFreeSlotsJson();
@@ -239,6 +256,66 @@ utils::dataContainer* onGetCallback(const char* path, const char* query)
 			Sleep(100);
 		}
 		body = context::getScreenshot();
+	}
+	else if (stringUtility::equals(path, "\\api\\drives.json", true))
+	{
+		bool isDualHDDSetup = settingsManager::getDriveSetup() == 3;
+		char* usableDrivesJson = stringUtility::formatString("{\"primaryDrive\":1,\"secondaryDrive\":%d}", isDualHDDSetup);
+		body = new utils::dataContainer(usableDrivesJson, strlen(usableDrivesJson), strlen(usableDrivesJson));
+		free(usableDrivesJson);
+	}
+	else if (stringUtility::equals(path, "\\api\\drive.json", true))
+	{
+		pointerVector<char*>* getParams = stringUtility::split(query, "&", true);
+		if (getParams->count() < 2) {
+			return httpServer::generateResponse(400, "Query must contain the drive idx and a random nonce");
+		}
+		bool driveIdx = stringUtility::toInt(getParams->get(0)) == 1;
+		int clientNonce = stringUtility::toInt(getParams->get(1));
+		delete(getParams);
+		// Store the random nonce the client includes,
+		// only the last one who called this endpoint 
+		// can call the "protected" endpoints (lock, format)
+		// Doesn't help much, but still prevents some direct api calls
+		ExpectedNonce = clientNonce;
+		hddInfo::startThread(driveIdx);
+		while (!hddInfo::completed() == true) {
+			Sleep(10);	
+		}
+		hddInfo::hddInfoResponse response = hddInfo::getResponse();
+		if (response != hddInfo::hddInfoResponseFailureEeprom && response != hddInfo::hddInfoResponseTimeout) {
+			bool isLocked = response == hddInfo::hddInfoResponseLocked;
+			char* driveInfoJson = stringUtility::formatString("{\"locked\":%d,\"model\":\"%s\",\"serial\":\"%s\"}", isLocked, hddInfo::getModel(), hddInfo::getSerial());
+			body = new utils::dataContainer(driveInfoJson, strlen(driveInfoJson), strlen(driveInfoJson));
+			free(driveInfoJson);
+		}
+		hddInfo::closeThread();
+	}
+	else if (stringUtility::equals(path, "\\api\\hddlockunlock", true))
+	{
+		pointerVector<char*>* getParams = stringUtility::split(query, "&", true);
+		if (getParams->count() < 2) {
+			return httpServer::generateResponse(400, "Query must contain if the drive should be locked or unlocked, and the same nonce sent with the last drive info request");
+		}
+		bool isLockReq = stringUtility::toInt(getParams->get(0)) == 1;
+		int clientNonce = stringUtility::toInt(getParams->get(1));
+		delete(getParams);
+		if (clientNonce != ExpectedNonce) {
+			return httpServer::generateResponse(403, "Invalid nonce.");
+		}
+		if (isLockReq) {
+			hddLockUnlock::startThread(hddLockUnlock::hddLockUnlockActionLock);
+		} else {
+			hddLockUnlock::startThread(hddLockUnlock::hddLockUnlockActionUnlock);
+		}
+		while (!hddLockUnlock::completed() == true) {
+			Sleep(10);
+		}
+		hddLockUnlock::hddLockUnlockResponse response = hddLockUnlock::getResponse();
+		hddLockUnlock::closeThread();
+		char* lockResultJson = stringUtility::formatString("{\"status\":%d}", response);
+		body = new utils::dataContainer(lockResultJson, strlen(lockResultJson), strlen(lockResultJson));
+		free(lockResultJson);
 	}
 
 	if (body == NULL)
