@@ -44,6 +44,7 @@
 #include "modchipDummy.h"
 #include "Threads\lcdRender.h"
 #include "Threads\flashBackup.h"
+#include "Threads\hddFormat.h"
 #include "Threads\hddInfo.h"
 #include "Threads\hddLockUnlock.h"
 #include "Plugins\PEProcess.h"
@@ -157,6 +158,22 @@ utils::dataContainer* onGetCallback(const char* path, const char* query)
 	else if (stringUtility::equals(path, "\\main.css", true))
 	{
 		body = new utils::dataContainer((char*)&main_css, sizeof(main_css), sizeof(main_css));
+	}
+	else if (stringUtility::equals(path, "\\hddformat_select.html", true))
+	{
+		body = new utils::dataContainer((char*)&hddformat_select_html, sizeof(hddformat_select_html), sizeof(hddformat_select_html));
+	}
+	else if (stringUtility::equals(path, "\\hddformat_select.js", true))
+	{
+		body = new utils::dataContainer((char*)&hddformat_select_js, sizeof(hddformat_select_js), sizeof(hddformat_select_js));
+	}
+	else if (stringUtility::equals(path, "\\hddformat.html", true))
+	{
+		body = new utils::dataContainer((char*)&hddformat_html, sizeof(hddformat_html), sizeof(hddformat_html));
+	}
+	else if (stringUtility::equals(path, "\\hddformat.js", true))
+	{
+		body = new utils::dataContainer((char*)&hddformat_js, sizeof(hddformat_js), sizeof(hddformat_js));
 	}
 	else if (stringUtility::equals(path, "\\hddlock.html", true))
 	{
@@ -408,7 +425,7 @@ utils::dataContainer* onPostCallback(const char* path, const char* query, pointe
 			return httpServer::generateResponse(200, "OK");
 		}
 
-		return httpServer::generateResponse(406, "No wnough free slots.");
+		return httpServer::generateResponse(406, "Not enough free slots.");
 	}
 	else if (stringUtility::equals(path, "\\api\\cerbiosini", true))
 	{
@@ -428,8 +445,50 @@ utils::dataContainer* onPostCallback(const char* path, const char* query, pointe
 		char* body = (char*)bodyPart->body->data;
 		cerbiosIniHelper::saveConfig(body);
 	}
+	else if (stringUtility::equals(path, "\\api\\formatdrive", true))
+	{
+		if (formParts->count() != 2) {
+			return httpServer::generateResponse(400, "Unexpected form parts.");
+		}
+		FormPart* formPartDriveIdx = formParts->get(0);
+		char* sDriveIdx = (char*)formPartDriveIdx->body->data;
+		int driveIdx = stringUtility::toInt(sDriveIdx);
+		FormPart* formPartClientNonce = formParts->get(1);
+		char* sClientNonce = (char*)formPartClientNonce->body->data;
+		int clientNonce = stringUtility::toInt(sClientNonce);
+		if (clientNonce != ExpectedNonce) {
+			return httpServer::generateResponse(403, "Invalid nonce.");
+		}
+		if (driveIdx < 0 || driveIdx > 1) {
+			return httpServer::generateResponse(400, "Invalid drive index");
+		}
+		// What if someone tries to call this twice?
+		hddFormat::startThread(driveIdx);
+		while (!hddFormat::completed() == true) {
+			Sleep(100);
+		}
+		hddFormat::hddFormatResponse response = hddFormat::getResponse();
+		hddFormat::closeThread();
+		char* formatResultJson = stringUtility::formatString("{\"result\":%d}", response);
+		utils::dataContainer* body = new utils::dataContainer(formatResultJson, strlen(formatResultJson), strlen(formatResultJson));
+		free(formatResultJson);
+		char* contentLength = stringUtility::formatString("%lu", body->size);
+		char* header = stringUtility::formatString("HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nCache-Control: no-cache\r\nContent-Type: application/json\r\nX-Content-Type-Options: nosniff\r\nContent-Length: %s\r\n\r\n", contentLength);
+		utils::debugPrint("Header len = %i\n", strlen(header));
+		utils::debugPrint("Response = %s\n", header);
 
-	return httpServer::generateResponse(404, "Mot found");
+		utils::dataContainer* result = new utils::dataContainer(strlen(header) + body->size);
+		memcpy(result->data, header, strlen(header));
+		memcpy(result->data + strlen(header), body->data, body->size);
+
+		delete(body);
+		free(contentLength);
+		free(header);
+
+		return result;
+	}
+
+	return httpServer::generateResponse(404, "Not found");
 }
 
 void onResponseSentCallback()

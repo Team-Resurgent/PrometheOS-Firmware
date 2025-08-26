@@ -342,7 +342,7 @@ void sceneManager::pushScene(sceneItemEnum sceneItem)
 	}
 	else if (sceneItem == sceneItemFormatDrivePrimaryScene)
 	{
-		sceneContainer* container = new sceneContainer(sceneItem, new formatDriveScene(0), "Format Primarary Drive");
+		sceneContainer* container = new sceneContainer(sceneItem, new formatDriveScene(0), "Format Primary Drive");
 		addScene(container);
 	}
 	else if (sceneItem == sceneItemFormatDriveSecondaryScene)
