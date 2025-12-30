@@ -1,7 +1,7 @@
 <div align="center">
 
 # Team Resurgent Presents, PrometheOS
-**A Modern Xenium OS for the Original Xbox**
+**A Modern Modchip OS for the Original Xbox**
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/Team-Resurgent/Repackinator/blob/main/LICENSE.md)
 [![Discord](https://img.shields.io/badge/chat-on%20discord-7289da.svg?logo=discord)](https://discord.gg/VcdSfajQGK)
@@ -15,7 +15,7 @@
 
 Please see below for instructions regarding PrometheOS and how to use.
 
-BEWARE: It is recommended you have a external xenium programmer incase you're no longer able to boot into PrometheOS
+BEWARE: It is recommended you have a either another modchip (to hotswap) or a way to program the modchip incase you're no longer able to boot into PrometheOS
 
 # Working Modchips
 
