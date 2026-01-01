@@ -2268,6 +2268,24 @@
 						RelativePath=".\Assets\Web\flash_js.h">
 					</File>
 					<File
+						RelativePath=".\Assets\Web\hddformat_html.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\hddformat_js.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\hddformat_select_html.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\hddformat_select_js.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\hddlock_html.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\hddlock_js.h">
+					</File>
+					<File
 						RelativePath=".\Assets\Web\index_html.h">
 					</File>
 					<File
@@ -2293,6 +2311,9 @@
 					</File>
 					<File
 						RelativePath=".\Assets\Web\remove_js.h">
+					</File>
+					<File
+						RelativePath=".\Assets\Web\utilities_html.h">
 					</File>
 				</Filter>
 				<Filter
