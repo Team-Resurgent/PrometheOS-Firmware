@@ -44,6 +44,9 @@
 #include "modchipDummy.h"
 #include "Threads\lcdRender.h"
 #include "Threads\flashBackup.h"
+#include "Threads\hddFormat.h"
+#include "Threads\hddInfo.h"
+#include "Threads\hddLockUnlock.h"
 #include "Plugins\PEProcess.h"
 #include "cerbiosIniHelper.h"
 
@@ -52,6 +55,9 @@
 #include <xgraphics.h>
 
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_TEX1)
+
+// Shouldn't be 0, something random maybe?
+static int ExpectedNonce = 0;
 
 enum apiActionEnum
 { 
@@ -153,6 +159,34 @@ utils::dataContainer* onGetCallback(const char* path, const char* query)
 	{
 		body = new utils::dataContainer((char*)&main_css, sizeof(main_css), sizeof(main_css));
 	}
+	else if (stringUtility::equals(path, "\\hddformat_select.html", true))
+	{
+		body = new utils::dataContainer((char*)&hddformat_select_html, sizeof(hddformat_select_html), sizeof(hddformat_select_html));
+	}
+	else if (stringUtility::equals(path, "\\hddformat_select.js", true))
+	{
+		body = new utils::dataContainer((char*)&hddformat_select_js, sizeof(hddformat_select_js), sizeof(hddformat_select_js));
+	}
+	else if (stringUtility::equals(path, "\\hddformat.html", true))
+	{
+		body = new utils::dataContainer((char*)&hddformat_html, sizeof(hddformat_html), sizeof(hddformat_html));
+	}
+	else if (stringUtility::equals(path, "\\hddformat.js", true))
+	{
+		body = new utils::dataContainer((char*)&hddformat_js, sizeof(hddformat_js), sizeof(hddformat_js));
+	}
+	else if (stringUtility::equals(path, "\\hddlock.html", true))
+	{
+		body = new utils::dataContainer((char*)&hddlock_html, sizeof(hddlock_html), sizeof(hddlock_html));
+	}
+	else if (stringUtility::equals(path, "\\hddlock.js", true))
+	{
+		body = new utils::dataContainer((char*)&hddlock_js, sizeof(hddlock_js), sizeof(hddlock_js));
+	}
+	else if (stringUtility::equals(path, "\\utilities.html", true))
+	{
+		body = new utils::dataContainer((char*)&utilities_html, sizeof(utilities_html), sizeof(utilities_html));
+	}
 	else if (stringUtility::equals(path, "\\api\\freeslots.json", true))
 	{
 		char* freeSlotsJson = settingsManager::getFreeSlotsJson();
@@ -239,6 +273,66 @@ utils::dataContainer* onGetCallback(const char* path, const char* query)
 			Sleep(100);
 		}
 		body = context::getScreenshot();
+	}
+	else if (stringUtility::equals(path, "\\api\\drives.json", true))
+	{
+		bool isDualHDDSetup = settingsManager::getDriveSetup() == 3;
+		char* usableDrivesJson = stringUtility::formatString("{\"primaryDrive\":1,\"secondaryDrive\":%d}", isDualHDDSetup);
+		body = new utils::dataContainer(usableDrivesJson, strlen(usableDrivesJson), strlen(usableDrivesJson));
+		free(usableDrivesJson);
+	}
+	else if (stringUtility::equals(path, "\\api\\drive.json", true))
+	{
+		pointerVector<char*>* getParams = stringUtility::split(query, "&", true);
+		if (getParams->count() < 2) {
+			return httpServer::generateResponse(400, "Query must contain the drive idx and a random nonce");
+		}
+		bool driveIdx = stringUtility::toInt(getParams->get(0)) == 1;
+		int clientNonce = stringUtility::toInt(getParams->get(1));
+		delete(getParams);
+		// Store the random nonce the client includes,
+		// only the last one who called this endpoint 
+		// can call the "protected" endpoints (lock, format)
+		// Doesn't help much, but still prevents some direct api calls
+		ExpectedNonce = clientNonce;
+		hddInfo::startThread(driveIdx);
+		while (!hddInfo::completed() == true) {
+			Sleep(10);	
+		}
+		hddInfo::hddInfoResponse response = hddInfo::getResponse();
+		if (response != hddInfo::hddInfoResponseFailureEeprom && response != hddInfo::hddInfoResponseTimeout) {
+			bool isLocked = response == hddInfo::hddInfoResponseLocked;
+			char* driveInfoJson = stringUtility::formatString("{\"locked\":%d,\"model\":\"%s\",\"serial\":\"%s\"}", isLocked, hddInfo::getModel(), hddInfo::getSerial());
+			body = new utils::dataContainer(driveInfoJson, strlen(driveInfoJson), strlen(driveInfoJson));
+			free(driveInfoJson);
+		}
+		hddInfo::closeThread();
+	}
+	else if (stringUtility::equals(path, "\\api\\hddlockunlock", true))
+	{
+		pointerVector<char*>* getParams = stringUtility::split(query, "&", true);
+		if (getParams->count() < 2) {
+			return httpServer::generateResponse(400, "Query must contain if the drive should be locked or unlocked, and the same nonce sent with the last drive info request");
+		}
+		bool isLockReq = stringUtility::toInt(getParams->get(0)) == 1;
+		int clientNonce = stringUtility::toInt(getParams->get(1));
+		delete(getParams);
+		if (clientNonce != ExpectedNonce) {
+			return httpServer::generateResponse(403, "Invalid nonce.");
+		}
+		if (isLockReq) {
+			hddLockUnlock::startThread(hddLockUnlock::hddLockUnlockActionLock);
+		} else {
+			hddLockUnlock::startThread(hddLockUnlock::hddLockUnlockActionUnlock);
+		}
+		while (!hddLockUnlock::completed() == true) {
+			Sleep(10);
+		}
+		hddLockUnlock::hddLockUnlockResponse response = hddLockUnlock::getResponse();
+		hddLockUnlock::closeThread();
+		char* lockResultJson = stringUtility::formatString("{\"status\":%d}", response);
+		body = new utils::dataContainer(lockResultJson, strlen(lockResultJson), strlen(lockResultJson));
+		free(lockResultJson);
 	}
 
 	if (body == NULL)
@@ -331,7 +425,7 @@ utils::dataContainer* onPostCallback(const char* path, const char* query, pointe
 			return httpServer::generateResponse(200, "OK");
 		}
 
-		return httpServer::generateResponse(406, "No wnough free slots.");
+		return httpServer::generateResponse(406, "Not enough free slots.");
 	}
 	else if (stringUtility::equals(path, "\\api\\cerbiosini", true))
 	{
@@ -351,8 +445,50 @@ utils::dataContainer* onPostCallback(const char* path, const char* query, pointe
 		char* body = (char*)bodyPart->body->data;
 		cerbiosIniHelper::saveConfig(body);
 	}
+	else if (stringUtility::equals(path, "\\api\\formatdrive", true))
+	{
+		if (formParts->count() != 2) {
+			return httpServer::generateResponse(400, "Unexpected form parts.");
+		}
+		FormPart* formPartDriveIdx = formParts->get(0);
+		char* sDriveIdx = (char*)formPartDriveIdx->body->data;
+		int driveIdx = stringUtility::toInt(sDriveIdx);
+		FormPart* formPartClientNonce = formParts->get(1);
+		char* sClientNonce = (char*)formPartClientNonce->body->data;
+		int clientNonce = stringUtility::toInt(sClientNonce);
+		if (clientNonce != ExpectedNonce) {
+			return httpServer::generateResponse(403, "Invalid nonce.");
+		}
+		if (driveIdx < 0 || driveIdx > 1) {
+			return httpServer::generateResponse(400, "Invalid drive index");
+		}
+		// What if someone tries to call this twice?
+		hddFormat::startThread(driveIdx);
+		while (!hddFormat::completed() == true) {
+			Sleep(100);
+		}
+		hddFormat::hddFormatResponse response = hddFormat::getResponse();
+		hddFormat::closeThread();
+		char* formatResultJson = stringUtility::formatString("{\"result\":%d}", response);
+		utils::dataContainer* body = new utils::dataContainer(formatResultJson, strlen(formatResultJson), strlen(formatResultJson));
+		free(formatResultJson);
+		char* contentLength = stringUtility::formatString("%lu", body->size);
+		char* header = stringUtility::formatString("HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nCache-Control: no-cache\r\nContent-Type: application/json\r\nX-Content-Type-Options: nosniff\r\nContent-Length: %s\r\n\r\n", contentLength);
+		utils::debugPrint("Header len = %i\n", strlen(header));
+		utils::debugPrint("Response = %s\n", header);
 
-	return httpServer::generateResponse(404, "Mot found");
+		utils::dataContainer* result = new utils::dataContainer(strlen(header) + body->size);
+		memcpy(result->data, header, strlen(header));
+		memcpy(result->data + strlen(header), body->data, body->size);
+
+		delete(body);
+		free(contentLength);
+		free(header);
+
+		return result;
+	}
+
+	return httpServer::generateResponse(404, "Not found");
 }
 
 void onResponseSentCallback()
