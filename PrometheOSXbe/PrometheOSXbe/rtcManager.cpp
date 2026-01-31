@@ -5,6 +5,9 @@
 #define EXTRACT_DATE_VALUE(value) ((((value & 0xf0) >> 4) * 10) + (value & 0x0f))
 #define COMPOSE_DATE_VALUE(value) ((((value - (value % 10)) / 10) << 4) | (value % 10))
 
+// DS3231 Control Register (0x0E) bit settings for square wave
+#define SQW_1HZ_MODE 0x10  // Set square wave to 1Hz
+
 uint8_t rtcManager::readByte(uint8_t reg)
 {
 	const int rtcAddess = 0x68;
@@ -46,6 +49,8 @@ void rtcManager::setDateTime(rtcDateTime dateTime)
 	writeByte(4, COMPOSE_DATE_VALUE(utcSystemTime.wDay));
 	writeByte(5, COMPOSE_DATE_VALUE(utcSystemTime.wMonth));
 	writeByte(6, COMPOSE_DATE_VALUE(utcSystemTime.wYear % 100));
+
+    writeByte(0x0E, SQW_1HZ_MODE);  // Set square wave output to 1Hz
 }
 
 rtcDateTime rtcManager::getDateTime()
