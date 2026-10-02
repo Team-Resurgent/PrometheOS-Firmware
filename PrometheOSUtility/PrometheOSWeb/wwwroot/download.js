@@ -1,15 +1,16 @@
-﻿window.onload = function () {
+window.onload = function () {
+    document.getElementById("year").textContent = new Date().getFullYear();
     getBankInfo();
 };
 
 async function getBankInfo() {
-    await fetch("http://192.168.1.66/api/bankinfo.json").then(async response => {
+    await fetch("/api/bankinfo.json").then(async response => {
 
         const json = await response.json();
 
         let contentBody = "";
         for (let i = 0; i < json.length; i++) {
-            if (json[i].slots > 0) {
+            if (json[i].slots > 0 && json[i].category == 0) {
                 contentBody += "<p><div class=\"grid\"><a role=\"button\" href=\"javascript:void(0)\" onclick=\"downloadBank(" + json[i].id + ", '" + json[i].name + ".bin')\">" + json[i].name + "</a></div></p>";
             }
         }
@@ -23,7 +24,7 @@ async function getBankInfo() {
 
 async function downloadBank(id, name)
 {
-    await fetch("http://192.168.1.66/api/downloadbank?" + id).catch(error => {
+    await fetch("/api/downloadbank?" + id).catch(error => {
         content.innerHTML = "Failed to connect."
     }).then(response => response.blob()).then(blob => {
         var url = window.URL.createObjectURL(blob);

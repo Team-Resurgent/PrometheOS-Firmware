@@ -2,55 +2,56 @@
 
 #include <xtl.h>
 
-typedef enum JoystickButtonState {
-	JoystickButtonStateNone,
-	JoystickButtonStatePressed
-} JoystickButtonState;
+typedef enum ButtonState {
+    ButtonStateNone,
+    ButtonStatePressed
+} ButtonState;
 
 typedef enum JoystickButton {
-	ButtonA,
-	ButtonB,
-	ButtonX,
-	ButtonY, 
-	ButtonWhite,
-	ButtonBlack,
-	ButtonBack,
-	ButtonStart,
-	ButtonLeftThumb,
-	ButtonRightThumb,
-	ButtonDpadUp,
-	ButtonDpadRight,
-	ButtonDpadDown,
-	ButtonDpadLeft,
-	ButtonTriggerLeft,
-	ButtonTriggerRight
+    JoystickButtonA,
+    JoystickButtonB,
+    JoystickButtonX,
+    JoystickButtonY,
+    JoystickButtonWhite,
+    JoystickButtonBlack,
+    JoystickButtonBack,
+    JoystickButtonStart,
+    JoystickButtonLeftThumb,
+    JoystickButtonRightThumb,
+    JoystickButtonDpadUp,
+    JoystickButtonDpadRight,
+    JoystickButtonDpadDown,
+    JoystickButtonDpadLeft,
+    JoystickButtonLeftTrigger,
+    JoystickButtonRightTrigger
 } JoystickButton;
 
-typedef struct JoystickButtonStates
-{
-	JoystickButtonState buttonA;
-	JoystickButtonState buttonB;
-	JoystickButtonState buttonX;
-	JoystickButtonState buttonY; 
-	JoystickButtonState buttonWhite;
-	JoystickButtonState buttonBlack;
-	JoystickButtonState buttonBack;
-	JoystickButtonState buttonStart;
-	JoystickButtonState buttonLeftThumb;
-	JoystickButtonState buttonRightThumb;
-	JoystickButtonState buttonDpadUp;
-	JoystickButtonState buttonDpadRight;
-	JoystickButtonState buttonDpadDown;
-	JoystickButtonState buttonDpadLeft;
-	JoystickButtonState buttonTriggerLeft;
-	JoystickButtonState buttonTriggerRight;
+typedef struct JoystickButtonStates {
+    ButtonState buttonA;
+    ButtonState buttonB;
+    ButtonState buttonX;
+    ButtonState buttonY;
+    ButtonState buttonWhite;
+    ButtonState buttonBlack;
+    ButtonState buttonBack;
+    ButtonState buttonStart;
+    ButtonState buttonLeftThumb;
+    ButtonState buttonRightThumb;
+    ButtonState buttonDpadUp;
+    ButtonState buttonDpadRight;
+    ButtonState buttonDpadDown;
+    ButtonState buttonDpadLeft;
+    ButtonState buttonLeftTrigger;
+    ButtonState buttonRightTrigger;
 } JoystickButtonStates;
 
-class inputManager
-{
-public:
-	static void processController();
-	static bool buttonDown(JoystickButton button, int port = -1);
-	static bool buttonPressed(JoystickButton button, int port = -1);
-	static bool isMemoryUnitMounted(char letter);
+class inputManager {
+  public:
+    static void processController();
+    static void injectButton(JoystickButton button);
+    static bool buttonDown(JoystickButton button, int port = -1);
+    static bool buttonPressed(JoystickButton button, int port = -1);
+    static bool isPortConnected(int port);
+    static int getConnectedPort(int index);
+    static bool isMemoryUnitMounted(char letter);
 };

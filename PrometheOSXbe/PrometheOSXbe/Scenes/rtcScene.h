@@ -4,15 +4,15 @@
 
 #include "..\rtcManager.h"
 
-class rtcScene : public scene
-{
-public:
-	rtcScene();
-	void update();
-	void render();
-private:
-	int mSelectedControl;
-	bool mHasRtcExpansion;
-	bool mShouldApply;
-	rtcDateTime mDateTime;
+class rtcScene : public scene {
+  public:
+    rtcScene();
+    void update();
+    void render();
+
+  private:
+    int mSelectedControl;
+    bool mHasXRtc;
+    bool mShouldApply;
+    rtcDateTime mDateTime;
 };

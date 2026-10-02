@@ -23,5 +23,25 @@
             }
             return directory;
         }
+
+        public static string GetRepoRoot()
+        {
+            var directory = GetSlnFolder();
+            while (true)
+            {
+                if (Directory.Exists(Path.Combine(directory, ".git")))
+                {
+                    return directory;
+                }
+
+                var parentDirectoryInfo = Directory.GetParent(directory);
+                if (parentDirectoryInfo == null)
+                {
+                    throw new Exception("Unable to find repository root.");
+                }
+
+                directory = parentDirectoryInfo.FullName;
+            }
+        }
     }
 }

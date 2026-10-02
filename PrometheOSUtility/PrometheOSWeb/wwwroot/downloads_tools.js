@@ -1,5 +1,9 @@
-﻿async function downloadEeprom() {
-    await fetch("http://192.168.1.66/api/downloadeeprom").catch(error => {
+window.onload = function () {
+    document.getElementById("year").textContent = new Date().getFullYear();
+};
+
+async function downloadEeprom() {
+    await fetch("/api/downloadeeprom").catch(error => {
         content.innerHTML = "Failed to connect."
     }).then(response => response.blob()).then(blob => {
         var url = window.URL.createObjectURL(blob);

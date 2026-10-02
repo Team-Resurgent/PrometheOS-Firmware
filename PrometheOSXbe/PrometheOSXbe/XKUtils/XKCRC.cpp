@@ -14,7 +14,7 @@
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation; either version 2 of the License, or
 * (at your option) any later version.
-* 
+*
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -29,7 +29,7 @@
 **	     XKCRC.CPP - General CRC Class' Implementation
 ********************************************************************************************************
 **
-**	Containss functions to do a simple CRC check on a block of data..  
+**	Containss functions to do a simple CRC check on a block of data..
 **	might be more ways of elegantly doing this, but for now this has to work...
 **
 ********************************************************************************************************
@@ -48,26 +48,22 @@ Reason: Prepared for Public Release
 */
 #include "XKCRC.h"
 
-XKCRC::XKCRC(void)
-{
+XKCRC::XKCRC(void) {
 }
 
-XKCRC::~XKCRC(void)
-{
+XKCRC::~XKCRC(void) {
 }
 
-void XKCRC::QuickCRC(UCHAR* CRCVAL, UCHAR* inData, DWORD dataLen)
-{
-	unsigned long high = 0, low = 0;
+void XKCRC::QuickCRC(UCHAR* CRCVAL, UCHAR* inData, DWORD dataLen) {
+    unsigned long high = 0, low = 0;
 
-	for (unsigned long i = 0; i < dataLen / sizeof(unsigned long); i++)
-	{
-		unsigned long val = ((unsigned long *)inData)[i];
-		unsigned long long sum = ((unsigned long long)high << 32) | low;
+    for (unsigned long i = 0; i < dataLen / sizeof(unsigned long); i++) {
+        unsigned long val = ((unsigned long*)inData)[i];
+        unsigned long long sum = ((unsigned long long)high << 32) | low;
 
-		high = (unsigned long)((sum + val) >> 32);
-		low += val;
-	}
+        high = (unsigned long)((sum + val) >> 32);
+        low += val;
+    }
 
-	*(unsigned long *)CRCVAL = ~(high + low);
+    *(unsigned long*)CRCVAL = ~(high + low);
 }

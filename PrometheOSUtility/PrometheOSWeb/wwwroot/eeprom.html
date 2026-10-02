@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>PrometheOS EEPROM Restore</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link href="pico.css" rel="stylesheet" />
+    <link href="main.css" rel="stylesheet" />
+</head>
+<body>
+    <main class="container prom-subpage">
+        <header class="prom-page-header">
+            <h2>Restore EEPROM</h2>
+            <a role="button" class="secondary outline prom-page-back" href="index.html">Back</a>
+        </header>
+        <div class="prom-warning" role="alert">
+            <strong>Warning:</strong> Back up your current EEPROM before restoring. An incorrect or incompatible EEPROM image can brick your Xbox.
+            Use <a href="downloads.html">Download Current EEPROM</a> first if you do not already have a backup.
+        </div>
+        <p>Upload a 256-byte EEPROM backup. The console will reboot after a successful restore.</p>
+        <label>
+            EEPROM image (.bin)
+            <input type="file" id="eepromFile" accept=".bin,application/octet-stream" />
+        </label>
+        <a role="button" href="javascript:void(0)" onclick="restoreEeprom()">Restore EEPROM</a>
+        <a role="button" class="secondary" href="downloads.html">Download Current EEPROM</a>
+        <footer class="prom-footer">
+            <b>Copyright <span id="year"></span> - Team Cerbios + Team Resurgent</b>
+        </footer>
+    </main>
+    <script src="prom.js"></script>
+    <script src="eeprom.js"></script>
+</body>
+</html>

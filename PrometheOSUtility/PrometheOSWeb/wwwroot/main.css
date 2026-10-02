@@ -1,4 +1,357 @@
-﻿.btn-ledoff {
+﻿.prom-header h2 {
+    margin-bottom: 0.25rem;
+}
+
+.prom-subtitle {
+    opacity: 0.85;
+    margin-top: 0;
+}
+
+.prom-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+    gap: 0.35rem;
+    margin: 0.75rem 0 1rem;
+}
+
+.prom-stat {
+    margin: 0;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    background: var(--pico-card-background-color);
+}
+
+.prom-stat h4 {
+    margin: 0 0 0.1rem 0;
+    font-size: 0.72rem;
+    line-height: 1.2;
+    opacity: 0.8;
+}
+
+.prom-stat p {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    font-weight: 600;
+}
+
+.prom-nav-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.75rem;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+.prom-nav-grid a[role="button"] {
+    margin: 0;
+    text-align: center;
+}
+
+main.container > h2 {
+    margin-bottom: 0.5rem;
+}
+
+.prom-back,
+a[role="button"][href="index.html"].secondary:not(.prom-files-back):not(.prom-flash-back),
+a[role="button"][href="index.html"].secondary.outline:not(.prom-files-back):not(.prom-flash-back) {
+    margin-top: 0.75rem;
+    margin-bottom: 1.75rem;
+    display: inline-block;
+}
+
+.prom-footer {
+    margin-top: 0;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--pico-muted-border-color);
+    font-size: 0.82rem;
+    opacity: 0.85;
+}
+
+.prom-footer b {
+    font-weight: 600;
+}
+
+.prom-warning {
+    margin: 0 0 0.75rem 0;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #aa0a00;
+    border-radius: var(--pico-border-radius);
+    background: rgba(170, 10, 0, 0.12);
+    font-size: 0.88rem;
+    line-height: 1.45;
+}
+
+.prom-warning strong {
+    color: #ff6b60;
+}
+
+.prom-warning a {
+    font-weight: 600;
+}
+
+.prom-toast-root {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.prom-toast {
+    padding: 0.75rem 1rem;
+    border-radius: var(--pico-border-radius);
+    background: var(--pico-card-background-color);
+    border: 1px solid var(--pico-muted-border-color);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+    transition: opacity 0.3s ease;
+}
+
+.prom-toast-success {
+    border-color: #289a23;
+}
+
+.prom-toast-error {
+    border-color: #aa0a00;
+}
+
+.prom-toast-hide {
+    opacity: 0;
+}
+
+.prom-info-card {
+    margin: 0 0 0.45rem 0;
+    padding: 0.4rem 0.65rem;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    background: var(--pico-card-background-color);
+}
+
+.prom-info-card h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.92rem;
+    line-height: 1.2;
+}
+
+.prom-info-card table {
+    width: 100%;
+    margin: 0;
+}
+
+.prom-info-card th,
+.prom-info-card td {
+    padding: 0.2rem 0.35rem;
+    font-size: 0.88rem;
+    line-height: 1.3;
+}
+
+.prom-info-card th {
+    text-align: left;
+    width: 40%;
+}
+
+.prom-breadcrumb {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.prom-files-pathbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    background: var(--pico-card-background-color);
+}
+
+.prom-files-path {
+    margin: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.84rem;
+    line-height: 1.4;
+    word-break: break-all;
+    opacity: 0.95;
+}
+
+.prom-files-path-sep {
+    opacity: 0.5;
+}
+
+.prom-files-path-current {
+    font-weight: 600;
+}
+
+.prom-file-drive {
+    font-weight: 600;
+}
+
+.prom-files-up {
+    margin: 0;
+    padding: 0.25rem 0.55rem;
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.prom-page-header,
+.prom-files-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.prom-page-header h2,
+.prom-files-header h2 {
+    margin: 0;
+}
+
+.prom-page-back,
+.prom-files-back {
+    margin: 0;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.prom-file-list {
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    background: var(--pico-card-background-color);
+    overflow-x: auto;
+}
+
+.prom-file-list table {
+    width: 100%;
+    margin: 0;
+    font-size: 0.88rem;
+}
+
+.prom-file-list th {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.4rem 0.6rem;
+    opacity: 0.85;
+}
+
+.prom-file-list td {
+    padding: 0.35rem 0.6rem;
+    vertical-align: middle;
+}
+
+.prom-file-name {
+    word-break: break-all;
+}
+
+.prom-file-dir {
+    color: var(--pico-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.prom-file-dir:hover,
+.prom-file-dir:focus {
+    text-decoration: underline;
+}
+
+.prom-file-list th.prom-file-actions,
+.prom-file-list td.prom-file-actions {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.prom-file-actions a[role="button"] {
+    margin: 0 0 0 0.25rem;
+    padding: 0.2rem 0.45rem;
+    font-size: 0.78rem;
+}
+
+.prom-file-upload {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    background: var(--pico-card-background-color);
+}
+
+.prom-file-upload input[type="file"] {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0.15rem 0;
+    font-size: 0.82rem;
+    border: none;
+    background: transparent;
+}
+
+.prom-file-upload a[role="button"] {
+    margin: 0;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+.prom-files-page .prom-footer {
+    margin-top: 1rem;
+}
+
+.prom-subpage #content {
+    margin-bottom: 0.25rem;
+}
+
+.prom-subpage > a[role="button"]:not(.prom-back) {
+    margin-top: 0.5rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0;
+    display: inline-block;
+}
+
+.prom-subpage > label {
+    margin-bottom: 0.5rem;
+}
+
+.prom-subpage > p {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+}
+
+.prom-flash-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.prom-flash-actions a[role="button"] {
+    margin: 0;
+    width: auto;
+    flex: 0 0 auto;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.9rem;
+}
+
+#file-drop {
+    border: 2px dashed var(--primary);
+    padding: 2rem;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+#file-drop.dragover {
+    background-color: hsl(195, 85%, 10%) !important;
+}
+
+.btn-ledoff {
     color: #ffffff;
     background-color: #404040;
     border-color: #000000;

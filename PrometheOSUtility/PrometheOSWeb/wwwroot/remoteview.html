@@ -6,17 +6,150 @@
 	<title>PrometheOS</title>
 	<link rel="icon" type="image/x-icon" href="favicon.ico" />
 	<link href="pico.css" rel="stylesheet" />
+	<style>
+		.controller-section {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-bottom: 1rem;
+		}
+
+		.controller-pad {
+			display: flex;
+			align-items: center;
+			gap: 1.5rem;
+			justify-content: center;
+		}
+
+		.controller-dpad {
+			display: grid;
+			grid-template-columns: repeat(3, auto);
+			grid-template-rows: repeat(2, auto);
+			gap: 1rem;
+		}
+
+		.controller-dpad .lt { grid-column: 1; grid-row: 1; }
+		.controller-dpad .up { grid-column: 2; grid-row: 1; }
+		.controller-dpad .rt { grid-column: 3; grid-row: 1; }
+		.controller-dpad .left { grid-column: 1; grid-row: 2; }
+		.controller-dpad .down { grid-column: 2; grid-row: 2; }
+		.controller-dpad .right { grid-column: 3; grid-row: 2; }
+
+		.controller-center {
+			display: grid;
+			grid-template-columns: repeat(2, auto);
+			grid-template-rows: repeat(2, auto);
+			gap: 0.75rem;
+		}
+
+		.controller-face {
+			display: grid;
+			grid-template-columns: repeat(2, auto);
+			grid-template-rows: repeat(2, auto);
+			gap: 0.75rem;
+		}
+
+		.controller-section a[role="button"] {
+			margin: 0;
+			min-width: 6rem;
+			padding: 0.75rem 1.25rem;
+			text-align: center;
+			white-space: nowrap;
+			touch-action: manipulation;
+		}
+
+		.controller-section a[role="button"]:focus {
+			outline: none;
+		}
+
+		.controller-section a[role="button"]:focus-visible {
+			outline: var(--pico-outline-width) solid var(--pico-primary-focus);
+		}
+
+		.controller-section a[role="button"].pressed {
+			filter: brightness(0.9);
+		}
+
+		#gamepadStatus {
+			font-size: 0.75rem;
+			font-weight: normal;
+			color: var(--pico-muted-color);
+		}
+
+		#refreshButton[aria-disabled="true"],
+		#screenshotButton[aria-disabled="true"] {
+			opacity: 0.5;
+			pointer-events: none;
+			cursor: not-allowed;
+		}
+
+		.prom-view-actions {
+			display: flex;
+			gap: 0.5rem;
+			align-items: stretch;
+		}
+
+		.prom-view-actions a[role="button"] {
+			margin: 0;
+			flex: 1 1 0;
+			min-width: 0;
+			text-align: center;
+			padding: 0.45rem 0.9rem;
+			font-size: 0.9rem;
+		}
+	</style>
 </head>
 <body>
 	<main class="container">
 		<form>
 			<h2>PrometheOS: Remote View</h2>
-			<div>
-				<span id="content">Please Wait...</span>
+			<div id="screenshotView">
+				<span id="screenshotStatus">Loading remote view...</span>
 			</div>
 			<br />
-			<div class="grid">
-				<a role="button" href="javascript:void(0)" onclick="screenshot()">Refresh View</a>
+			<div class="prom-view-actions">
+				<a role="button" id="refreshButton" href="javascript:void(0)" onclick="screenshot()">Refresh View</a>
+				<a role="button" class="secondary outline" id="screenshotButton" href="javascript:void(0)" onclick="takeScreenshot()">Take Screenshot</a>
+			</div>
+			<br />
+			<label>
+				<input type="checkbox" id="autoRefresh" checked />
+				Auto Refresh
+			</label>
+			<label for="refreshInterval">
+				Interval
+				<select id="refreshInterval">
+					<option value="1000" selected>1 second</option>
+					<option value="2000">2 seconds</option>
+					<option value="4000">4 seconds</option>
+					<option value="8000">8 seconds</option>
+				</select>
+			</label>
+			<br />
+			<div class="controller-section">
+				<h3>Controller <small id="gamepadStatus"></small></h3>
+				<div class="controller-pad">
+					<div class="controller-dpad">
+						<a role="button" class="lt" href="javascript:void(0)" data-key="14">LT</a>
+						<a role="button" class="up" href="javascript:void(0)" data-key="10">Up</a>
+						<a role="button" class="rt" href="javascript:void(0)" data-key="15">RT</a>
+						<a role="button" class="left" href="javascript:void(0)" data-key="13">Left</a>
+						<a role="button" class="down" href="javascript:void(0)" data-key="12">Down</a>
+						<a role="button" class="right" href="javascript:void(0)" data-key="11">Right</a>
+					</div>
+					<div class="controller-center">
+						<a role="button" href="javascript:void(0)" data-key="6">Back</a>
+						<a role="button" href="javascript:void(0)" data-key="7">Start</a>
+						<a role="button" href="javascript:void(0)" data-key="4">White</a>
+						<a role="button" href="javascript:void(0)" data-key="5">Black</a>
+					</div>
+					<div class="controller-face">
+						<a role="button" class="a" href="javascript:void(0)" data-key="0">A</a>
+						<a role="button" class="b" href="javascript:void(0)" data-key="1">B</a>
+						<a role="button" class="x" href="javascript:void(0)" data-key="2">X</a>
+						<a role="button" class="y" href="javascript:void(0)" data-key="3">Y</a>
+					</div>
+				</div>
 			</div>
 			<br />
 			<div class="grid">
@@ -24,10 +157,11 @@
 			</div>
 			<br />
 			<div>
-				<b>Copyright 2024 - Team Cerbios + Team Resurgent</b>
+				<b>Copyright <span id="year"></span> - Team Cerbios + Team Resurgent</b>
 			</div>
 		</form>
 	</main>
+	<script src="prom.js"></script>
 	<script src="remoteview.js"></script>
 </body>
 </html>

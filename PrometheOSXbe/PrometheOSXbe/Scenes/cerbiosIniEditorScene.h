@@ -3,32 +3,22 @@
 #include "scene.h"
 #include "sceneManager.h"
 
-#include "..\cerbiosIniHelper.h"
+#include "../cerbiosIniHelper.h"
+#include "../pointerVector.h"
+#include "../ListItems/listItem.h"
 
-class cerbiosIniEditorScene : public scene
-{
-public:
-	cerbiosIniEditorScene();
-	~cerbiosIniEditorScene();
-	void update();
-	void render();
-	char* shortenString(const char* value);
-private:
-	int mSelectedControl;
-	int mMaxOptionCount;
-	bool mNeedsSave;
-	bool mHasFilePicker;
-	bool mShowingFilePicker;
-	bool mShowingInfo;
-	cerbiosConfig mConfig;
-	char* mShortCdPath1;
-	char* mShortCdPath2;
-	char* mShortCdPath3;
-	char* mShortDashPath1;
-	char* mShortDashPath2;
-	char* mShortDashPath3;
-	char* mShortBootAnimPath;
-	char* getOptionInfo(int selectedControl);
-	static void onPathClosingCallback(sceneResult result, void* context, scene* scene);
-	static void onFrontLedClosingCallback(sceneResult result, void* context, scene* scene);
+class cerbiosIniEditorScene : public scene {
+  public:
+    cerbiosIniEditorScene(int page);
+    ~cerbiosIniEditorScene();
+    void refreshPage();
+    void update();
+    void render();
+    cerbiosConfig* getConfig();
+
+  private:
+    int mSelectedControl;
+    int mPage;
+    bool mShowInfo;
+    pointerVector<listItem*>* mSceneItems;
 };

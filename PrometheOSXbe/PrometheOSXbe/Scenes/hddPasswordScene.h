@@ -2,12 +2,12 @@
 
 #include "scene.h"
 
-class hddPasswordScene : public scene
-{
-public:
-	hddPasswordScene();
-	void update();
-	void render();
-private:
-	int mSelectedControl;
+class hddPasswordScene : public scene {
+  public:
+    hddPasswordScene();
+    void update();
+    void render();
+
+  private:
+    int mSelectedControl;
 };

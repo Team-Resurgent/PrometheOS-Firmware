@@ -14,7 +14,7 @@
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation; either version 2 of the License, or
 * (at your option) any later version.
-* 
+*
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -48,47 +48,43 @@ Reason: Prepared for Public Release
 */
 
 #pragma once
-#if defined (_WINDOWS)
-	#pragma message ("Compiling for WINDOWS: " __FILE__)
-	#include <afxwin.h>         // MFC core and standard components
-#elif defined (_XBOX)
-	#pragma message ("Compiling for XBOX: " __FILE__)
-	#include <xtl.h>
+#if defined(_WINDOWS)
+#pragma message("Compiling for WINDOWS: " __FILE__)
+#include <afxwin.h> // MFC core and standard components
+#elif defined(_XBOX)
+#pragma message("Compiling for XBOX: " __FILE__)
+#include <xtl.h>
 #else
-	#error ERR: Have to Define _WINDOWS or _XBOX !!
+#error ERR: Have to Define _WINDOWS or _XBOX !!
 #endif
 
 #ifndef FILENAME_MAX
-	#define FILENAME_MAX 260
+#define FILENAME_MAX 260
 #endif
 
-class XKGeneral
-{
-protected:
-	#define HEX_VALUES {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}
+class XKGeneral {
+  protected:
+#define HEX_VALUES                                                                                                     \
+    { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' }
 
-public:
-	XKGeneral(void);
-	~XKGeneral(void);
+  public:
+    XKGeneral(void);
+    ~XKGeneral(void);
 
-	//Generic conversion functions..
-	static void	BytesToHexStr(LPBYTE SrcBytes, DWORD byteCount, LPSTR DstString);
-	static void	BytesToHexStr(LPBYTE SrcBytes, DWORD byteCount, LPSTR DstString, UCHAR Seperator);
-	static void	MixedStrToDecStr(LPSTR StringData, LPDWORD StrLen, CHAR Base, BOOL RemoveInvalid);
-	static void	HexStrToBytes(LPBYTE StringData, LPDWORD pBufferLen, BOOL RemoveInvalid);
-	static DWORD HexStrToDWORD(LPBYTE StringData, LPDWORD pBufferLen, BOOL RemoveInvalid, BOOL FlipByteOrder);
-	
-	//Read items and values from a .INI file..  
-	static BOOL	ReadINIFileItem(LPCSTR INIFileName, LPCSTR INISection, LPCSTR INIItem, LPSTR ItemValue, LPDWORD ValueLen);
-	static BOOL	WriteINIFileItem(LPCSTR INIFileName, LPCSTR INISection, LPCSTR INIItem, LPSTR ItemValue);
+    // Generic conversion functions..
+    static void BytesToHexStr(LPBYTE SrcBytes, DWORD byteCount, LPSTR DstString);
+    static void BytesToHexStr(LPBYTE SrcBytes, DWORD byteCount, LPSTR DstString, UCHAR Seperator);
+    static void MixedStrToDecStr(LPSTR StringData, LPDWORD StrLen, CHAR Base, BOOL RemoveInvalid);
+    static void HexStrToBytes(LPBYTE StringData, LPDWORD pBufferLen, BOOL RemoveInvalid);
+    static DWORD HexStrToDWORD(LPBYTE StringData, LPDWORD pBufferLen, BOOL RemoveInvalid, BOOL FlipByteOrder);
 
-	//Strip Quotes from a string..  
-	static void StripLeftSpaces(LPSTR sString);
-	static void StripRightSpaces(LPSTR sString);
-	static void StripSpaces(LPSTR sString);
-	static void StripCarriageReturn(LPSTR sString);
-	static void StripEnclosedChars(LPSTR sString, LPDWORD strLen, CHAR EncloseChar);
-	static void StripQuotes(LPSTR sString, LPDWORD strLen);
-	static void ToUpperString(LPSTR sString);
-	static void ToLowerString(LPSTR sString);
+    // Strip Quotes from a string..
+    static void StripLeftSpaces(LPSTR sString);
+    static void StripRightSpaces(LPSTR sString);
+    static void StripSpaces(LPSTR sString);
+    static void StripCarriageReturn(LPSTR sString);
+    static void StripEnclosedChars(LPSTR sString, LPDWORD strLen, CHAR EncloseChar);
+    static void StripQuotes(LPSTR sString, LPDWORD strLen);
+    static void ToUpperString(LPSTR sString);
+    static void ToLowerString(LPSTR sString);
 };

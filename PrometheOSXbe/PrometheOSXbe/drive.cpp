@@ -4,126 +4,147 @@
 #include "XboxInternals.h"
 #include "fileSystem.h"
 #include "inputManager.h"
+#include "sdcard.h"
 
-drive::drive(const char* mountPoint, const char* mountPointAlias, const char* systemPath, driveType drive)
-{
-	mMountPoint = strdup(mountPoint);
-	mMountPointAlias = strdup(mountPointAlias);
-	mSystemPath = strdup(systemPath);
-	mMounted = false;
-	mDriveType = drive;
+drive::drive(const char* mountPoint, const char* mountPointAlias, const char* systemPath, driveType drive) {
+    mMountPoint = strdup(mountPoint);
+    mMountPointAlias = strdup(mountPointAlias);
+    mSystemPath = strdup(systemPath);
+    mMounted = false;
+    mDriveType = drive;
 }
 
-bool drive::mount()
-{
-	if (mDriveType == driveTypeMemoryUnit) {
-		mMounted = inputManager::isMemoryUnitMounted(mMountPoint[0]);
+drive::~drive() {
+    free(mMountPoint); 
+    free(mMountPointAlias); 
+    free(mSystemPath); 
+}
+
+bool drive::mount() {
+    if (mDriveType == driveTypeMemoryUnit) {
+        mMounted = inputManager::isMemoryUnitMounted(mMountPoint[0]);
+        return mMounted;
+    } else if (mDriveType == driveTypeSdCard) {
+		sdcard::open();
+		mMounted = sdcard::remount();
+		sdcard::close();
 		return mMounted;
-	}
+    }
 
-	if (mDriveType == driveTypeCdRom && mMounted == true) {
-		mMounted = false;
-		unmount();
-	}
+    if (mDriveType == driveTypeCdRom && mMounted == true) {
+        mMounted = false;
+        unmount();
+    }
 
-	if (mMounted == true) 
-	{
-		return true;
-	}
+    if (mMounted == true) {
+        return true;
+    }
 
-	char* mountPoint = stringUtility::formatString("\\??\\%s:", mMountPoint);
-	char* systemPath = stringUtility::formatString("%s", mSystemPath);
-	STRING sMountPoint = {(USHORT)strlen(mountPoint), (USHORT)strlen(mountPoint) + 1, mountPoint};
-	STRING sSystemPath = {(USHORT)strlen(systemPath), (USHORT)strlen(systemPath) + 1, systemPath};
-	int result = IoCreateSymbolicLink(&sMountPoint, &sSystemPath);
-	free(mountPoint);
-	free(systemPath);
+    char* mountPoint = stringUtility::formatString("\\??\\%s:", mMountPoint);
+    char* systemPath = stringUtility::formatString("%s", mSystemPath);
+    STRING sMountPoint = {(USHORT)strlen(mountPoint), (USHORT)strlen(mountPoint) + 1, mountPoint};
+    STRING sSystemPath = {(USHORT)strlen(systemPath), (USHORT)strlen(systemPath) + 1, systemPath};
+    int result = IoCreateSymbolicLink(&sMountPoint, &sSystemPath);
+    free(mountPoint);
+    free(systemPath);
 
-	if (mDriveType == driveTypeCdRom)
-	{
-		uint32_t trayState;
-		if (HalReadSMCTrayState(&trayState, NULL) >= 0 && trayState == SMC_TRAY_STATE_MEDIA_DETECT)
-		{
-			mMounted = true;
+    if (mDriveType == driveTypeCdRom) {
+        uint32_t trayState;
+        if (HalReadSMCTrayState(&trayState, NULL) >= 0 && trayState == SMC_TRAY_STATE_MEDIA_DETECT) {
+            mMounted = true;
+        }
+    } else {
+        mMounted = getTotalNumberOfBytes() != 0;
+    }
+
+    return mMounted;
+}
+
+bool drive::unmount() {
+    if (mDriveType == driveTypeMemoryUnit) {
+        mMounted = false;
+        return mMounted;
+    } else if (mDriveType == driveTypeSdCard) {
+        mMounted = false;
+        return mMounted;
+    }
+
+    char* mountPoint = stringUtility::formatString("\\??\\%s:", mMountPoint);
+    STRING sMountPoint = {(USHORT)strlen(mountPoint), (USHORT)strlen(mountPoint) + 1, mountPoint};
+    int result = IoDeleteSymbolicLink(&sMountPoint);
+    free(mountPoint);
+
+    char* systemPath = stringUtility::formatString("%s", mSystemPath);
+    char* systemPath2 = stringUtility::rightTrim(systemPath, '\\');
+    if (mDriveType == driveTypeCdRom) {
+        STRING sSystemPath = {(USHORT)strlen(systemPath2), (USHORT)strlen(systemPath2) + 1, systemPath2};
+        result |= IoDismountVolumeByName(&sSystemPath);
+    }
+    free(systemPath2);
+    free(systemPath);
+
+    mMounted = false;
+    return result == 0;
+}
+
+bool drive::isMounted() {
+    return mMounted;
+}
+
+char* drive::getMountPoint() {
+    return strdup(mMountPoint);
+}
+
+char* drive::getMountPointAlias() {
+    return strdup(mMountPointAlias);
+}
+
+char* drive::getSystemPath() {
+    return strdup(mSystemPath);
+}
+
+uint64_t drive::getTotalNumberOfBytes() {
+	if (mDriveType == driveTypeSdCard) {
+		uint64_t result = 0;
+		sdcard::open();
+		bool ok = sdcard::get_volume_space();
+		if (ok) {
+			result = sdcard::get_volume_total();
 		}
-	}
-	else
-	{
-		mMounted = getTotalNumberOfBytes() != 0;
+		sdcard::close();
+		return result;
 	}
 
-	return mMounted;
+    char* rootPath = stringUtility::formatString("%s:\\", mMountPoint);
+    ULARGE_INTEGER totalNumberOfBytes = {0};
+    // Params: (dir, freeBytesAvailableToCaller, totalNumberOfBytes, totalNumberOfFreeBytes).
+    BOOL status = GetDiskFreeSpaceExA(rootPath, NULL, &totalNumberOfBytes, NULL);
+    free(rootPath);
+    if (status == 0) {
+        return 0;
+    }
+    return (uint64_t)totalNumberOfBytes.QuadPart;
 }
 
-bool drive::unmount()
-{
-	if (mDriveType == driveTypeMemoryUnit) {
-		mMounted = false;
-		return mMounted;
+uint64_t drive::getTotalFreeNumberOfBytes() {
+	if (mDriveType == driveTypeSdCard) {
+		uint64_t result = 0;
+		sdcard::open();
+		bool ok = sdcard::get_volume_space();
+		if (ok) {
+			result = sdcard::get_volume_free();
+		}
+		sdcard::close();
+		return result;
 	}
 
-	char* mountPoint = stringUtility::formatString("\\??\\%s:", mMountPoint);
-	STRING sMountPoint = {(USHORT)strlen(mountPoint), (USHORT)strlen(mountPoint) + 1, mountPoint};
-	int result = IoDeleteSymbolicLink(&sMountPoint);
-	free(mountPoint);
-
-	char* systemPath = stringUtility::formatString("%s", mSystemPath);
-	char* systemPath2 = stringUtility::rightTrim(systemPath, '\\');
-	if (mDriveType == driveTypeCdRom)
-	{
-		STRING sSystemPath = {(USHORT)strlen(systemPath2), (USHORT)strlen(systemPath2) + 1, systemPath2};
-		result |= IoDismountVolumeByName(&sSystemPath);
-	}
-	free(systemPath2);
-	free(systemPath);
-
-	mMounted = false;
-	return result == 0;
+    char* rootPath = stringUtility::formatString("%s:\\", mMountPoint);
+    ULARGE_INTEGER freeBytesAvailableToCaller = {0};
+    // Params: (dir, freeBytesAvailableToCaller, totalNumberOfBytes, totalNumberOfFreeBytes).
+    BOOL status = GetDiskFreeSpaceExA(rootPath, &freeBytesAvailableToCaller, NULL, NULL);
+    free(rootPath);
+    if (status == 0) {
+        return 0;
+    }
+    return (uint64_t)freeBytesAvailableToCaller.QuadPart;
 }
-
-bool drive::isMounted()
-{	
-	return mMounted;
-}
-
-char* drive::getMountPoint()
-{
-	return strdup(mMountPoint);
-}
-
-char* drive::getMountPointAlias()
-{
-	return strdup(mMountPointAlias);
-}
-
-char* drive::getSystemPath()
-{
-	return strdup(mSystemPath);
-}
-
-uint64_t drive::getTotalNumberOfBytes()
-{	
-	char* rootPath = stringUtility::formatString("%s:\\", mMountPoint);
-	ULARGE_INTEGER totalNumberOfBytes;
-	BOOL status = GetDiskFreeSpaceExA(rootPath, NULL, &totalNumberOfBytes, NULL);
-	free(rootPath);
-	if (status == 0) 
-	{
-		return 0;
-	}
-	return (uint64_t)totalNumberOfBytes.QuadPart;
-}
-
-uint64_t drive::getTotalFreeNumberOfBytes()
-{	
-	char* rootPath = stringUtility::formatString("%s:\\", mMountPoint);
-	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
-	BOOL status = GetDiskFreeSpaceExA(rootPath, &totalNumberOfFreeBytes, NULL, NULL);
-	free(rootPath);
-	if (status == 0) 
-	{
-		return 0;
-	}
-	return (uint64_t)totalNumberOfFreeBytes.QuadPart;
-}
-

@@ -15,13 +15,24 @@
 
   <ItemGroup>
     <None Remove="modxo.bin" />
+    <None Remove="OfflineFiles\modxo_erebos.bin" />
+    <None Remove="OfflineFiles\modxo_official_pico.bin" />
+    <None Remove="OfflineFiles\modxo_official_pico2.bin" />
+    <None Remove="OfflineFiles\modxo_rp2040_zero_tiny.bin" />
+    <None Remove="OfflineFiles\modxo_xiao_rp2040.bin" />
+    <None Remove="OfflineFiles\modxo_yd_rp2040.bin" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="BundlerMinifier.Core" Version="3.2.449" />
-    <PackageReference Include="FluentFTP" Version="52.0.0" />
+    <PackageReference Include="FluentFTP" Version="53.0.2" />
     <PackageReference Include="K4os.Compression.LZ4" Version="1.3.8" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
+    <PackageReference Include="LZXToolkit" Version="1.0.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="OfflineFiles\" />
   </ItemGroup>
 
 </Project>

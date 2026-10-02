@@ -1,8 +1,7 @@
 #pragma once
 
-enum horizAlignment
-{
-	horizAlignmentLeft,
-	horizAlignmentCenter,
-	horizAlignmentRight,
+enum horizAlignment {
+    horizAlignmentLeft,
+    horizAlignmentCenter,
+    horizAlignmentRight,
 };

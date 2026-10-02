@@ -9,6 +9,8 @@ Global
 		Debug-Aladdin2mb = Debug-Aladdin2mb
 		Debug-Dummy = Debug-Dummy
 		Debug-Modxo = Debug-Modxo
+		Debug-Smartxx = Debug-Smartxx
+		Debug-SmartxxOpx = Debug-SmartxxOpx
 		Debug-Tools = Debug-Tools
 		Debug-Xchanger = Debug-Xchanger
 		Debug-Xecuter = Debug-Xecuter
@@ -20,6 +22,8 @@ Global
 		Release-Aladdin2mb = Release-Aladdin2mb
 		Release-Dummy = Release-Dummy
 		Release-Modxo = Release-Modxo
+		Release-Smartxx = Release-Smartxx
+		Release-SmartxxOpx = Release-SmartxxOpx
 		Release-Tools = Release-Tools
 		Release-Xchanger = Release-Xchanger
 		Release-Xecuter = Release-Xecuter
@@ -34,6 +38,10 @@ Global
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Dummy.Build.0 = Debug-Dummy|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Modxo.ActiveCfg = Debug-Modxo|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Modxo.Build.0 = Debug-Modxo|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Smartxx.ActiveCfg = Debug-Smartxx|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Smartxx.Build.0 = Debug-Smartxx|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-SmartxxOpx.ActiveCfg = Debug-SmartxxOpx|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-SmartxxOpx.Build.0 = Debug-SmartxxOpx|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Tools.ActiveCfg = Debug-Tools|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Tools.Build.0 = Debug-Tools|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Debug-Xchanger.ActiveCfg = Debug-Xchanger|Xbox
@@ -56,6 +64,10 @@ Global
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Dummy.Build.0 = Release-Dummy|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Modxo.ActiveCfg = Release-Modxo|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Modxo.Build.0 = Release-Modxo|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Smartxx.ActiveCfg = Release-Smartxx|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Smartxx.Build.0 = Release-Smartxx|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-SmartxxOpx.ActiveCfg = Release-SmartxxOpx|Xbox
+		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-SmartxxOpx.Build.0 = Release-SmartxxOpx|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Tools.ActiveCfg = Release-Tools|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Tools.Build.0 = Release-Tools|Xbox
 		{03813F8D-2AD5-44E4-B724-44240DB90B0B}.Release-Xchanger.ActiveCfg = Release-Xchanger|Xbox

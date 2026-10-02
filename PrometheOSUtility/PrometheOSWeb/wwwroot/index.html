@@ -6,52 +6,79 @@
     <title>PrometheOS</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link href="pico.css" rel="stylesheet" />
+    <link href="main.css" rel="stylesheet" />
 </head>
 <body>
-	<main class="container">
-		<form>
-			<h2>PrometheOS</h2>
-			<div class="grid">
-				<a role="button" href="launch.html">Launch BIOS</a>
-			</div>
-			<br />
-			<div class="grid">
-				<a role="button" href="remove.html">Remove BIOS</a>
-			</div>
-			<br />
-			<div class="grid">
-				<a role="button" href="flash.html">Flash BIOS</a>
-			</div>
-			<br />
-			<div class="grid">
-				<a role="button" href="downloads.html">Downloads</a>
-			</div>
-			<br />
-			<div class="grid">
-				<a role="button" href="cerbiosini.html">Cerbios INI</a>
-			</div>
-			<br />
-			<div class="grid">
-				<a role="button" href="javascript:void(0)" onclick="screenshot()">Take Screenshot</a>
-			</div>
-			<br />
-			<div class="grid">
-				<a role="button" href="remoteview.html">Remote View</a>
-			</div>
-			<br />
-			<div class="grid">
-				<a role="button" href="javascript:void(0)" onclick="reboot()">Reboot</a>
-			</div>
-			<br />
-			<div class="grid">
-				<a role="button" href="javascript:void(0)" onclick="shutdown()">Shutdown</a>
-			</div>
-			<br />
-			<div>
-				<b>Copyright 2024 - Team Cerbios + Team Resurgent</b>
-			</div>
-		</form>
-	</main>
-	<script src="index.js"></script>
+    <main class="container">
+        <header class="prom-header">
+            <h2>PrometheOS Mission Control</h2>
+            <p class="prom-subtitle">Manage your console from any device on your network.</p>
+        </header>
+
+        <section class="prom-dashboard" id="statusDashboard">
+            <article class="prom-stat">
+                <h4>Version</h4>
+                <p id="statVersion">--</p>
+            </article>
+            <article class="prom-stat">
+                <h4>Modchip</h4>
+                <p id="statModchip">--</p>
+            </article>
+            <article class="prom-stat">
+                <h4>Skin</h4>
+                <p id="statSkin">--</p>
+            </article>
+            <article class="prom-stat">
+                <h4>CPU Temp</h4>
+                <p id="statCpuTemp">--</p>
+            </article>
+            <article class="prom-stat">
+                <h4>MB Temp</h4>
+                <p id="statMbTemp">--</p>
+            </article>
+            <article class="prom-stat">
+                <h4>Fan</h4>
+                <p id="statFan">--</p>
+            </article>
+            <article class="prom-stat">
+                <h4>Free RAM</h4>
+                <p id="statMem">--</p>
+            </article>
+            <article class="prom-stat">
+                <h4>CPU / GPU</h4>
+                <p id="statSpeed">--</p>
+            </article>
+            <article class="prom-stat">
+                <h4>Auto Boot</h4>
+                <p id="statAutoBoot">--</p>
+            </article>
+            <article class="prom-stat">
+                <h4>Video</h4>
+                <p id="statAvRes">--</p>
+            </article>
+        </section>
+
+        <section class="prom-nav-grid">
+            <a role="button" href="launch.html">Launch BIOS</a>
+            <a role="button" href="systeminfo.html">System Info</a>
+            <a role="button" href="files.html">File Manager</a>
+            <a role="button" href="eeprom.html">EEPROM Utility</a>
+            <a role="button" href="remove.html">Remove BIOS</a>
+            <a role="button" href="flash.html">Flash BIOS</a>
+            <a role="button" href="downloads.html">Downloads</a>
+            <a role="button" href="cerbiosini.html">Cerbios INI</a>
+            <a role="button" href="datetime.html">Set Date/Time</a>
+            <a role="button" href="remoteview.html">Remote View</a>
+            <a role="button" class="secondary" href="javascript:void(0)" onclick="takeScreenshot()">Screenshot</a>
+            <a role="button" class="secondary" href="javascript:void(0)" onclick="rebootConsole()">Reboot</a>
+            <a role="button" class="secondary outline" href="javascript:void(0)" onclick="shutdownConsole()">Shutdown</a>
+        </section>
+
+        <footer class="prom-footer">
+            <b>Copyright <span id="year"></span> - Team Cerbios + Team Resurgent</b>
+        </footer>
+    </main>
+    <script src="prom.js"></script>
+    <script src="index.js"></script>
 </body>
 </html>

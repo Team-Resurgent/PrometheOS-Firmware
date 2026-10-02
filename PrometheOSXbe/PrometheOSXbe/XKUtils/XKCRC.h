@@ -14,7 +14,7 @@
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation; either version 2 of the License, or
 * (at your option) any later version.
-* 
+*
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -47,23 +47,20 @@ Reason: Prepared for Public Release
 */
 
 #pragma once
-#if defined (_WINDOWS)
-	#pragma message ("Compiling for WINDOWS: " __FILE__)
-	#include <afxwin.h>         // MFC core and standard components
-#elif defined (_XBOX)
-	#pragma message ("Compiling for XBOX: " __FILE__)
-	#include <xtl.h>
+#if defined(_WINDOWS)
+#pragma message("Compiling for WINDOWS: " __FILE__)
+#include <afxwin.h> // MFC core and standard components
+#elif defined(_XBOX)
+#pragma message("Compiling for XBOX: " __FILE__)
+#include <xtl.h>
 #else
-	#error ERRR: Have to Define _WINDOWS or _XBOX !!
+#error ERRR: Have to Define _WINDOWS or _XBOX !!
 #endif
 
+class XKCRC {
+  public:
+    XKCRC(void);
+    virtual ~XKCRC(void);
 
-class XKCRC
-{
-public:
-	XKCRC(void);
-	virtual ~XKCRC(void);
-
-	static void QuickCRC(UCHAR* CRCVAL, UCHAR* inData, DWORD  dataLen);
-
+    static void QuickCRC(UCHAR* CRCVAL, UCHAR* inData, DWORD dataLen);
 };

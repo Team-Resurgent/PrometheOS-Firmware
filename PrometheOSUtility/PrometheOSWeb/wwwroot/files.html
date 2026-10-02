@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>PrometheOS File Manager</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link href="pico.css" rel="stylesheet" />
+    <link href="main.css" rel="stylesheet" />
+</head>
+<body>
+    <main class="container prom-files-page">
+        <header class="prom-page-header">
+            <h2>File Manager</h2>
+            <a role="button" class="secondary outline prom-page-back" href="index.html">Back</a>
+        </header>
+        <div class="prom-files-pathbar">
+            <div id="currentPath" class="prom-files-path">Root</div>
+            <a role="button" id="pathUp" class="secondary outline prom-files-up" href="javascript:void(0)" hidden>Up</a>
+        </div>
+        <div id="fileList" class="prom-file-list">Loading...</div>
+        <div id="uploadBar" class="prom-file-upload" hidden>
+            <input type="file" id="uploadFile" />
+            <a role="button" class="secondary outline" href="javascript:void(0)" onclick="uploadSelectedFile()">Upload</a>
+            <a role="button" class="secondary outline" href="javascript:void(0)" onclick="createFolder()">New Folder</a>
+        </div>
+        <footer class="prom-footer">
+            <b>Copyright <span id="year"></span> - Team Cerbios + Team Resurgent</b>
+        </footer>
+        <dialog id="nameDialog">
+            <article>
+                <header><b id="nameDialogTitle">Enter name</b></header>
+                <input type="text" id="nameDialogInput" autocomplete="off"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();closeNameDialog(true);}" />
+                <footer>
+                    <a role="button" class="secondary" href="javascript:void(0)" onclick="closeNameDialog(false)">Cancel</a>
+                    <a role="button" href="javascript:void(0)" onclick="closeNameDialog(true)">OK</a>
+                </footer>
+            </article>
+        </dialog>
+    </main>
+    <script src="prom.js"></script>
+    <script src="files.js"></script>
+</body>
+</html>

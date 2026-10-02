@@ -2,11 +2,11 @@
 
 #include "scene.h"
 
-class autoBootScene : public scene
-{
-public:
-	autoBootScene();
-	void update();
-	void render();
-	void continueBoot();
+class autoBootScene : public scene {
+  public:
+    autoBootScene();
+    void update();
+    void render();
+    void continueBoot();
+    void close();
 };

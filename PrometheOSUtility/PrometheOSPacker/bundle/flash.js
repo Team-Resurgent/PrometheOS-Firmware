@@ -1,6 +1,32 @@
 let ledColorState = 0;
 
 window.onload = function () {
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    const fileDrop = document.getElementById("file-drop");
+    fileDrop.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        fileDrop.classList.add("dragover");
+    });
+
+    fileDrop.addEventListener("dragleave", () => {
+        fileDrop.classList.remove("dragover");
+    });
+
+    fileDrop.addEventListener("drop", (event) => {
+        event.preventDefault();
+        fileDrop.classList.remove("dragover");
+        const files = event.dataTransfer.files;
+        if (files.length > 0) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(files[0]); 
+            const fileInput = document.getElementById("file");
+            fileInput.files = dataTransfer.files;
+            refreshFileInfo();
+        }
+    });
+
     refreshFileInfo();
 };
 
@@ -10,6 +36,7 @@ function getFileSize()
     if (file.value == "") {
         return -1;
     }
+
     const fileSize = file.files[0].size; 
     if (fileSize == 0) {
         return -1;
@@ -29,7 +56,7 @@ async function refreshFileInfo()
         name.value = file.files[0].name.substring(0, 40);
     }
 
-    await fetch("http://192.168.1.66/api/freeslots.json").then(async response => {
+    await fetch("/api/freeslots.json").then(async response => {
 
         const json = await response.json();
         const freeSlots = document.getElementById("freeSlots");
@@ -103,7 +130,7 @@ async function upload()
     var data = new FormData();
     data.append('file', file.files[0]);
     data.append('body', "{\"ledColor\":" + ledColorState + ",\"bankName\":\"" + name.value + "\"}");
-    await fetch("http://192.168.1.66/api/upload", {
+    await fetch("/api/upload", {
         method: 'POST',
         body: data
     }).then(response => {

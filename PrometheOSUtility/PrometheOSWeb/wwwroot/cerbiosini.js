@@ -1,10 +1,11 @@
-﻿window.onload = function () {
+window.onload = function () {
+    document.getElementById("year").textContent = new Date().getFullYear();
     getCerbiosIni();
 };
 
 async function getCerbiosIni()
 {
-    await fetch("http://192.168.1.66/api/cerbiosini").then(async response => {
+    await fetch("/api/cerbiosini").then(async response => {
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
@@ -40,8 +41,8 @@ async function setCerbiosIni()
     let content = document.getElementById("cerbiosini");
 
     var data = new FormData();
-    data.append('body', content.innerText);
-    await fetch("http://192.168.1.66/api/cerbiosini", {
+    data.append('body', content.value);
+    await fetch("/api/cerbiosini", {
         method: 'POST',
         body: data
     }).then(response => {

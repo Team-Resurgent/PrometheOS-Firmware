@@ -1,11 +1,13 @@
 #pragma once
 
-//https://notisrac.github.io/FileToCArray/
+// https://notisrac.github.io/FileToCArray/
 
 #include "Assets/Font/freesans_sfn.h"
 
 #include "Assets/Web/cerbiosini_html.h"
 #include "Assets/Web/cerbiosini_js.h"
+#include "Assets/Web/datetime_html.h"
+#include "Assets/Web/datetime_js.h"
 #include "Assets/Web/pico_css.h"
 #include "Assets/Web/favicon_ico.h"
 #include "Assets/Web/main_css.h"
@@ -13,13 +15,24 @@
 #include "Assets/Web/flash_js.h"
 #include "Assets/Web/index_html.h"
 #include "Assets/Web/index_js.h"
+#include "Assets/Web/index_tools_html.h"
+#include "Assets/Web/index_tools_js.h"
 #include "Assets/Web/launch_html.h"
 #include "Assets/Web/launch_js.h"
 #include "Assets/Web/download_html.h"
 #include "Assets/Web/download_js.h"
 #include "Assets/Web/downloads_html.h"
 #include "Assets/Web/downloads_js.h"
+#include "Assets/Web/downloads_tools_html.h"
+#include "Assets/Web/downloads_tools_js.h"
 #include "Assets/Web/remove_html.h"
 #include "Assets/Web/remove_js.h"
 #include "Assets/Web/remoteview_html.h"
 #include "Assets/Web/remoteview_js.h"
+#include "Assets/Web/prom_js.h"
+#include "Assets/Web/systeminfo_html.h"
+#include "Assets/Web/systeminfo_js.h"
+#include "Assets/Web/files_html.h"
+#include "Assets/Web/files_js.h"
+#include "Assets/Web/eeprom_html.h"
+#include "Assets/Web/eeprom_js.h"

@@ -14,7 +14,7 @@
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation; either version 2 of the License, or
 * (at your option) any later version.
-* 
+*
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -45,7 +45,7 @@
 **
 **	XBOX-LINUX TEAM:
 **	---------------
-**		Wow, you guys are awsome !!  I bow down to your greatness !!  
+**		Wow, you guys are awsome !!  I bow down to your greatness !!
 **		REFERENCE URL:  http://xbox-linux.sourceforge.net
 **
 ********************************************************************************************************
@@ -63,35 +63,30 @@ Reason: Prepared for Public Release
 
 */
 #pragma once
-#if defined (_WINDOWS)
-	#pragma message ("Compiling for WINDOWS: " __FILE__)
-	#include <afxwin.h>         // MFC core and standard components
-#elif defined (_XBOX)
-	#pragma message ("Compiling for XBOX: " __FILE__)
-	#include <xtl.h>
+#if defined(_WINDOWS)
+#pragma message("Compiling for WINDOWS: " __FILE__)
+#include <afxwin.h> // MFC core and standard components
+#elif defined(_XBOX)
+#pragma message("Compiling for XBOX: " __FILE__)
+#include <xtl.h>
 #else
-	#error ERR: Have to Define _WINDOWS or _XBOX !!
+#error ERR: Have to Define _WINDOWS or _XBOX !!
 #endif
 
-class XKRC4
-{
-protected:
-		void swap_byte(UCHAR* a, UCHAR* b);
+class XKRC4 {
+  protected:
+    void swap_byte(UCHAR* a, UCHAR* b);
 
-public:
-	struct RC4KEY
-	{
-		UCHAR state[256];
-		UCHAR x;
-		UCHAR y;
-	};
+  public:
+    struct RC4KEY {
+        UCHAR state[256];
+        UCHAR x;
+        UCHAR y;
+    };
 
-	XKRC4(void);
-	virtual ~XKRC4(void);
+    XKRC4(void);
+    virtual ~XKRC4(void);
 
-	void InitRC4Key(UCHAR* pRC4KeyData, int KeyLen, RC4KEY* pRC4Key);
-	void RC4EnDecrypt(UCHAR* pData, int DataLen, RC4KEY* pRC4key);
-
-
+    void InitRC4Key(UCHAR* pRC4KeyData, int KeyLen, RC4KEY* pRC4Key);
+    void RC4EnDecrypt(UCHAR* pData, int DataLen, RC4KEY* pRC4key);
 };
-

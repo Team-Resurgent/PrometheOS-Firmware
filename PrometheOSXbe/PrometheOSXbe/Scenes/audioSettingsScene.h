@@ -2,12 +2,12 @@
 
 #include "scene.h"
 
-class audioSettingsScene : public scene
-{
-public:
-	audioSettingsScene();
-	void update();
-	void render();
-private:
-	int mSelectedControl;
+class audioSettingsScene : public scene {
+  public:
+    audioSettingsScene();
+    void update();
+    void render();
+
+  private:
+    int mSelectedControl;
 };

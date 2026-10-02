@@ -7,271 +7,250 @@
 #include "..\context.h"
 #include "..\settingsManager.h"
 
-namespace
-{
-	HANDLE mThread;
-	lcdRender::lcdRenderData mData;
-}
+namespace {
+HANDLE mThread;
+lcdRender::lcdRenderData mData;
+} // namespace
 
-bool lcdRender::startThread()
-{
-	memset(&mData, 0, sizeof(lcdRenderData));
-	mData.requestStop = false;
-	  
-	InitializeCriticalSection(&mData.mutex);
+bool lcdRender::startThread() {
+    memset(&mData, 0, sizeof(lcdRenderData));
+    mData.requestStop = false;
 
-	mThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)process, (void*)&mData, 0, NULL);
-	if (mThread == NULL) {
+    InitializeCriticalSection(&mData.mutex);
+
+    mThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)process, (void*)&mData, 0, NULL);
+    if (mThread == NULL) {
         return false;
     }
-	SetThreadPriority(mThread, THREAD_PRIORITY_HIGHEST);
-	return true;
+    SetThreadPriority(mThread, THREAD_PRIORITY_HIGHEST);
+    return true;
 }
 
-bool lcdRender::completed()
-{
-	DWORD exitCode;
-    if (GetExitCodeThread(mThread, &exitCode)) 
-	{
-        if (exitCode != STILL_ACTIVE) 
-		{
+bool lcdRender::completed() {
+    DWORD exitCode;
+    if (GetExitCodeThread(mThread, &exitCode)) {
+        if (exitCode != STILL_ACTIVE) {
             return true;
         }
     }
-	return false;
+    return false;
 }
 
-void lcdRender::closeThread()
-{
-	EnterCriticalSection(&mData.mutex);
-	mData.requestStop = true;
-	LeaveCriticalSection(&mData.mutex);
-	CloseHandle(mThread);
+void lcdRender::closeThread() {
+    EnterCriticalSection(&mData.mutex);
+    mData.requestStop = true;
+    LeaveCriticalSection(&mData.mutex);
+    CloseHandle(mThread);
     DeleteCriticalSection(&mData.mutex);
 }
 
-void lcdRender::waitStop()
-{
-	EnterCriticalSection(&mData.mutex);
-	mData.requestStop = true;
-	LeaveCriticalSection(&mData.mutex);
-	while (completed() == false)
-	{
-		 Sleep(100);
-	}
+void lcdRender::waitStop() {
+    EnterCriticalSection(&mData.mutex);
+    mData.requestStop = true;
+    LeaveCriticalSection(&mData.mutex);
+    while (completed() == false) {
+        Sleep(100);
+    }
 }
 
-uint64_t WINAPI lcdRender::process(void* param) 
-{
-	lcdRenderData* data = (lcdRenderData*)param;
-	
-	char* titleToDisplay = strdup("");
-	char* freeMemToDisplay = strdup("");
-	char* ipToDisplay = strdup("");
-	char* fanToDisplay = strdup("");
-	char* cpuToDisplay = strdup("");
+uint64_t WINAPI lcdRender::process(void* param) {
+    lcdRenderData* data = (lcdRenderData*)param;
 
-	uint8_t lcdMode = settingsManager::getLcdMode(true);
-	uint8_t lcdModel = settingsManager::getLcdModel(true);
-	uint8_t lcdAddress = settingsManager::getLcdAddress(true);
-	uint8_t backlight = settingsManager::getLcdBacklight(true);
-	uint8_t contrast = settingsManager::getLcdBacklight(true);
+    char* titleToDisplay = strdup("");
+    char* freeMemToDisplay = strdup("");
+    char* ipToDisplay = strdup("");
+    char* fanToDisplay = strdup("");
+    char* cpuToDisplay = strdup("");
 
-	int counter = 0;
+    uint8_t lcdMode = settingsManager::getLcdMode(true);
+    uint8_t lcdModel = settingsManager::getLcdModel(true);
+    uint8_t lcdAddress = settingsManager::getLcdAddress(true);
+    uint8_t backlight = settingsManager::getLcdBacklight(true);
+    uint8_t contrast = settingsManager::getLcdBacklight(true);
 
-	bool initialized = false;
-	bool requestStop = false;
-	while (requestStop == false)
-	{
-		char* currentTitle = context::getCurrentTitle();
-		char* currentIp = context::getCurrentIp();
-		char* currentFreeMem = stringUtility::formatSize(context::getCurrentFreeMem());
-		char* currentFan = stringUtility::formatString("%i%%", context::getCurrentFanSpeed());
-		char* currentCpu = stringUtility::formatString("%ic", context::getCurrentCpuTemp());
+    int counter = 0;
 
-		//counter++;
-		//if (counter == 10)
-		//{
-		//	counter = 0;
-		//	utils::swapString(&titleToDisplay, "");
-		//	utils::swapString(&freeMemToDisplay, "");
-		//	utils::swapString(&ipToDisplay, "");
-		//	utils::swapString(&fanToDisplay, "");
-		//	utils::swapString(&cpuToDisplay, "");
-		//}
+    bool initialized = false;
+    bool requestStop = false;
+    while (requestStop == false) {
+        uint8_t currentlcdMode = settingsManager::getLcdMode(true);
+        if (currentlcdMode == 0) {
+            goto skipLoop;
+        }
 
-		uint8_t currentlcdMode = settingsManager::getLcdMode(true);
-		if (currentlcdMode != lcdMode)
-		{
-			lcdMode = currentlcdMode;
-			initialized = false;
-		}
+        char* currentTitle = context::getCurrentTitle();
+        char* currentIp = context::getCurrentIp();
+        char* currentFreeMem = stringUtility::formatSize(context::getCurrentFreeMem());
+        char* currentFan = stringUtility::formatString("%i%%", context::getCurrentFanSpeed());
+        char* currentCpu = stringUtility::formatString("%ic", context::getCurrentCpuTemp());
 
-		uint8_t currentLcdModel = settingsManager::getLcdModel(true);
-		if (currentLcdModel != lcdModel)
-		{
-			lcdModel = currentLcdModel;
-			initialized = false;
-		}
+        // counter++;
+        // if (counter == 10)
+        //{
+        //	counter = 0;
+        //	utils::swapString(&titleToDisplay, "");
+        //	utils::swapString(&freeMemToDisplay, "");
+        //	utils::swapString(&ipToDisplay, "");
+        //	utils::swapString(&fanToDisplay, "");
+        //	utils::swapString(&cpuToDisplay, "");
+        // }
 
-		uint8_t currentLcdAddress = settingsManager::getLcdAddress(true);
-		if (currentLcdAddress != lcdAddress)
-		{
-			lcdAddress = currentLcdAddress;
-			initialized = false;
-		}
+        if (currentlcdMode != lcdMode) {
+            lcdMode = currentlcdMode;
+            initialized = false;
+        }
 
-		if (currentlcdMode > 0)
-		{
-			if (initialized == false)
-			{
-				initialized = true;
-				context::getModchip()->lcdInit();
+        uint8_t currentLcdModel = settingsManager::getLcdModel(true);
+        if (currentLcdModel != lcdModel) {
+            lcdModel = currentLcdModel;
+            initialized = false;
+        }
 
-				utils::swapString(&titleToDisplay, "");
-				utils::swapString(&freeMemToDisplay, "");
-				utils::swapString(&ipToDisplay, "");
-				utils::swapString(&fanToDisplay, "");
-				utils::swapString(&cpuToDisplay, "");
+        uint8_t currentLcdAddress = settingsManager::getLcdAddress(true);
+        if (currentLcdAddress != lcdAddress) {
+            lcdAddress = currentLcdAddress;
+            initialized = false;
+        }
 
-				context::getModchip()->lcdSetCursorPosition(0, 0);
-				char* line1 = stringUtility::formatLcdString("", 20);
-				context::getModchip()->lcdPrintMessage(line1);
-				free(line1);
+        if (currentlcdMode > 0) {
+            if (initialized == false) {
+                initialized = true;
+                context::getModchip()->lcdInit();
 
-				context::getModchip()->lcdSetCursorPosition(1, 0);
-				char* line2 = stringUtility::formatLcdString("IP:", 20);
-				context::getModchip()->lcdPrintMessage(line2);
-				free(line2);
+                utils::swapString(&titleToDisplay, "");
+                utils::swapString(&freeMemToDisplay, "");
+                utils::swapString(&ipToDisplay, "");
+                utils::swapString(&fanToDisplay, "");
+                utils::swapString(&cpuToDisplay, "");
 
-				if (context::getModchip()->getSupportInfo(true).supportsLcdInfo == false)
-				{
-					context::getModchip()->lcdSetCursorPosition(2, 0);
-					char* line3 = stringUtility::formatLcdString("Free Mem:", 20);
-					context::getModchip()->lcdPrintMessage(line3);
-					free(line3);
-					
-					context::getModchip()->lcdSetCursorPosition(3, 0);
-					char* line4 = stringUtility::formatLcdString("FAN:     CPU:", 20);
-					context::getModchip()->lcdPrintMessage(line4);
-					free(line4);
-				}
-			}
+                context::getModchip()->lcdSetCursorPosition(0, 0);
+                char* line1 = stringUtility::formatLcdString("", 20);
+                context::getModchip()->lcdPrintMessage(line1);
+                free(line1);
 
-			if (stringUtility::equals(titleToDisplay, currentTitle, false) == false)
-			{
-				utils::swapString(&titleToDisplay, currentTitle);
+                context::getModchip()->lcdSetCursorPosition(1, 0);
+                char* line2 = stringUtility::formatLcdString("IP:", 20);
+                context::getModchip()->lcdPrintMessage(line2);
+                free(line2);
 
-				context::getModchip()->lcdSetCursorPosition(0, 0);
-				char* title = stringUtility::formatLcdString(titleToDisplay, 20);
-				context::getModchip()->lcdPrintMessage(title);
-				free(title);
-			}
+                if (context::getModchip()->getSupportInfo(true).supportsLcdInfo == false) {
+                    context::getModchip()->lcdSetCursorPosition(2, 0);
+                    char* line3 = stringUtility::formatLcdString("Free Mem:", 20);
+                    context::getModchip()->lcdPrintMessage(line3);
+                    free(line3);
 
-			if (stringUtility::equals(ipToDisplay, currentIp, false) == false)
-			{
-				utils::swapString(&ipToDisplay, currentIp);
+                    context::getModchip()->lcdSetCursorPosition(3, 0);
+                    char* line4 = stringUtility::formatLcdString("FAN:     CPU:", 20);
+                    context::getModchip()->lcdPrintMessage(line4);
+                    free(line4);
+                }
+            }
 
-				if (context::getModchip()->getDisplayDriver(true)->isSpi2Par() == true)
-				{
-					context::getModchip()->lcdSetCursorPosition(1, 0);
-					context::getModchip()->lcdPrintMessage("IP:");
-				}
+            if (stringUtility::equals(titleToDisplay, currentTitle, false) == false) {
+                utils::swapString(&titleToDisplay, currentTitle);
 
-				context::getModchip()->lcdSetCursorPosition(1, 3);
-				char* ip = stringUtility::formatLcdString(ipToDisplay, 15);
-				context::getModchip()->lcdPrintMessage(ip);
-				free(ip);
-			}
+                context::getModchip()->lcdSetCursorPosition(0, 0);
+                char* title = stringUtility::formatLcdString(titleToDisplay, 20);
+                context::getModchip()->lcdPrintMessage(title);
+                free(title);
+            }
 
-			if (context::getModchip()->getSupportInfo(true).supportsLcdInfo == false)
-			{
-				if (stringUtility::equals(freeMemToDisplay, currentFreeMem, false) == false)
-				{
-					utils::swapString(&freeMemToDisplay, currentFreeMem);
+            if (stringUtility::equals(ipToDisplay, currentIp, false) == false) {
+                utils::swapString(&ipToDisplay, currentIp);
+                displayDriver *driver = context::getModchip()->getDisplayDriver(true);
 
-					if (context::getModchip()->getDisplayDriver(true)->isSpi2Par() == true)
-					{
-						context::getModchip()->lcdSetCursorPosition(2, 0);
-						context::getModchip()->lcdPrintMessage("Free Mem:");
-					}
+                if (driver && driver->isSpi2Par() == true) {
+                    context::getModchip()->lcdSetCursorPosition(1, 0);
+                    context::getModchip()->lcdPrintMessage("IP:");
+                }
 
-					context::getModchip()->lcdSetCursorPosition(2, 9);
-					char* freeMem = stringUtility::formatLcdString(freeMemToDisplay, 20 - 9);
-					context::getModchip()->lcdPrintMessage(freeMem);
-					free(freeMem);
-				}
+                context::getModchip()->lcdSetCursorPosition(1, 3);
+                char* ip = stringUtility::formatLcdString(ipToDisplay, 15);
+                context::getModchip()->lcdPrintMessage(ip);
+                free(ip);
+            }
 
-				if (stringUtility::equals(fanToDisplay, currentFan, false) == false)
-				{
-					utils::swapString(&fanToDisplay, currentFan);
+            if (context::getModchip()->getSupportInfo(true).supportsLcdInfo == false) {
+                if (stringUtility::equals(freeMemToDisplay, currentFreeMem, false) == false) {
+                    utils::swapString(&freeMemToDisplay, currentFreeMem);
+                    displayDriver *driver = context::getModchip()->getDisplayDriver(true);
 
-					if (context::getModchip()->getDisplayDriver(true)->isSpi2Par() == true)
-					{
-						context::getModchip()->lcdSetCursorPosition(3, 0);
-						context::getModchip()->lcdPrintMessage("FAN:");
-					}
+                    if (driver && driver->isSpi2Par() == true) {
+                        context::getModchip()->lcdSetCursorPosition(2, 0);
+                        context::getModchip()->lcdPrintMessage("Free Mem:");
+                    }
 
-					context::getModchip()->lcdSetCursorPosition(3, 4);
-					char* fan = stringUtility::formatLcdString(fanToDisplay, 4);
-					context::getModchip()->lcdPrintMessage(fan);
-					free(fan);
-				}
+                    context::getModchip()->lcdSetCursorPosition(2, 9);
+                    char* freeMem = stringUtility::formatLcdString(freeMemToDisplay, 20 - 9);
+                    context::getModchip()->lcdPrintMessage(freeMem);
+                    free(freeMem);
+                }
 
-				if (stringUtility::equals(cpuToDisplay, currentCpu, false) == false)
-				{
-					utils::swapString(&cpuToDisplay, currentCpu);
+                if (stringUtility::equals(fanToDisplay, currentFan, false) == false) {
+                    utils::swapString(&fanToDisplay, currentFan);
+                    displayDriver *driver = context::getModchip()->getDisplayDriver(true);
 
-					if (context::getModchip()->getDisplayDriver(true)->isSpi2Par() == true)
-					{
-						context::getModchip()->lcdSetCursorPosition(3, 9);
-						context::getModchip()->lcdPrintMessage("CPU:");
-					}
+                    if (driver && driver->isSpi2Par() == true) {
+                        context::getModchip()->lcdSetCursorPosition(3, 0);
+                        context::getModchip()->lcdPrintMessage("FAN:");
+                    }
 
-					context::getModchip()->lcdSetCursorPosition(3, 13);
-					char* cpu = stringUtility::formatLcdString(cpuToDisplay, 3);
-					context::getModchip()->lcdPrintMessage(cpu);
-					free(cpu);
-				}
-			}
+                    context::getModchip()->lcdSetCursorPosition(3, 4);
+                    char* fan = stringUtility::formatLcdString(fanToDisplay, 4);
+                    context::getModchip()->lcdPrintMessage(fan);
+                    free(fan);
+                }
 
-			if (backlight != settingsManager::getLcdBacklight(true))
-			{
-				backlight = settingsManager::getLcdBacklight(true);
-				context::getModchip()->lcdSetBacklight(backlight);
-			}
+                if (stringUtility::equals(cpuToDisplay, currentCpu, false) == false) {
+                    utils::swapString(&cpuToDisplay, currentCpu);
+                    displayDriver *driver = context::getModchip()->getDisplayDriver(true);
 
-			if (contrast != settingsManager::getLcdContrast(true))
-			{
-				contrast = settingsManager::getLcdContrast(true);
-				context::getModchip()->lcdSetContrast(contrast);
-			}
-		}
+                    if (driver && driver->isSpi2Par() == true) {
+                        context::getModchip()->lcdSetCursorPosition(3, 9);
+                        context::getModchip()->lcdPrintMessage("CPU:");
+                    }
 
-		utils::freeString(&currentTitle);
-		utils::freeString(&currentIp);
-		utils::freeString(&currentFreeMem);
-		utils::freeString(&currentFan);
-		utils::freeString(&currentCpu);
+                    context::getModchip()->lcdSetCursorPosition(3, 13);
+                    char* cpu = stringUtility::formatLcdString(cpuToDisplay, 3);
+                    context::getModchip()->lcdPrintMessage(cpu);
+                    free(cpu);
+                }
+            }
 
-		for (int i = 0; i < 10; i++)
-		{
-			EnterCriticalSection(&data->mutex);
-			requestStop = data->requestStop;
-			LeaveCriticalSection(&data->mutex);
-			if (requestStop == true)
-			{
-				break;
-			}
-			Sleep(100);
-		}
-	}
+            if (backlight != settingsManager::getLcdBacklight(true)) {
+                backlight = settingsManager::getLcdBacklight(true);
+                context::getModchip()->lcdSetBacklight(backlight);
+            }
 
-	utils::freeString(&titleToDisplay);
-	utils::freeString(&ipToDisplay);
-	utils::freeString(&freeMemToDisplay);
-	utils::freeString(&fanToDisplay);
-	utils::freeString(&cpuToDisplay);
+            if (contrast != settingsManager::getLcdContrast(true)) {
+                contrast = settingsManager::getLcdContrast(true);
+                context::getModchip()->lcdSetContrast(contrast);
+            }
+        }
 
-	return 0;
+        utils::freeString(&currentTitle);
+        utils::freeString(&currentIp);
+        utils::freeString(&currentFreeMem);
+        utils::freeString(&currentFan);
+        utils::freeString(&currentCpu);
+
+    skipLoop:
+        for (int i = 0; i < 10; i++) {
+            EnterCriticalSection(&data->mutex);
+            requestStop = data->requestStop;
+            LeaveCriticalSection(&data->mutex);
+            if (requestStop == true) {
+                break;
+            }
+            Sleep(100);
+        }
+    }			
+
+    utils::freeString(&titleToDisplay);
+    utils::freeString(&ipToDisplay);
+    utils::freeString(&freeMemToDisplay);
+    utils::freeString(&fanToDisplay);
+    utils::freeString(&cpuToDisplay);
+
+    return 0;
 }

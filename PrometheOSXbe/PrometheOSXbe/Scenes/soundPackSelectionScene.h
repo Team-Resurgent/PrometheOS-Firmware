@@ -5,14 +5,14 @@
 
 #include "../pointerMap.h"
 
-class soundPackSelectionScene : public scene
-{
-public:
-	soundPackSelectionScene();
-	~soundPackSelectionScene();
-	void update();
-	void render();
-private:
-	int mSelectedControl;
-	pointerVector<char*>* mMenuItems;
+class soundPackSelectionScene : public scene {
+  public:
+    soundPackSelectionScene();
+    ~soundPackSelectionScene();
+    void update();
+    void render();
+
+  private:
+    int mSelectedControl;
+    pointerVector<char*>* mMenuItems;
 };

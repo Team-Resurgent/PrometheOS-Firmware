@@ -1,20 +1,26 @@
 #pragma once
 
-enum modchipType
-{
-	modchipTypeXenium,
-	modchipTypeXtremium,
-	modchipTypeXecuter,
-	modchipTypeSmartxx,
-	modchipTypeModxo,
-	modchipTypeAladdin1mb,
-	modchipTypeAladdin2mb,
-	modchipTypeXchanger,
-	modchipTypeDummy,
+enum modchipType {
+    modchipTypeXenium,
+    modchipTypeXecuter,
+    modchipTypeSmartxxOpx,
+    modchipTypeSmartxx,
+    modchipTypeModxo,
+    modchipTypeAladdin1mb,
+    modchipTypeAladdin2mb,
+    modchipTypeXchanger,
+    modchipTypeDummy,
 };
 
-enum bankType
+enum bankType {
+    bankTypeSystem,
+    bankTypeUser,
+};
+
+enum bankCategory
 {
-	bankTypeSystem,
-	bankTypeUser,
+    bankCategoryFlash,
+    bankCategoryTsop,
+    bankCategoryRecovery,
+    bankCategorySdCard
 };

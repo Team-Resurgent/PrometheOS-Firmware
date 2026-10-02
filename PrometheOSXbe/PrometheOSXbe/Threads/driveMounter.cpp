@@ -6,58 +6,48 @@
 #include "..\XKUtils\XKEEPROM.h"
 #include "..\XKUtils\XKHDD.h"
 
-namespace
-{
-	HANDLE mThread;
-	driveMounter::driveMounterData mData;
-}
+namespace {
+HANDLE mThread;
+driveMounter::driveMounterData mData;
+} // namespace
 
-bool driveMounter::startThread(bool onlyMountE)
-{
-	memset(&mData, 0, sizeof(driveMounterData));
-	mData.onlyMountE = onlyMountE;
-	  
-	InitializeCriticalSection(&mData.mutex);
+bool driveMounter::startThread(bool onlyMountE) {
+    memset(&mData, 0, sizeof(driveMounterData));
+    mData.onlyMountE = onlyMountE;
 
-	mThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)process, (void*)&mData, 0, NULL);
-	if (mThread == NULL) {
+    InitializeCriticalSection(&mData.mutex);
+
+    mThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)process, (void*)&mData, 0, NULL);
+    if (mThread == NULL) {
         return false;
     }
-	SetThreadPriority(mThread, THREAD_PRIORITY_HIGHEST);
-	return true;
+    SetThreadPriority(mThread, THREAD_PRIORITY_HIGHEST);
+    return true;
 }
 
-bool driveMounter::completed()
-{
-	DWORD exitCode;
-    if (GetExitCodeThread(mThread, &exitCode)) 
-	{
-        if (exitCode != STILL_ACTIVE) 
-		{
+bool driveMounter::completed() {
+    DWORD exitCode;
+    if (GetExitCodeThread(mThread, &exitCode)) {
+        if (exitCode != STILL_ACTIVE) {
             return true;
         }
     }
-	return false;
+    return false;
 }
 
-void driveMounter::closeThread()
-{
-	CloseHandle(mThread);
+void driveMounter::closeThread() {
+    CloseHandle(mThread);
     DeleteCriticalSection(&mData.mutex);
 }
 
-uint64_t WINAPI driveMounter::process(void* param) 
-{
-	driveMounterData* data = (driveMounterData*)param;
+uint64_t WINAPI driveMounter::process(void* param) {
+    driveMounterData* data = (driveMounterData*)param;
 
-	if (data->onlyMountE == true)
-	{
-		driveManager::mountDrive("HDD0-E");
-	}
-	else
-	{
-		driveManager::mountAllDrives();
-	}
+    if (data->onlyMountE == true) {
+        driveManager::mountDrive("HDD0-E");
+    } else {
+        driveManager::mountAllDrives();
+    }
 
-	return 0;
+    return 0;
 }

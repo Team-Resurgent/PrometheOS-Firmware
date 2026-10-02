@@ -5,16 +5,20 @@
 #include "..\pointerVector.h"
 #include "..\settingsManager.h"
 
-class launchScene : public scene
-{
-public:
-	launchScene();
-	~launchScene();
-	void update();
-	void render();
-private:
-	void setupBanks();
+class launchScene : public scene {
+  public:
+    launchScene();
+    ~launchScene();
+    void update();
+    void render();
+    void launchSdCardFromPath(const char* sdPath, bool safeMode);
 
-	int mSelectedControl;
-	pointerVector<bankDetails*>* mBanks;
+  private:
+    void setupBanks();
+    void launchSdCardPicker();
+    void launchSdCard(bool safeMode);
+    static void onSdCardPickerClosingCallback(sceneResult result, void* context, scene* scene);
+
+    int mSelectedControl;
+    pointerVector<bankDetails*>* mBanks;
 };

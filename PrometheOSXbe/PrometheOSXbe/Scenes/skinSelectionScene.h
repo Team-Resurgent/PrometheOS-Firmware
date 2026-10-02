@@ -5,14 +5,14 @@
 
 #include "../pointerMap.h"
 
-class skinSelectionScene : public scene
-{
-public:
-	skinSelectionScene();
-	~skinSelectionScene();
-	void update();
-	void render();
-private:
-	int mSelectedControl;
-	pointerVector<char*>* mMenuItems;
+class skinSelectionScene : public scene {
+  public:
+    skinSelectionScene();
+    ~skinSelectionScene();
+    void update();
+    void render();
+
+  private:
+    int mSelectedControl;
+    pointerVector<char*>* mMenuItems;
 };

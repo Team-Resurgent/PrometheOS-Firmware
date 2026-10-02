@@ -10,8 +10,9 @@
 </head>
 <body>
     <main class="container">
-        <form>
+        <form id="file-drop">
             <h2>PrometheOS: Flash BIOS</h2>
+            <h5>Either choose file or drop file anywhere within this dotted region.</h5>            
             <label for="file"><b>File:</b></label>
             <input type="file" id="file" onchange="refreshFileInfo()" />
             <br />
@@ -41,13 +42,13 @@
             </div>
             <hr />
             <br />
-            <div class="grid">
+            <div class="prom-flash-actions">
                 <a role="button" disabled id="upload" href="javascript:void(0)" onclick="upload()">Upload</a>
-                <a role="button" class="secondary" href="index.html">Back</a>
+                <a role="button" class="secondary outline prom-flash-back" href="index.html">Back</a>
             </div>
             <br />
             <div>
-                <b>Copyright 2024 - Team Cerbios + Team Resurgent</b>
+                <b>Copyright <span id="year"></span> - Team Cerbios + Team Resurgent</b>
             </div>
         </form>
     </main>

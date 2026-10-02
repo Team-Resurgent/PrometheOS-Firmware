@@ -1,5 +1,5 @@
-﻿using PrometheOSPacker.Helpers;
 using System.Diagnostics;
+using PrometheOSPacker.Helpers;
 
 namespace PrometheOSPacker
 {
@@ -11,7 +11,7 @@ namespace PrometheOSPacker
             if (offline)
             {
                 try
-                {
+                { 
                     byte[] fileBytes = File.ReadAllBytes(Path.Combine("OfflineFiles", Path.GetFileName(url)));
                     await File.WriteAllBytesAsync(filename, fileBytes);
                     return true;
@@ -23,7 +23,7 @@ namespace PrometheOSPacker
                 }
             }
 
-            using (var client = new HttpClient())
+            using (HttpClient client = new HttpClient())
             {
                 try
                 {
@@ -39,40 +39,88 @@ namespace PrometheOSPacker
             }
         }
 
-        static void Main()
+        static void Main(string[] args)
         {
-            var version = "V1.0.8";
-            //version = "latest";
+            var prometheosWebTestIp = "192.168.1.93"; // If you change ip in PrometheOSWeb update here
 
-            var baseUrl = $"https://github.com/Team-Resurgent/Modxo/releases/download/{version}";
-
-            Console.WriteLine("Downloading 'modxo-official-pico.bin'.");
-            if (DownloadFileAsync($"{baseUrl}/modxo_official_pico.bin", "modxo-official-pico.bin").GetAwaiter().GetResult() == false)
+            if (args.Length > 0 && args[0] == "--minify-only")
             {
-                return;
-            }
-            Console.WriteLine("Downloading 'modxo-official-pico2.bin'.");
-            if (DownloadFileAsync($"{baseUrl}/modxo_official_pico2.bin", "modxo-official-pico2.bin").GetAwaiter().GetResult() == false)
-            {
-                return;
-            }
-            Console.WriteLine("Downloading 'modxo-yd-rp2040.bin'.");
-            if (DownloadFileAsync($"{baseUrl}/modxo_yd_rp2040.bin", "modxo-yd-rp2040.bin").GetAwaiter().GetResult() == false)
-            {
-                return;
-            }
-            Console.WriteLine("Downloading 'modxo-rp2040-zero-tiny.bin'.");
-            if (DownloadFileAsync($"{baseUrl}/modxo_rp2040_zero_tiny.bin", "modxo-rp2040-zero-tiny.bin").GetAwaiter().GetResult() == false)
-            {
-                return;
-            }
-            Console.WriteLine("Downloading 'modxo-xiao-rp2040.bin'.");
-            if (DownloadFileAsync($"{baseUrl}/modxo_xiao_rp2040.bin", "modxo-xiao-rp2040.bin").GetAwaiter().GetResult() == false)
-            {
+                Minify.Process(prometheosWebTestIp);
                 return;
             }
 
-            var prometheosWebTestIp = "192.168.1.66"; // If you change ip in PrometheOSWeb update here
+            Console.WriteLine("Updating submodules...");
+            var submoduleProcess = Process.Start(new ProcessStartInfo
+            {
+                FileName = "git",
+                Arguments = "submodule update --recursive --remote",
+                WorkingDirectory = Utility.GetRepoRoot(),
+                UseShellExecute = false,
+            });
+            submoduleProcess?.WaitForExit();
+            if (submoduleProcess?.ExitCode != 0)
+            {
+                Console.WriteLine("Failed to update submodules.");
+                return;
+            }
+            Console.WriteLine();
+
+            var version = "V1.0.17";
+
+            var modchips = new[]
+            {
+                "Aladdin1mb",
+                "Aladdin2mb",
+                "Xenium",
+                "Xecuter",
+                "Xchanger",
+                "Modxo",
+                "SmartxxOpx",
+                "Smartxx"
+            };
+
+            if (modchips.Contains("Modxo"))
+            {
+
+                var baseUrl = $"https://github.com/Team-Resurgent/Modxo/releases/download/{version}";
+
+                Console.WriteLine("Downloading 'modxo-official-pico.bin'.");
+                if (DownloadFileAsync($"{baseUrl}/modxo_official_pico.bin", "modxo-official-pico.bin").GetAwaiter()
+                        .GetResult() == false)
+                {
+                    return;
+                }
+
+                Console.WriteLine("Downloading 'modxo-official-pico2.bin'.");
+                if (DownloadFileAsync($"{baseUrl}/modxo_official_pico2.bin", "modxo-official-pico2.bin").GetAwaiter()
+                        .GetResult() == false)
+                {
+                    return;
+                }
+
+                Console.WriteLine("Downloading 'modxo-yd-rp2040.bin'.");
+                if (DownloadFileAsync($"{baseUrl}/modxo_yd_rp2040.bin", "modxo-yd-rp2040.bin").GetAwaiter()
+                        .GetResult() == false)
+                {
+                    return;
+                }
+
+                Console.WriteLine("Downloading 'modxo-rp2040-zero-tiny.bin'.");
+                if (DownloadFileAsync($"{baseUrl}/modxo_rp2040_zero_tiny.bin", "modxo-rp2040-zero-tiny.bin")
+                        .GetAwaiter().GetResult() == false)
+                {
+                    return;
+                }
+
+                Console.WriteLine("Downloading 'modxo-xiao-rp2040.bin'.");
+                if (DownloadFileAsync($"{baseUrl}/modxo_xiao_rp2040.bin", "modxo-xiao-rp2040.bin").GetAwaiter()
+                        .GetResult() == false)
+                {
+                    return;
+                }
+
+                Console.WriteLine();
+            }
 
             Console.WriteLine("1) Updating embeded web files in XBE...");
             Minify.Process(prometheosWebTestIp);
@@ -86,18 +134,6 @@ namespace PrometheOSPacker
             Console.WriteLine("3) Packaging PrometheOSTools and PrometheOS firmware for each modchip...");
 
             Package.PackageTools();
-
-            var modchips = new string[]
-            {
-                "Aladdin1mb",
-                "Aladdin2mb",
-                "Xenium",
-                "Xecuter",
-                "Xchanger",
-                "Aladdin1mb",
-                "Aladdin2mb",
-                "Modxo",
-            };
 
             foreach (var modchip in modchips)
             {
@@ -129,6 +165,16 @@ namespace PrometheOSPacker
                 if (modchip.Equals("Modxo", StringComparison.CurrentCultureIgnoreCase))
                 {
                     Package.PackageModxo(modchip);
+                }
+
+                if (modchip.Equals("SmartxxOpx", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Package.PackageSmartxxOpx(modchip);
+                }
+
+                if (modchip.Equals("Smartxx", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    Package.PackageSmartxx(modchip);
                 }
 
                 // Edit and enable below lines if you wish to ftp to xbox / xenium programmer
